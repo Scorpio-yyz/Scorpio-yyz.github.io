@@ -1,205 +1,114 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  
-  
-  <title>操作系统 | Scorpio-yyz</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="什么是操作系统？只有计算机硬件的东西叫裸机。 在计算机硬件和应用之间的一层软件就是操作系统。  方便我们使用硬件 高效的使用硬件  操作系统管理这些硬件  CPU管理 内存管理 终端管理 磁盘管理 文件管理 网络管理 电源管理 多核管理">
-<meta property="og:type" content="article">
-<meta property="og:title" content="操作系统">
-<meta property="og:url" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/index.html">
-<meta property="og:site_name" content="Scorpio-yyz">
-<meta property="og:description" content="什么是操作系统？只有计算机硬件的东西叫裸机。 在计算机硬件和应用之间的一层软件就是操作系统。  方便我们使用硬件 高效的使用硬件  操作系统管理这些硬件  CPU管理 内存管理 终端管理 磁盘管理 文件管理 网络管理 电源管理 多核管理">
-<meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/1.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/2.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/3.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/4.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/5.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/6.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/7.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/8.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/9.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/10.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/11.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/12.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/13.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/14.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/15.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/16.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/17.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/18.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/19.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/20.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/21.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/22.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/23.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/24.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/25.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/26.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/35.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/36.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/27.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/28.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/29.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/30.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/31.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/32.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/33.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/34.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/37.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/38.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/39.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/40.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/42.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/41.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/43.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/49.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/50.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/51.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/52.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/53.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/54.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/55.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/56.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/57.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/58.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/59.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/60.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/61.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/62.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/63.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/64.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/65.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/66.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/67.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/68.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/69.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/70.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/71.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/72.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/73.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/74.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/75.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/76.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/77.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/78.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/79.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/80.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/81.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/82.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/83.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/84.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/85.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/86.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/87.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/88.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/89.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/90.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/94.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/91.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/92.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/93.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/95.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/96.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/97.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/98.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/99.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/100.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/101.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/102.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/103.png">
-<meta property="og:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/104.png">
-<meta property="article:published_time" content="2021-07-23T07:12:13.407Z">
-<meta property="article:modified_time" content="2021-12-05T06:54:31.392Z">
-<meta property="article:author" content="John Doe">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/1.png">
-  
-    <link rel="alternate" href="/atom.xml" title="Scorpio-yyz" type="application/atom+xml">
-  
-  
-    <link rel="shortcut icon" href="/favicon.png">
-  
-  
-    
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
 
-  
-  
-<link rel="stylesheet" href="/css/style.css">
 
+<html lang="en">
   
-    
-<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
 
-  
-<meta name="generator" content="Hexo 5.4.0"></head>
+    <head>
+      <meta charset="utf-8" />
+        
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>基础知识 |  Scorpio-yyz</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/favicon.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css"
+      />
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
 
 <body>
-  <div id="container">
-    <div id="wrap">
-      <header id="header">
-  <div id="banner"></div>
-  <div id="header-outer" class="outer">
-    <div id="header-title" class="inner">
-      <h1 id="logo-wrap">
-        <a href="/" id="logo">Scorpio-yyz</a>
-      </h1>
-      
-        <h2 id="subtitle-wrap">
-          <a href="/" id="subtitle">Scorpio-yyz的个人主页</a>
-        </h2>
-      
-    </div>
-    <div id="header-inner" class="inner">
-      <nav id="main-nav">
-        <a id="main-nav-toggle" class="nav-icon"></a>
-        
-          <a class="main-nav-link" href="/">Home</a>
-        
-          <a class="main-nav-link" href="/archives">Archives</a>
-        
-      </nav>
-      <nav id="sub-nav">
-        
-          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
-        
-        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
-      </nav>
-      <div id="search-form-wrap">
-        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
-      </div>
-    </div>
-  </div>
-</header>
-
-      <div class="outer">
-        <section id="main"><article id="post-操作系统" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="article-date">
-  <time class="dt-published" datetime="2021-07-23T07:12:13.407Z" itemprop="datePublished">2021-07-23</time>
-</a>
+  <div id="app">
     
-  </div>
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-操作系统"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
   <div class="article-inner">
     
-    
-      <header class="article-header">
-        
-  
-    <h1 class="p-name article-title" itemprop="headline name">
-      操作系统
-    </h1>
-  
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  基础知识
+</h1>
+ 
 
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
       
-        <h2 id="什么是操作系统？"><a href="#什么是操作系统？" class="headerlink" title="什么是操作系统？"></a>什么是操作系统？</h2><p>只有计算机硬件的东西叫裸机。</p>
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="article-date">
+  <time datetime="2021-07-23T07:12:13.407Z" itemprop="datePublished">2021-07-23</time>
+</a>   
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> Word count:</span>
+            <span class="post-count">11.5k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> Reading time≈</span>
+            <span class="post-count">45 min</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h2 id="什么是操作系统？"><a href="#什么是操作系统？" class="headerlink" title="什么是操作系统？"></a>什么是操作系统？</h2><p>只有计算机硬件的东西叫裸机。</p>
 <p>在计算机硬件和应用之间的一层软件就是操作系统。</p>
 <ul>
 <li>方便我们使用硬件</li>
@@ -233,11 +142,9 @@
 </ul>
 </li>
 </ul>
-<h2 id="揭开钢琴的盖子"><a href="#揭开钢琴的盖子" class="headerlink" title="揭开钢琴的盖子"></a>揭开钢琴的盖子</h2><h3 id="从图灵机到通用图灵机"><a href="#从图灵机到通用图灵机" class="headerlink" title="从图灵机到通用图灵机"></a>从图灵机到通用图灵机</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/1.png" class="">
-
+<h2 id="揭开钢琴的盖子"><a href="#揭开钢琴的盖子" class="headerlink" title="揭开钢琴的盖子"></a>揭开钢琴的盖子</h2><h3 id="从图灵机到通用图灵机"><a href="#从图灵机到通用图灵机" class="headerlink" title="从图灵机到通用图灵机"></a>从图灵机到通用图灵机</h3><p><img src="1.png"></p>
 <p>图灵机只能做一件事，就像一个只会做一道菜的厨师。</p>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/2.png" class="">
-
+<p><img src="2.png"></p>
 <p>通用图灵机可以进行编程了，就如同给厨师不同的菜谱可以做出不同的菜。</p>
 <h3 id="从通用图灵机到计算机"><a href="#从通用图灵机到计算机" class="headerlink" title="从通用图灵机到计算机"></a>从通用图灵机到计算机</h3><ul>
 <li>伟大想法的工程实现<ul>
@@ -283,8 +190,7 @@
 </ul>
 <h3 id="引导扇区代码：bootsect-s"><a href="#引导扇区代码：bootsect-s" class="headerlink" title="引导扇区代码：bootsect.s"></a>引导扇区代码：bootsect.s</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line">.globl begtext,begdata,begbss,endtext,enddata,endbss</span><br><span class="line">.text	//文本段</span><br><span class="line">begtext:</span><br><span class="line">.data	//数据段</span><br><span class="line">begdata:</span><br><span class="line">.bss	//为初始化数据段</span><br><span class="line">begbss:</span><br><span class="line">entry start	//关键字entry告诉链接器“程序入口”</span><br><span class="line">start:</span><br><span class="line">	mov ax.#BOOTSEG</span><br><span class="line">	//0x07c0,启动代码所在位置放入ax</span><br><span class="line">	mov ds,ax</span><br><span class="line">	//将启动代码与ds寄存器关联</span><br><span class="line">	mov ax.#INITSEG</span><br><span class="line">	//启动代码要被复制到的目的地址</span><br><span class="line">	mov es,ax</span><br><span class="line">	//将目的地址与es寄存器关联</span><br><span class="line">	mov cx,#256</span><br><span class="line">	</span><br><span class="line">	sub si,si</span><br><span class="line">	sub di,di</span><br><span class="line">	//si清零,ds:si即0x07c00</span><br><span class="line">	//di清零,es:di即0x90000</span><br><span class="line">	rep</span><br><span class="line">	//循环移动cx（256）个字,512字节</span><br><span class="line">	//将0x07c0 : 0x0000处的256个字移到0x9000 : 0x0000处</span><br><span class="line">	movw</span><br><span class="line">	jmpi go,INITSEG	//CS=INITSEG	IP=go</span><br><span class="line">	//jmpi 段间跳转</span><br><span class="line">/*</span><br><span class="line">SETUPLEN = 4	nomber of setup-sectors</span><br><span class="line">BOOTSEG  = 0x07c0	original address of boot-sector</span><br><span class="line">INITSEG  = 0x9000	we move boot here - out of the way</span><br><span class="line">SETUPSEG = 0x9020	setup starts here</span><br><span class="line">SYSSEG   = 0x1000	system loaded at 0x10000 (65536).</span><br><span class="line">ENDSEG   = SYSSEG + SYSSIZE	where to stop loading</span><br><span class="line">*/</span><br><span class="line">//由于启动代码复制到了新位置，需要更改相应寄存器的值</span><br><span class="line">go:	mov ax,cs	</span><br><span class="line">	//cs=0x9000</span><br><span class="line">	mov ds,ax </span><br><span class="line">	mov	es,ax</span><br><span class="line">	mov ss,ax</span><br><span class="line">	//开始引入栈</span><br><span class="line">	mov sp,#0xff00</span><br><span class="line">	//为call做准备，栈空间为0x9ff00</span><br><span class="line">//开始加载setup块</span><br><span class="line">load_setup:	//载入setup模块</span><br><span class="line">	mov	dx,#0x0000</span><br><span class="line">	//设置驱动器和磁头(drive 0, head 0): 软盘 0 磁头 </span><br><span class="line">	mov cx,#0x0002</span><br><span class="line">	//设置扇区号和磁道(sector 2, track 0): 0 磁头、0 磁道、2 扇区</span><br><span class="line">	mov bx,#0x0200</span><br><span class="line">	//设置读入的内存地址：BOOTSEG+address = 512，偏移512字节</span><br><span class="line">	mov ax,#0x0200+SETUPLEN</span><br><span class="line">	//SETUPLEN是读入的扇区个数，Linux 0.11 设置的是 4</span><br><span class="line">	int 0x13	</span><br><span class="line">	//BIOS中断,将setup.s对应的程序加载至内存指定地址</span><br><span class="line">	jnc ok_load_setup</span><br><span class="line">	//cf标志寄存器为0就跳转至ok_load_setup块   </span><br><span class="line">	mov dx,#0x0000</span><br><span class="line">	mov ax,#0x0000</span><br><span class="line">	int 0x13</span><br><span class="line">	//复位,cf!=０则重新设置传入信息,进入中断 </span><br><span class="line">	j	load_setup	//重读</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/3.png" class="">
-
+<p><img src="3.png"></p>
 <ul>
 <li>0x13是BIOS读磁盘扇区的中断：<ul>
 <li>ah=0x02    读磁盘</li>
@@ -305,22 +211,21 @@
 <p>可以转入setup执行了，jmpi 0，SETUPSEG</p>
 <h2 id="操作系统启动"><a href="#操作系统启动" class="headerlink" title="操作系统启动"></a>操作系统启动</h2><h3 id="setup模块，即setup-s"><a href="#setup模块，即setup-s" class="headerlink" title="setup模块，即setup.s"></a>setup模块，即setup.s</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">start:</span><br><span class="line">	mov ax,#INITSEG</span><br><span class="line">	mov ds,ax</span><br><span class="line">	mov ah,#0x03</span><br><span class="line">	//获取光标位置</span><br><span class="line">	xor bh,bh</span><br><span class="line">	//bh=页号=0（输入）</span><br><span class="line">	int 0x10</span><br><span class="line">	//输出： DH=行号，DL=列号</span><br><span class="line">	mov [0],dx</span><br><span class="line">	mov ah,#0x88</span><br><span class="line">	int 0x15</span><br><span class="line">	//获取内存大小</span><br><span class="line">	mov [2],ax</span><br><span class="line">	cli	//不允许中断</span><br><span class="line">	mov ah,#0x0000</span><br><span class="line">	//保存光标的行号和列号到 0x90000，共占2字节</span><br><span class="line">	cld</span><br><span class="line">do_move:</span><br><span class="line">	mov es,ax</span><br><span class="line">	add ax,#0x1000</span><br><span class="line">	cmp ax,#0x9000</span><br><span class="line">	jz	end_move</span><br><span class="line">	mov	ds,ax</span><br><span class="line">	sub	di,di</span><br><span class="line">	sub si,si</span><br><span class="line">	mov	cx,#0x8000</span><br><span class="line">	rep</span><br><span class="line">	movsw</span><br><span class="line">	jmp	do_move</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/4.png" class="">
-
+<p><img src="4.png"></p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">do_move的C翻译:</span><br><span class="line"></span><br><span class="line">ax = <span class="number">0</span>;</span><br><span class="line">cld;</span><br><span class="line"><span class="keyword">while</span>(<span class="number">1</span>)&#123;</span><br><span class="line">    es = ax;</span><br><span class="line">    ax += <span class="number">0x1000</span>;</span><br><span class="line">    <span class="keyword">if</span>(ax == <span class="number">0x9000</span>)</span><br><span class="line">        <span class="keyword">break</span>;  <span class="comment">//结束移动</span></span><br><span class="line">    ds = ax;</span><br><span class="line">    di = si = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>; i&lt;<span class="number">0x8000</span>; ++i)&#123;</span><br><span class="line">       <span class="built_in">memcpy</span>(es:di, ds:si, <span class="number">2</span>);</span><br><span class="line">       di += <span class="number">2</span>;</span><br><span class="line">       si += <span class="number">2</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <h3 id="保护模式下的地址翻译和中断处理"><a href="#保护模式下的地址翻译和中断处理" class="headerlink" title="保护模式下的地址翻译和中断处理"></a>保护模式下的地址翻译和中断处理</h3><ul>
 <li><p>保护模式下的地址翻译</p>
 <p>即gdt（全局描述符表）的作用：</p>
 <p>t是table，所以实模式下:cs左移4+ip。保护模式下：根据cs查表+ip。cs这里被称为选择子。</p>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/5.png" class=""></li>
+<p><img src="5.png"></p>
+</li>
 <li><p>保护模式下中断函数入口</p>
 <p>即idt（中断描述符表）的作用：</p>
 <p>t是table，仿照gdt，通过int n的n进行查表</p>
 </li>
 </ul>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/6.png" class="">
-
+<p><img src="6.png"></p>
 <h3 id="将setup移到0地址处"><a href="#将setup移到0地址处" class="headerlink" title="将setup移到0地址处"></a>将setup移到0地址处</h3><ul>
 <li>但0地址处是有重要内容的<ul>
 <li>此处存储的是中断向量表</li>
@@ -335,15 +240,12 @@
 
 <h3 id="进入保护模式"><a href="#进入保护模式" class="headerlink" title="进入保护模式"></a>进入保护模式</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">	call empty_8042</span><br><span class="line">//8042是键盘控制器，</span><br><span class="line">	mov	al,#0xD1</span><br><span class="line">	out #0x64,al</span><br><span class="line">	call empty_8042</span><br><span class="line">	mov al,#0xDF</span><br><span class="line">	out #0x60,al</span><br><span class="line">	call empty_8042</span><br><span class="line">	mov ax,#0x0001</span><br><span class="line">	mov cr0,ax</span><br><span class="line">	//cr0寄存器中PE=1启动保护模式，PG=1启动分页</span><br><span class="line">	jmpi 0,8</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/7.png" class="">
-
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/8.png" class="">
-
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/9.png" class="">
-
+<p><img src="7.png"></p>
+<p><img src="8.png"></p>
+<p><img src="9.png"></p>
 <h3 id="跳到system模块执行"><a href="#跳到system模块执行" class="headerlink" title="跳到system模块执行"></a>跳到system模块执行</h3><p>system模块（目标代码）中的第一部分代码：head.s</p>
 <p>system由许多文件编译而成，第一个就是head.s</p>
-<p>![](操作系统/Saved Pictures\49.png)</p>
+<p>![](Saved Pictures\49.png)</p>
 <h3 id="head-s-一段在保护模式下运行的代码"><a href="#head-s-一段在保护模式下运行的代码" class="headerlink" title="head.s//一段在保护模式下运行的代码"></a>head.s//一段在保护模式下运行的代码</h3><ul>
 <li>setup是进入保护模式，head是进入之后的初始化</li>
 </ul>
@@ -357,8 +259,8 @@
 <li><p>内敛汇编，gcc编译x.c会产生中间结果as汇编文件x.s</p>
 </li>
 </ol>
-<p>![](操作系统/Saved Pictures\50.png)</p>
-<p>![](操作系统/Saved Pictures\51.png)</p>
+<p>![](Saved Pictures\50.png)</p>
+<p>![](Saved Pictures\51.png)</p>
 <h3 id="after-page-tables-设置页表之后"><a href="#after-page-tables-设置页表之后" class="headerlink" title="after_page_tables    //设置页表之后"></a>after_page_tables    //设置页表之后</h3><ul>
 <li><p>setup是进入保护模式，head是进入之后的初始化</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">after_page_tables:</span><br><span class="line">	pushl $0</span><br><span class="line">	pushl $0</span><br><span class="line">	pushl $0</span><br><span class="line">	pushl $L6</span><br><span class="line">	//压栈</span><br><span class="line">	pushl $_main//将_main压入栈中</span><br><span class="line">	jmp set_paging</span><br><span class="line">L6:</span><br><span class="line">	jmp	L6//main返回时死循环，死机。</span><br><span class="line">setup_paging: 设置页表 ret</span><br></pre></td></tr></table></figure>
@@ -367,14 +269,14 @@
 <p>从汇编跳到执行C函数，和函数跳转一样。</p>
 </li>
 </ul>
-<p>![](操作系统/Saved Pictures\52.png)</p>
+<p>![](Saved Pictures\52.png)</p>
 <p>三个参数分别为envp,argv,argc，此处都是0。</p>
 <p>此处的main只保留了传统的形式和命名。</p>
 <p>main的工作就是xx_init:内存、中断、设备、时钟、CPU等内容的初始化。</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    mem_init();</span><br><span class="line">    trap_init();</span><br><span class="line">    blk_dev_init();</span><br><span class="line">    chr_dev_init();</span><br><span class="line">    tty_init();</span><br><span class="line">    time_init();</span><br><span class="line">    sched_init();</span><br><span class="line">    buffer_init();</span><br><span class="line">    hd_init();</span><br><span class="line">    floppy_init();</span><br><span class="line">    sti();</span><br><span class="line">    move_to_user_mode();</span><br><span class="line">    <span class="keyword">if</span>(!fork())&#123;init();&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <h3 id="看一看mem-init…可以在视图菜单中关闭"><a href="#看一看mem-init…可以在视图菜单中关闭" class="headerlink" title="看一看mem_init…可以在视图菜单中关闭"></a>看一看mem_init…可以在<code>视图</code>菜单中关闭</h3><p>执行内存的初始化。</p>
-<p>![](操作系统/Saved Pictures\53.png)</p>
+<p>![](Saved Pictures\53.png)</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">mem_init</span><span class="params">(<span class="keyword">long</span> start_mem,<span class="keyword">long</span> end_mem)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;PAGING_PAGS;i++)<span class="comment">//操作系统是使用着的</span></span><br><span class="line">        mem_map[i]=USED;</span><br><span class="line">    i=MAP_NR(start_mem);</span><br><span class="line">    end_mem-=start_mem;</span><br><span class="line">    end_mem&gt;&gt;=<span class="number">12</span>;	<span class="comment">//4k</span></span><br><span class="line">    <span class="keyword">while</span>(end_mem --&gt;<span class="number">0</span>)</span><br><span class="line">        mem_map[i++]=<span class="number">0</span>;<span class="comment">//每4k大小的区域放在一起置为0</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <h2 id="操作系统接口"><a href="#操作系统接口" class="headerlink" title="操作系统接口"></a>操作系统接口</h2><h3 id="接口（Interface）"><a href="#接口（Interface）" class="headerlink" title="接口（Interface）"></a>接口（Interface）</h3><ul>
@@ -382,28 +284,21 @@
 </ul>
 <h4 id="什么是操作系统接口？"><a href="#什么是操作系统接口？" class="headerlink" title="什么是操作系统接口？"></a>什么是操作系统接口？</h4><p>连接上层用户和操作系统软件。</p>
 <h5 id="命令行？"><a href="#命令行？" class="headerlink" title="命令行？"></a>命令行？</h5><p>命令：一段程序，shell也是一段程序。</p>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/10.png" class="">
-
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/11.png" class="">
-
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/12.png" class="">
-
+<p><img src="10.png"></p>
+<p><img src="11.png"></p>
+<p><img src="12.png"></p>
 <h5 id="图形按钮？"><a href="#图形按钮？" class="headerlink" title="图形按钮？"></a>图形按钮？</h5><ul>
 <li>鼠标点击、键盘按下后</li>
 </ul>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/13.png" class="">
-
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/14.png" class="">
-
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/15.png" class="">
-
+<p><img src="13.png"></p>
+<p><img src="14.png"></p>
+<p><img src="15.png"></p>
 <h5 id="操作系统接口-1"><a href="#操作系统接口-1" class="headerlink" title="操作系统接口"></a>操作系统接口</h5><p>通过C语言程序，连接操作系统和应用软件。</p>
 <p>接口表现为函数调用，又由系统提供，所以称为系统调用。</p>
 <h3 id="系统调用"><a href="#系统调用" class="headerlink" title="系统调用"></a>系统调用</h3><ul>
 <li>POSIX：Portable Operating System Interface of Unix（IEEE制定的一个标准族）</li>
 </ul>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/16.png" class="">
-
+<p><img src="16.png"></p>
 <h2 id="系统调用的实现"><a href="#系统调用的实现" class="headerlink" title="系统调用的实现"></a>系统调用的实现</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">main()&#123;whoami();&#125;</span><br><span class="line">whoami()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="number">100</span>,<span class="number">8</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="number">100</span>:<span class="string">&quot;lizhijun&quot;</span></span><br></pre></td></tr></table></figure>
 
 <p>应用程序为什么不能直接jmp到操作系统中执行函数？</p>
@@ -413,7 +308,8 @@
 <ul>
 <li><p>区分内核态和用户态：通过一种处理器的硬件设计。</p>
 <img src="17.png"></li>
-<li><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/18.png" class=""></li>
+<li><p><img src="18.png"></p>
+</li>
 <li><p>DPL用于描述目标内存段的特权级别（GDT中），CPL（当前的特权级，取决于执行的指令）</p>
 </li>
 </ul>
@@ -429,26 +325,23 @@
 <li>操作系统写中断处理，获取想调程序的编号</li>
 <li>操作系统根据编号执行相应代码</li>
 </ol>
-<h3 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/19.png" class="">
-
+<h3 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h3><p><img src="19.png"></p>
 <ul>
 <li><p>最终展开成包含int指令的代码… </p>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/20.png" class=""></li>
+<p><img src="20.png"></p>
+</li>
 </ul>
-<h3 id="Write实现"><a href="#Write实现" class="headerlink" title="Write实现"></a>Write实现</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/21.png" class="">
-
+<h3 id="Write实现"><a href="#Write实现" class="headerlink" title="Write实现"></a>Write实现</h3><p><img src="21.png"></p>
 <p>先int 0x80，调用0x80号中断，再把_NR_write(4)赋给eax，eax又赋给了__res作为返回值。最后把a赋给ebx，把b赋给ecx,把c赋给edx。</p>
 <p>NR_write是系统调用号，放在eax中。</p>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/22.png" class="">
-
+<p><img src="22.png"></p>
 <h3 id="int-0x80中断的处理"><a href="#int-0x80中断的处理" class="headerlink" title="int 0x80中断的处理"></a>int 0x80中断的处理</h3><p>通过IDT表来找到中断处理函数。</p>
 <ul>
 <li>显然，set_system_gate用来设置0x80的中断处理</li>
 </ul>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">sched_init</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;	set_system_gate(<span class="number">0x80</span>,&amp;system_call)&#125;<span class="comment">//中断处理门</span></span><br><span class="line"><span class="comment">//遇到0x80中断，就跳到system_call的中断处理函数</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> set_system_gate(n,addr)	<span class="comment">//第n号中断对应处理函数入口点偏移地址addr</span></span></span><br><span class="line">_set_gate(&amp;idt[n],<span class="number">15</span>,<span class="number">3</span>,addr);<span class="comment">//idt是中断向量表基址</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> _set_gate(gate_addr, type, dpl, addr)</span></span><br><span class="line">_asm_(</span><br><span class="line">    <span class="string">&quot;movw %%dx,%%ax\n\t&quot;</span> <span class="string">&quot;movw %0,%%dx\n\t&quot;</span></span><br><span class="line">    <span class="string">&quot;movl %%eax, %1\n\t&quot;</span> <span class="string">&quot;movl %%edx, %2&quot;</span>:</span><br><span class="line">     :<span class="string">&quot;i&quot;</span>((<span class="keyword">short</span>)(<span class="number">0x8000</span>+(dpl&lt;&lt;<span class="number">13</span>)+type&lt;&lt;<span class="number">8</span>))</span><br><span class="line">	),<span class="string">&quot;o&quot;</span>(*((<span class="keyword">char</span>*)(gate_addr))),</span><br><span class="line">	<span class="string">&quot;o&quot;</span>(*(<span class="number">4</span>+(<span class="keyword">char</span>*)(gate_addr))),</span><br><span class="line">	<span class="string">&quot;d&quot;</span>((<span class="keyword">char</span>*)(addr),<span class="string">&quot;a&quot;</span>(<span class="number">0x00080000</span>))</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/23.png" class="">
-
+<p><img src="23.png"></p>
 <p>段选择符0x8000,处理函数入口点偏移&amp;system_call。</p>
 <p>cs=8，ip=&amp;system_call</p>
 <p>cpl是cs最后两位，cpl=00</p>
@@ -457,10 +350,8 @@
 <h3 id="sys-call-table"><a href="#sys-call-table" class="headerlink" title="_sys_call_table"></a>_sys_call_table</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">fn_ptr_call_table[]=</span><br><span class="line">&#123;</span><br><span class="line">    sys_setup,sys_exit,sys_fork,sys_read,sys_write,</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>call _sys_call_table(,%eax,4)依据上表就是call sys_write</p>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/24.png" class="">
-
-<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/25.png" class="">
-
+<p><img src="24.png"></p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p><img src="25.png"></p>
 <h2 id="操作系统历史"><a href="#操作系统历史" class="headerlink" title="操作系统历史"></a>操作系统历史</h2><h3 id="操作系统的开端"><a href="#操作系统的开端" class="headerlink" title="操作系统的开端"></a>操作系统的开端</h3><ul>
 <li><p>（1955-1965）计算机非常昂贵，上古神机IBM7094,造价250万美元以上</p>
 <ul>
@@ -468,7 +359,8 @@
 <li>批处理操作系统（Batch syste）</li>
 <li>典型代表：<strong>IBSYS监控系统</strong></li>
 </ul>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/26.png" class=""></li>
+<p><img src="26.png"></p>
+</li>
 <li><p>计算机开始进入多个行业：科学计算（IBM 7094）,银行（IBM1401）</p>
 <ul>
 <li>需要一台计算机干多个事情</li>
@@ -559,10 +451,8 @@
 <h3 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h3><p>IO指令比计算指令慢很多，且IO指令执行时不用CPU。如果线性处理，那么就无法使CPU一直忙碌。CPU的使用效率会很低。</p>
 <p><strong>所以</strong>，我们将在执行IO指令时，将CPU切到其他地方执行其他指令。等IO指令执行结束再返回来。</p>
 <p>这样，使得多个程序在内存中。</p>
-<h3 id="多道程序交替执行"><a href="#多道程序交替执行" class="headerlink" title="多道程序交替执行"></a>多道程序交替执行</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/35.png" class="">
-
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/36.png" class="">
-
+<h3 id="多道程序交替执行"><a href="#多道程序交替执行" class="headerlink" title="多道程序交替执行"></a>多道程序交替执行</h3><p><img src="35.png"></p>
+<p><img src="36.png"></p>
 <p>一个CPU上交替执行多个程序，成为<strong>并发</strong>。</p>
 <h3 id="只要修改PC就可以了吗？"><a href="#只要修改PC就可以了吗？" class="headerlink" title="只要修改PC就可以了吗？"></a>只要修改PC就可以了吗？</h3><ul>
 <li>要记录返回的地址，要记录上一个程序所需要的数据</li>
@@ -597,8 +487,7 @@
 </ul>
 </li>
 </ul>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/27.png" class="">
-
+<p><img src="27.png"></p>
 <h3 id="多进程图像从启动开始到关机结束"><a href="#多进程图像从启动开始到关机结束" class="headerlink" title="多进程图像从启动开始到关机结束"></a>多进程图像从启动开始到关机结束</h3><ul>
 <li>main中的fork()创建了第一个进程<ul>
 <li>init执行了shell</li>
@@ -608,25 +497,23 @@
 </ul>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">scanf</span>(<span class="string">&quot;%s&quot;</span>,cmd);</span><br><span class="line">        <span class="keyword">if</span>(!fork())</span><br><span class="line">        &#123;</span><br><span class="line">            exec(cmd);</span><br><span class="line">		&#125;</span><br><span class="line">        wait();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/28.png" class="">
-
+<p><img src="28.png"></p>
 <h3 id="多进程图像：多进程如何组织？"><a href="#多进程图像：多进程如何组织？" class="headerlink" title="多进程图像：多进程如何组织？"></a>多进程图像：多进程如何组织？</h3><ul>
 <li>有一个进程在执行（运行）<ul>
-<li><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/29.png" class=""></li>
+<li><img src="29.png"></li>
 </ul>
 </li>
 <li>有一些进程等待执行（就绪）<ul>
-<li><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/30.png" class=""></li>
+<li><img src="30.png"></li>
 </ul>
 </li>
 <li>有一些进程在等待某事件（阻塞）<ul>
-<li><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/31.png" class=""></li>
+<li><img src="31.png"></li>
 </ul>
 </li>
 </ul>
 <h3 id="多进程的组织：PCB-状态-队列"><a href="#多进程的组织：PCB-状态-队列" class="headerlink" title="多进程的组织：PCB+状态+队列"></a>多进程的组织：PCB+状态+队列</h3><p>进程状态图：</p>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/32.png" class="">
-
+<p><img src="32.png"></p>
 <ul>
 <li>它能给出进程生存期的清晰描述</li>
 <li>它是认识操作系统进程管理的一个窗口</li>
@@ -655,14 +542,13 @@
 
 <h3 id="多进程图像：多进程如何影响？"><a href="#多进程图像：多进程如何影响？" class="headerlink" title="多进程图像：多进程如何影响？"></a>多进程图像：多进程如何影响？</h3><ul>
 <li>多个 进程同时存在于内存会出现下面的问题<ul>
-<li><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/33.png" class=""></li>
+<li><img src="33.png"></li>
 </ul>
 </li>
 <li>解决办法：限制对地址100的读写</li>
 <li>如何限制：多进程的地址空间分离，操作系统的内存管理</li>
 </ul>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/34.png" class="">
-
+<p><img src="34.png"></p>
 <p>通过映射表将多个进程数据的地址分离开。</p>
 <h3 id="多进程图像：多进程如何合作？"><a href="#多进程图像：多进程如何合作？" class="headerlink" title="多进程图像：多进程如何合作？"></a>多进程图像：多进程如何合作？</h3><ul>
 <li>想象打印工作过程<ul>
@@ -675,15 +561,14 @@
 </ul>
 <p>多个进程对同一个内存进行覆盖时，交替执行会乱套。</p>
 <h3 id="核心在于进程同步（合理的推进顺序）"><a href="#核心在于进程同步（合理的推进顺序）" class="headerlink" title="核心在于进程同步（合理的推进顺序）"></a>核心在于进程同步（合理的推进顺序）</h3><p>使得多个进程有一个合理的进程推进顺序，从而实现进程的合作。</p>
-<h2 id="用户级线程"><a href="#用户级线程" class="headerlink" title="用户级线程"></a>用户级线程</h2><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/37.png" class="">
-
+<h2 id="用户级线程"><a href="#用户级线程" class="headerlink" title="用户级线程"></a>用户级线程</h2><p><img src="37.png"></p>
 <img src="38.png" style="zoom: 67%;" />
 
 <h3 id="是否可以资源不动而切换指令序列？"><a href="#是否可以资源不动而切换指令序列？" class="headerlink" title="是否可以资源不动而切换指令序列？"></a>是否可以资源不动而切换指令序列？</h3><ul>
 <li>进程=资源+指令执行序列<ul>
 <li>将资源和指令分开</li>
 <li>一个资源+多个指令执行序列</li>
-<li><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/39.png" class=""></li>
+<li><img src="39.png"></li>
 </ul>
 </li>
 </ul>
@@ -708,23 +593,19 @@
 </ul>
 <h3 id="开始实现这样的浏览器…"><a href="#开始实现这样的浏览器…" class="headerlink" title="开始实现这样的浏览器…"></a>开始实现这样的浏览器…</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">WebExplorer</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> URL[] = <span class="string">&quot;http://cms.hit.edu.cn&quot;</span>;</span><br><span class="line">    <span class="keyword">char</span> buffer[<span class="number">1000</span>];</span><br><span class="line">    <span class="comment">//创建两个线程</span></span><br><span class="line">    pthread_creat(..., Getdata, URL, buffer);</span><br><span class="line">    pthread_creat(..., Show, buffer);</span><br><span class="line">    </span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">GetData</span><span class="params">(<span class="keyword">char</span> *URL, <span class="keyword">char</span> *p)</span></span>&#123;...&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Show</span><span class="params">(<span class="keyword">char</span> *p)</span></span>&#123;...&#125;</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/40.png" class="">
-
+<p><img src="40.png"></p>
 <h3 id="核心是Yield"><a href="#核心是Yield" class="headerlink" title="核心是Yield"></a>核心是Yield</h3><ul>
 <li>需要知道切换时进程的样子</li>
 <li>Create就是制造出第一次切换时的样子</li>
 </ul>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">![<span class="number">42</span>](<span class="number">42.</span>png)<span class="number">100</span>:A()</span><br><span class="line">&#123;</span><br><span class="line">    B();</span><br><span class="line">    <span class="number">104</span>:</span><br><span class="line">&#125;</span><br><span class="line"><span class="number">200</span>:B()</span><br><span class="line">&#123;</span><br><span class="line">    Yield();</span><br><span class="line">    <span class="number">204</span>:</span><br><span class="line">&#125;</span><br><span class="line"><span class="number">300</span>:C()</span><br><span class="line">&#123;</span><br><span class="line">    D();</span><br><span class="line">    <span class="number">304</span>:</span><br><span class="line">&#125;</span><br><span class="line"><span class="number">400</span>:D()</span><br><span class="line">&#123;</span><br><span class="line">    Yield();</span><br><span class="line">    <span class="number">404</span>:</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/42.png" class="">
-
-<h3 id="两个执行序列与一个栈"><a href="#两个执行序列与一个栈" class="headerlink" title="两个执行序列与一个栈"></a>两个执行序列与一个栈</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/41.png" class="">
-
+<p><img src="42.png"></p>
+<h3 id="两个执行序列与一个栈"><a href="#两个执行序列与一个栈" class="headerlink" title="两个执行序列与一个栈"></a>两个执行序列与一个栈</h3><p><img src="41.png"></p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Yield</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    找到<span class="number">300</span>;</span><br><span class="line">    jmp <span class="number">300</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Yield</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    找到<span class="number">204</span>;</span><br><span class="line">    jmp <span class="number">204</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>最后B()执行完，需要返回到A()，但目前栈中esp-&gt;404，会ret到D()中，从而出现问题。</p>
-<h3 id="解决方法：每个线程都要有自己的栈"><a href="#解决方法：每个线程都要有自己的栈" class="headerlink" title="解决方法：每个线程都要有自己的栈"></a>解决方法：每个线程都要有自己的栈</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/43.png" class="">
-
+<h3 id="解决方法：每个线程都要有自己的栈"><a href="#解决方法：每个线程都要有自己的栈" class="headerlink" title="解决方法：每个线程都要有自己的栈"></a>解决方法：每个线程都要有自己的栈</h3><p><img src="43.png"></p>
 <ul>
 <li>Yield切换要先切换栈</li>
 </ul>
@@ -740,12 +621,10 @@
 tcb.esp=stack;
 </code></pre>
 <p>}</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">  {% asset_img 44.png  %}</span><br><span class="line"></span><br><span class="line">### 用户级线程和内核级线程？ </span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">{% asset_img 45.png  %}</span><br><span class="line"></span><br><span class="line">而如果进程1进入了内核，并且阻塞，则会进入进程2，进程1中的其他线程都会不执行。</span><br><span class="line"></span><br><span class="line">{% asset_img 46.png  %}</span><br><span class="line"></span><br><span class="line">## 内核级线程</span><br><span class="line"></span><br><span class="line">### 和用户级相比，核心级线程有什么不同？</span><br><span class="line"></span><br><span class="line">-  ThreadCreate是系统调用，内核管理TCB，内核负责切换线程</span><br><span class="line">- 如何让切换成型？--内核栈，TCB</span><br><span class="line">  - 用户栈是否还要用？</span><br><span class="line">    - 执行的代码仍在用户态，还要进行函数调用</span><br><span class="line">  - 一个栈到一套栈；两个栈到两套栈</span><br><span class="line">  - TCB关联内核栈，那用户栈怎么办？</span><br><span class="line">    - 根据TCB切换一套栈</span><br><span class="line"></span><br><span class="line">{% asset_img 47.png  %}</span><br><span class="line"></span><br><span class="line">### 用户栈和内核栈之间的关联</span><br><span class="line"></span><br><span class="line">{% asset_img 48.png  %}</span><br><span class="line"></span><br><span class="line">一旦INT中断启动，就启用内核栈。</span><br><span class="line"></span><br><span class="line">当中断结束IRET，回到用户栈。</span><br><span class="line"></span><br><span class="line">### 看A()B()C()D()</span><br><span class="line"></span><br><span class="line">```c</span><br><span class="line">100:A()&#123;</span><br><span class="line">    B();</span><br><span class="line">    104:</span><br><span class="line">&#125;</span><br><span class="line">200:B()&#123;</span><br><span class="line">    read();</span><br><span class="line">    204:</span><br><span class="line">&#125;</span><br><span class="line">300:read()&#123;</span><br><span class="line">    int 0x80;</span><br><span class="line">    304:</span><br><span class="line">&#125;</span><br><span class="line">system_call:</span><br><span class="line">	call sys_read;</span><br><span class="line">1000:</span><br><span class="line">2000:sys_read()&#123;&#125;</span><br></pre></td></tr></table></figure></li>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">  ![](44.png)</span><br><span class="line"></span><br><span class="line">### 用户级线程和内核级线程？ </span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">![](45.png)</span><br><span class="line"></span><br><span class="line">而如果进程1进入了内核，并且阻塞，则会进入进程2，进程1中的其他线程都会不执行。</span><br><span class="line"></span><br><span class="line">![](46.png)</span><br><span class="line"></span><br><span class="line">## 内核级线程</span><br><span class="line"></span><br><span class="line">### 和用户级相比，核心级线程有什么不同？</span><br><span class="line"></span><br><span class="line">-  ThreadCreate是系统调用，内核管理TCB，内核负责切换线程</span><br><span class="line">-  如何让切换成型？--内核栈，TCB</span><br><span class="line">   - 用户栈是否还要用？</span><br><span class="line">     - 执行的代码仍在用户态，还要进行函数调用</span><br><span class="line">   - 一个栈到一套栈；两个栈到两套栈</span><br><span class="line">   - TCB关联内核栈，那用户栈怎么办？</span><br><span class="line">     - 根据TCB切换一套栈</span><br><span class="line"></span><br><span class="line">![](47.png)</span><br><span class="line"></span><br><span class="line">### 用户栈和内核栈之间的关联</span><br><span class="line"></span><br><span class="line">![](48.png)</span><br><span class="line"></span><br><span class="line">一旦INT中断启动，就启用内核栈。</span><br><span class="line"></span><br><span class="line">当中断结束IRET，回到用户栈。</span><br><span class="line"></span><br><span class="line">### 看A()B()C()D()</span><br><span class="line"></span><br><span class="line">```c</span><br><span class="line">100:A()&#123;</span><br><span class="line">    B();</span><br><span class="line">    104:</span><br><span class="line">&#125;</span><br><span class="line">200:B()&#123;</span><br><span class="line">    read();</span><br><span class="line">    204:</span><br><span class="line">&#125;</span><br><span class="line">300:read()&#123;</span><br><span class="line">    int 0x80;</span><br><span class="line">    304:</span><br><span class="line">&#125;</span><br><span class="line">system_call:</span><br><span class="line">	call sys_read;</span><br><span class="line">1000:</span><br><span class="line">2000:sys_read()&#123;&#125;</span><br></pre></td></tr></table></figure></li>
 </ul>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/49.png" class="">
-
-<h3 id="开始内核中的切换：switch-to"><a href="#开始内核中的切换：switch-to" class="headerlink" title="开始内核中的切换：switch_to"></a>开始内核中的切换：switch_to</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/50.png" class="">
-
+<p><img src="49.png"></p>
+<h3 id="开始内核中的切换：switch-to"><a href="#开始内核中的切换：switch-to" class="headerlink" title="开始内核中的切换：switch_to"></a>开始内核中的切换：switch_to</h3><p><img src="50.png"></p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">sys_read()&#123;</span><br><span class="line">	启动磁盘读；</span><br><span class="line">    将自己变成阻塞；</span><br><span class="line">    找到next；</span><br><span class="line">    switch_to(cur,next);    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p><strong>switch_to</strong>:仍然是通过<strong>TCB</strong>找到内核栈指针；然后通过<strong>ret</strong>切到某个内核程序；最后再用<strong>CS:PC</strong>切到用户程序。</p>
@@ -763,27 +642,21 @@ tcb.esp=stack;
 <li>？？:500，函数C()的开始地址</li>
 <li>？？？？:一段能完成第二级返回的代码，一段包含iret的代码,从中断中返回</li>
 </ul>
-<h3 id="内核线程switch-to的五段论"><a href="#内核线程switch-to的五段论" class="headerlink" title="内核线程switch_to的五段论"></a>内核线程switch_to的五段论</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/51.png" class="">
-
+<h3 id="内核线程switch-to的五段论"><a href="#内核线程switch-to的五段论" class="headerlink" title="内核线程switch_to的五段论"></a>内核线程switch_to的五段论</h3><p><img src="51.png"></p>
 <p>第一级切换：</p>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/52.png" class="">
-
+<p><img src="52.png"></p>
 <p>第二级切换：</p>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/53.png" class="">
-
+<p><img src="53.png"></p>
 <p>最后，S、T非同一进程，所以还要进行地址切换。首先要切换地址映射表；</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">TCB[cur].ldtr = %ldtr</span><br><span class="line">%ldtr = TCB[next].ldtr</span><br><span class="line">    <span class="comment">//内存管理</span></span><br></pre></td></tr></table></figure>
 
 <h3 id="ThreadCreate"><a href="#ThreadCreate" class="headerlink" title="ThreadCreate!"></a>ThreadCreate!</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">ThreadCreate</span><span class="params">(...)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    TCB tcb=get_free_page();</span><br><span class="line">    *krlstack=...;</span><br><span class="line">    *userstack传入;</span><br><span class="line">    填写两个<span class="built_in">stack</span>;</span><br><span class="line">    tcb.esp=krlstack;</span><br><span class="line">    tcb.状态=就绪;</span><br><span class="line">    tcb入队;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h3 id="用户级线程和核心级线程的对比"><a href="#用户级线程和核心级线程的对比" class="headerlink" title="用户级线程和核心级线程的对比"></a>用户级线程和核心级线程的对比</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/54.png" class="">
-
-<h2 id="内核级线程实现"><a href="#内核级线程实现" class="headerlink" title="内核级线程实现"></a>内核级线程实现</h2><h3 id="核心级线程的两套栈，核心是内核栈"><a href="#核心级线程的两套栈，核心是内核栈" class="headerlink" title="核心级线程的两套栈，核心是内核栈"></a>核心级线程的两套栈，核心是内核栈</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/55.png" class="">
-
+<h3 id="用户级线程和核心级线程的对比"><a href="#用户级线程和核心级线程的对比" class="headerlink" title="用户级线程和核心级线程的对比"></a>用户级线程和核心级线程的对比</h3><p><img src="54.png"></p>
+<h2 id="内核级线程实现"><a href="#内核级线程实现" class="headerlink" title="内核级线程实现"></a>内核级线程实现</h2><h3 id="核心级线程的两套栈，核心是内核栈"><a href="#核心级线程的两套栈，核心是内核栈" class="headerlink" title="核心级线程的两套栈，核心是内核栈"></a>核心级线程的两套栈，核心是内核栈</h3><p><img src="55.png"></p>
 <h3 id="从进入内核开始，某个中断开始"><a href="#从进入内核开始，某个中断开始" class="headerlink" title="从进入内核开始，某个中断开始"></a>从进入内核开始，某个中断开始</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">main()&#123;</span><br><span class="line">	A();</span><br><span class="line">    B();</span><br><span class="line">&#125;</span><br><span class="line">A()</span><br><span class="line">&#123;</span><br><span class="line">    fork();<span class="comment">//fork是系统调用，会引起中断</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
- <img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/56.png" class="">
-
+<p> <img src="56.png"></p>
 <p>一旦执行int指令，将找到内核栈，然后通过内核栈找到用户栈。</p>
 <h3 id="切换五段论的中断入口和中断出口"><a href="#切换五段论的中断入口和中断出口" class="headerlink" title="切换五段论的中断入口和中断出口"></a>切换五段论的中断入口和中断出口</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">sched_init</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    set_system_gate(<span class="number">0x80</span>,&amp;system_call);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -792,26 +665,22 @@ tcb.esp=stack;
 
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">schedule</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    next=...;<span class="comment">//看调度算法给出下一给线程</span></span><br><span class="line">    switch_to(next);<span class="comment">//next是下一个线程的TCB</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> switch_to(n)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> &#123;</span><span class="keyword">long</span> a,b;&#125;</span><br><span class="line">    _asm_(</span><br><span class="line">    	<span class="string">&quot;movw %%dx,%1\n\t&quot;</span></span><br><span class="line">        <span class="string">&quot;ljmp %0\n\t&quot;</span>	<span class="comment">//长跳转指令，段与段之间的跳转</span></span><br><span class="line">        ::<span class="string">&quot;m&quot;</span>(*&amp;__tmp.a),</span><br><span class="line">        <span class="string">&quot;m&quot;</span>(*&amp;__tmp.b),</span><br><span class="line">        <span class="string">&quot;d&quot;</span>(_TSS(n))	<span class="comment">//n就是next，指向新的段</span></span><br><span class="line">    )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/57.png" class="">
-
+<p><img src="57.png"></p>
 <h3 id="ThreadCreate-1"><a href="#ThreadCreate-1" class="headerlink" title="ThreadCreate"></a>ThreadCreate</h3><ul>
 <li>从_sys_fork开始ThreadCreate</li>
 </ul>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">_sys_fork:</span><br><span class="line">	push %gs</span><br><span class="line">	pushl %esi</span><br><span class="line">	...</span><br><span class="line">	pushl %eax</span><br><span class="line">	#将当前状态值都入栈</span><br><span class="line">	call _copy_process	#复制父进程的所有参数</span><br><span class="line">	addl $20,%esp</span><br><span class="line">	ret</span><br></pre></td></tr></table></figure>
 
-<h3 id="copy-process的细节：创建栈"><a href="#copy-process的细节：创建栈" class="headerlink" title="copy_process的细节：创建栈"></a>copy_process的细节：创建栈</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/58.png" class="">
-
+<h3 id="copy-process的细节：创建栈"><a href="#copy-process的细节：创建栈" class="headerlink" title="copy_process的细节：创建栈"></a>copy_process的细节：创建栈</h3><p><img src="58.png"></p>
 <p>创建TCB，初始化TSS</p>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/59.png" class="">
-
-<h3 id="copy-process的细节：执行前准备"><a href="#copy-process的细节：执行前准备" class="headerlink" title="copy_process的细节：执行前准备"></a>copy_process的细节：执行前准备</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/60.png" class="">
-
+<p><img src="59.png"></p>
+<h3 id="copy-process的细节：执行前准备"><a href="#copy-process的细节：执行前准备" class="headerlink" title="copy_process的细节：执行前准备"></a>copy_process的细节：执行前准备</h3><p><img src="60.png"></p>
 <h3 id="如何执行我们想要的代码"><a href="#如何执行我们想要的代码" class="headerlink" title="如何执行我们想要的代码"></a>如何执行我们想要的代码</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc,<span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>)&#123;</span><br><span class="line">        <span class="built_in">scanf</span>(<span class="string">&quot;%s&quot;</span>,cmd);</span><br><span class="line">        <span class="keyword">if</span>(!fork())<span class="comment">//子进程的代码</span></span><br><span class="line">        &#123;</span><br><span class="line">            exec(cmd);</span><br><span class="line">        &#125;</span><br><span class="line">        wait(<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <ul>
 <li>fork()何时返回0，何时不会？<ul>
-<li><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/61.png" class=""></li>
-<li><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/62.png" class=""></li>
+<li><img src="61.png"></li>
+<li><img src="62.png"></li>
 <li>子进程里，eax被置为0，然后通过TSS找到了返回地址</li>
 <li>父进程里eax则非0</li>
 </ul>
@@ -824,63 +693,49 @@ tcb.esp=stack;
 </ul>
 </li>
 </ul>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/63.png" class="">
-
+<p><img src="63.png"></p>
 <h3 id="让A执行"><a href="#让A执行" class="headerlink" title="让A执行"></a>让A执行</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">do_exec</span><span class="params">(* eip,...)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    p+=change_ldt(...);</span><br><span class="line">    eip[<span class="number">0</span>]=ex.a_entry;<span class="comment">//ex.a_entry是可执行程序入口地址，产生可执行文件时写入</span></span><br><span class="line">    eip[<span class="number">3</span>]=p;<span class="comment">//修改栈</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">exec</span>&#123;</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> a_magic;</span><br><span class="line">    <span class="keyword">unsigned</span> a_entry;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h3 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/64.png" class="">
-
+<h3 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h3><p><img src="64.png"></p>
 <h2 id="操作系统的那颗“树”"><a href="#操作系统的那颗“树”" class="headerlink" title="操作系统的那颗“树”"></a>操作系统的那颗“树”</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span>	i,to,*fp,sum=<span class="number">0</span>;</span><br><span class="line">    to=atoi(argv[<span class="number">1</span>]);</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;=to;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        sum=sum+i;</span><br><span class="line">        <span class="comment">//CPU工作了10毫秒</span></span><br><span class="line">        <span class="built_in">fprintf</span>(fp,<span class="string">&quot;%d&quot;</span>,sum);</span><br><span class="line">        <span class="comment">//CPU停留了10秒钟</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h3 id="得让CPU好好运转"><a href="#得让CPU好好运转" class="headerlink" title="得让CPU好好运转"></a>得让CPU好好运转</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/65.png" class="">
-
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/66.png" class="">
-
-<h3 id="一个栈-Yield造成的混乱"><a href="#一个栈-Yield造成的混乱" class="headerlink" title="一个栈+Yield造成的混乱"></a>一个栈+Yield造成的混乱</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/67.png" class="">
-
-<h3 id="使用两个栈-两个用户TCB"><a href="#使用两个栈-两个用户TCB" class="headerlink" title="使用两个栈+两个用户TCB"></a>使用两个栈+两个用户TCB</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/68.png" class="">
-
+<h3 id="得让CPU好好运转"><a href="#得让CPU好好运转" class="headerlink" title="得让CPU好好运转"></a>得让CPU好好运转</h3><p><img src="65.png"></p>
+<p><img src="66.png"></p>
+<h3 id="一个栈-Yield造成的混乱"><a href="#一个栈-Yield造成的混乱" class="headerlink" title="一个栈+Yield造成的混乱"></a>一个栈+Yield造成的混乱</h3><p><img src="67.png"></p>
+<h3 id="使用两个栈-两个用户TCB"><a href="#使用两个栈-两个用户TCB" class="headerlink" title="使用两个栈+两个用户TCB"></a>使用两个栈+两个用户TCB</h3><p><img src="68.png"></p>
 <p>Yield()找到下一个TCB—&gt;找到新的栈—&gt;切到新的栈</p>
-<h3 id="不能一直执行用户态"><a href="#不能一直执行用户态" class="headerlink" title="不能一直执行用户态"></a>不能一直执行用户态</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/69.png" class="">
-
+<h3 id="不能一直执行用户态"><a href="#不能一直执行用户态" class="headerlink" title="不能一直执行用户态"></a>不能一直执行用户态</h3><p><img src="69.png"></p>
 <p>如果进程1进入了内核，并且阻塞，则会进入进程2，进程1中的其他线程都会不执行。</p>
-<h3 id="引入内核栈的切换"><a href="#引入内核栈的切换" class="headerlink" title="引入内核栈的切换"></a>引入内核栈的切换</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/70.png" class="">
-
+<h3 id="引入内核栈的切换"><a href="#引入内核栈的切换" class="headerlink" title="引入内核栈的切换"></a>引入内核栈的切换</h3><p><img src="70.png"></p>
 <h3 id="目标：交替的打出A和B"><a href="#目标：交替的打出A和B" class="headerlink" title="目标：交替的打出A和B"></a>目标：交替的打出A和B</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#AB.<span class="function">c</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(!fork())&#123;<span class="keyword">while</span>(<span class="number">1</span>)<span class="built_in">printf</span>(<span class="string">&quot;A&quot;</span>);&#125;</span><br><span class="line">    <span class="keyword">if</span>(!fork())&#123;<span class="keyword">while</span>(<span class="number">1</span>)<span class="built_in">printf</span>(<span class="string">&quot;B&quot;</span>);&#125;</span><br><span class="line">    wait();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">main()&#123;</span><br><span class="line">	mov __NR_fork,%eax</span><br><span class="line">	int 0x80</span><br><span class="line">100:</span><br><span class="line">	mov %eax,res</span><br><span class="line">	cmpl res,0</span><br><span class="line">	jne 208</span><br><span class="line">200:</span><br><span class="line">	printf(&quot;A&quot;)</span><br><span class="line">208:</span><br><span class="line">	...</span><br><span class="line">304:</span><br><span class="line">	wait()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h3 id="INT进入内核"><a href="#INT进入内核" class="headerlink" title="INT进入内核"></a>INT进入内核</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/71.png" class="">
-
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/72.png" class="">
-
+<h3 id="INT进入内核"><a href="#INT进入内核" class="headerlink" title="INT进入内核"></a>INT进入内核</h3><p><img src="71.png"></p>
+<p><img src="72.png"></p>
 <h3 id="开始sys-fork"><a href="#开始sys-fork" class="headerlink" title="开始sys_fork"></a>开始sys_fork</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sys_fork:</span><br><span class="line">	push ...</span><br><span class="line">	call copy_process</span><br><span class="line">	ret</span><br></pre></td></tr></table></figure>
 
 <h3 id="开始copy-process"><a href="#开始copy-process" class="headerlink" title="开始copy_process"></a>开始copy_process</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">copy_process</span><span class="params">(...<span class="keyword">long</span> eip=<span class="number">100</span>,)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    p=(PCB *)get_free_page();</span><br><span class="line">    p-&gt;tss.esp0=p+<span class="number">4</span>k;</span><br><span class="line">    p-&gt;tss.esp=esp;</span><br><span class="line">    p-&gt;tss.eax=<span class="number">0</span>;</span><br><span class="line">    p-&gt;tss.eip=eip;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/73.png" class="">
-
+<p><img src="73.png"></p>
 <h3 id="开始返回"><a href="#开始返回" class="headerlink" title="开始返回"></a>开始返回</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">copy_process()&#123;...&#125;</span><br><span class="line">sys_fork:</span><br><span class="line">	...</span><br><span class="line">	call copy_process</span><br><span class="line">	...</span><br><span class="line">	ret</span><br><span class="line">system_call:</span><br><span class="line">	...</span><br><span class="line">	call sys_call_table(,%eax,4)</span><br><span class="line">	cmpl $0,state(current)</span><br><span class="line">	jne reschedule</span><br><span class="line">	iret</span><br><span class="line">main:</span><br><span class="line">	int 0x80</span><br><span class="line">100:</span><br><span class="line">	mov %eax,res</span><br><span class="line">	cmpl res,0;</span><br></pre></td></tr></table></figure>
 
 <h3 id="main继续执行"><a href="#main继续执行" class="headerlink" title="main继续执行"></a>main继续执行</h3><p>又一次fork()，再一次int 0x80</p>
 <p>在内核中再产生一个PCB和内核栈…</p>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/74.png" class="">
-
+<p><img src="74.png"></p>
 <p>???：是B()函数的执行地址</p>
 <h3 id="wait（）"><a href="#wait（）" class="headerlink" title="wait（）"></a>wait（）</h3><p>接下来，wait()函数，将父进程变成阻塞态。</p>
 <h3 id="schedule（）"><a href="#schedule（）" class="headerlink" title="schedule（）"></a>schedule（）</h3><p>父进程阻塞，将当前进程变成A或者B</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">schedule</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>((*P)-&gt;satae==TASK_RUNNING&amp;&amp;(*p)-&gt;counter&gt;c)</span><br><span class="line">    &#123;</span><br><span class="line">        c=(*p)-&gt;counter,next=i;</span><br><span class="line">    	...</span><br><span class="line">    &#125;</span><br><span class="line">     switch_to(next);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h3 id="swtich-to-切换"><a href="#swtich-to-切换" class="headerlink" title="swtich_to()切换"></a>swtich_to()切换</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/75.png" class="">
-
+<h3 id="swtich-to-切换"><a href="#swtich-to-切换" class="headerlink" title="swtich_to()切换"></a>swtich_to()切换</h3><p><img src="75.png"></p>
 <h3 id="怎么调度：时钟中断"><a href="#怎么调度：时钟中断" class="headerlink" title="怎么调度：时钟中断"></a>怎么调度：时钟中断</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">sched_init</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    set_intr_gate(<span class="number">0x20</span>,&amp;timer_interrupt);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">void _timer_interrupt:</span><br><span class="line">	...</span><br><span class="line">	call do_timer</span><br></pre></td></tr></table></figure>
 
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">do_timer</span><span class="params">(...)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>((--current)-&gt;counter&gt;<span class="number">0</span>)<span class="keyword">return</span>;</span><br><span class="line">    current-&gt;counter=<span class="number">0</span>;</span><br><span class="line">    schedule();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h2 id="CPU调度策略"><a href="#CPU调度策略" class="headerlink" title="CPU调度策略"></a>CPU调度策略</h2><h3 id="多进程图像与CPU调度"><a href="#多进程图像与CPU调度" class="headerlink" title="多进程图像与CPU调度"></a>多进程图像与CPU调度</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/76.png" class="">
-
+<h2 id="CPU调度策略"><a href="#CPU调度策略" class="headerlink" title="CPU调度策略"></a>CPU调度策略</h2><h3 id="多进程图像与CPU调度"><a href="#多进程图像与CPU调度" class="headerlink" title="多进程图像与CPU调度"></a>多进程图像与CPU调度</h3><p><img src="76.png"></p>
 <h3 id="CPU调度（进程调度）的直观想法"><a href="#CPU调度（进程调度）的直观想法" class="headerlink" title="CPU调度（进程调度）的直观想法"></a>CPU调度（进程调度）的直观想法</h3><ol>
 <li>FIFO<ul>
 <li>先进先调度</li>
@@ -911,24 +766,22 @@ tcb.esp=stack;
 </ul>
 <h3 id="各种基本调度算法"><a href="#各种基本调度算法" class="headerlink" title="各种基本调度算法"></a>各种基本调度算法</h3><h4 id="First-Come，First-Service（FCFS）"><a href="#First-Come，First-Service（FCFS）" class="headerlink" title="First Come，First Service（FCFS）"></a>First Come，First Service（FCFS）</h4><ul>
 <li>先来先服务</li>
-<li><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/77.png" class=""></li>
+<li><img src="77.png"></li>
 <li>缺点：平均周转时间大。</li>
 </ul>
 <p>因为短的作业越前平均周转时间越短，长的作业越后平均周转时间越长。</p>
 <h4 id="SJF：短作业优先"><a href="#SJF：短作业优先" class="headerlink" title="SJF：短作业优先"></a>SJF：短作业优先</h4><ul>
 <li>平均周转时间最小</li>
 <li>响应时间无法控制，长作业要等好久才能执行</li>
-<li><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/78.png" class=""></li>
+<li><img src="78.png"></li>
 </ul>
-<h4 id="RR：按时间片来轮转调度"><a href="#RR：按时间片来轮转调度" class="headerlink" title="RR：按时间片来轮转调度"></a>RR：按时间片来轮转调度</h4><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/79.png" class="">
-
+<h4 id="RR：按时间片来轮转调度"><a href="#RR：按时间片来轮转调度" class="headerlink" title="RR：按时间片来轮转调度"></a>RR：按时间片来轮转调度</h4><p><img src="79.png"></p>
 <ul>
 <li>时间片大：响应时间太长；时间片小：吞吐量小</li>
 <li>折中：时间片10~100ms，切换时间0.1-1ms</li>
 </ul>
 <h4 id="一个调度算法怎样让多种类型任务同时满意"><a href="#一个调度算法怎样让多种类型任务同时满意" class="headerlink" title="一个调度算法怎样让多种类型任务同时满意"></a>一个调度算法怎样让多种类型任务同时满意</h4><p>直观想法：定义前台任务和后台任务两队列，前台RR，后台SJF。只有当没有前台任务，才调度后台任务。</p>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/80.png" class="">
-
+<p><img src="80.png"></p>
 <p>如果一直有前台任务，那么怎么办？</p>
 <h3 id="饥饿"><a href="#饥饿" class="headerlink" title="饥饿"></a>饥饿</h3><ul>
 <li>如果后台任务长时间没有运行，就会饥饿，提高其优先级。</li>
@@ -953,8 +806,7 @@ tcb.esp=stack;
 <li>后台进程一直按照counter轮转，近似SJF调度</li>
 <li>每个进程只维护一个counter变量，简单高效</li>
 </ul>
-<h2 id="进程同步与信号量"><a href="#进程同步与信号量" class="headerlink" title="进程同步与信号量"></a>进程同步与信号量</h2><h3 id="进程合作：多进程共同完成一个任务"><a href="#进程合作：多进程共同完成一个任务" class="headerlink" title="进程合作：多进程共同完成一个任务"></a>进程合作：多进程共同完成一个任务</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/81.png" class="">
-
+<h2 id="进程同步与信号量"><a href="#进程同步与信号量" class="headerlink" title="进程同步与信号量"></a>进程同步与信号量</h2><h3 id="进程合作：多进程共同完成一个任务"><a href="#进程合作：多进程共同完成一个任务" class="headerlink" title="进程合作：多进程共同完成一个任务"></a>进程合作：多进程共同完成一个任务</h3><p><img src="81.png"></p>
 <h3 id="生产者-消费者实例"><a href="#生产者-消费者实例" class="headerlink" title="生产者-消费者实例"></a>生产者-消费者实例</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//共享数据</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> BUFFER_SIZE 10</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span>&#123;</span>...&#125;item;</span><br><span class="line">item buffer[BUFFER_SIZE];</span><br><span class="line"><span class="keyword">int</span> in=out=counter=<span class="number">0</span>;</span><br></pre></td></tr></table></figure>
 
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//生产者进程</span></span><br><span class="line"><span class="keyword">while</span>(<span class="literal">true</span>)&#123;</span><br><span class="line">    <span class="keyword">while</span>(counter==BUFFER_SIZE)</span><br><span class="line">        ;<span class="comment">//缓存区满，生产者要停</span></span><br><span class="line">    buffer[in]=item;</span><br><span class="line">    in=(in+<span class="number">1</span>)%BUFFER_SIZE;</span><br><span class="line">    counter++;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -962,8 +814,7 @@ tcb.esp=stack;
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//消费者进程</span></span><br><span class="line"><span class="keyword">while</span>(<span class="literal">true</span>)&#123;</span><br><span class="line">    <span class="keyword">while</span>(counter==<span class="number">0</span>)</span><br><span class="line">        ;<span class="comment">//缓存区空，消费者要停</span></span><br><span class="line">    item=buffer[out];</span><br><span class="line">    out=(out+<span class="number">1</span>)%BUFFER_SIZE;</span><br><span class="line">    counter--;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>通过进程同步来保证多进程合作的合理有序。</p>
-<h3 id="只发信号还不够"><a href="#只发信号还不够" class="headerlink" title="只发信号还不够"></a>只发信号还不够</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/82.png" class="">
-
+<h3 id="只发信号还不够"><a href="#只发信号还不够" class="headerlink" title="只发信号还不够"></a>只发信号还不够</h3><p><img src="82.png"></p>
 <ol>
 <li>缓冲区满以后生产者P1生产一个item放入，会sleep</li>
 <li>又一个生产者P2生产一个item放入，会sleep</li>
@@ -993,12 +844,8 @@ tcb.esp=stack;
 <li>C再执行一次循环，sem=1</li>
 <li>P3执行，sem=0</li>
 </ol>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/83.png" class="">
-
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/84.png" class="">
-
-
-
+<p><img src="83.png"></p>
+<p><img src="84.png"></p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">V(semaphore s)</span><br><span class="line">&#123;</span><br><span class="line">    s.value++;</span><br><span class="line">    <span class="keyword">if</span>(s.value &lt;= <span class="number">0</span>)</span><br><span class="line">        wakeup(s.<span class="built_in">queue</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <h3 id="用信号量解生产者-消费者问题"><a href="#用信号量解生产者-消费者问题" class="headerlink" title="用信号量解生产者-消费者问题"></a>用信号量解生产者-消费者问题</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//用文件定义共享缓冲区</span></span><br><span class="line"><span class="keyword">int</span> fd = open(<span class="string">&quot;buffer.txt&quot;</span>);</span><br><span class="line">write(fd, <span class="number">0</span>, <span class="keyword">sizeof</span>(<span class="keyword">int</span>));</span><br><span class="line">write(fd, <span class="number">0</span>, <span class="keyword">sizeof</span>(<span class="keyword">int</span>));</span><br><span class="line"><span class="comment">//信号量的定义和初始化</span></span><br><span class="line">semaphore full=<span class="number">0</span>;</span><br><span class="line">semaphore empty=BUFFER_SIZE;</span><br><span class="line">semaphore mutex=<span class="number">1</span>;</span><br><span class="line"><span class="comment">/*实现互斥，P(mutex)将mutex置为0，其他进程就没法进入缓冲区，V(mutex)再置为1，其他进程就可以进入缓冲区。*/</span></span><br><span class="line"></span><br><span class="line">Producer(item)&#123;</span><br><span class="line">    P(empty);<span class="comment">//缓冲区是否满了,满了停止写入</span></span><br><span class="line">    P(mutex);</span><br><span class="line">    读入in;</span><br><span class="line">    将item写入到in的位置上;</span><br><span class="line">    V(mutex);</span><br><span class="line">    V(full);<span class="comment">//生产者增加内容full++</span></span><br><span class="line">&#125;</span><br><span class="line">Consumer()&#123;</span><br><span class="line">    P(full);<span class="comment">//生产的内容为0，就阻塞，否则full--</span></span><br><span class="line">    P(mutex);</span><br><span class="line">    读入out;</span><br><span class="line">    从文件中的out位置读出到item;</span><br><span class="line">    打印item;</span><br><span class="line">	V(mutex);</span><br><span class="line">    V(empty);<span class="comment">//缓冲区是否为空，空了停止读出</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -1021,13 +868,12 @@ tcb.esp=stack;
 </li>
 <li><p>临界区：一次只允许一个进程进入的该进程的那一段代码</p>
 <ul>
-<li><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/85.png" class=""></li>
+<li><img src="85.png"></li>
 <li>一个非常重要的工作：找出进程中的临界区代码（读写信号量的代码必须是临界区）</li>
 </ul>
 </li>
 </ul>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/86.png" class="">
-
+<p><img src="86.png"></p>
 <h3 id="临界区代码的保护原则"><a href="#临界区代码的保护原则" class="headerlink" title="临界区代码的保护原则"></a>临界区代码的保护原则</h3><ul>
 <li>基本原则：<strong>互斥进入</strong>：如果一个进程在临界区中执行，则其他进程不允许进入<ul>
 <li>这些进程间的约束条件称为互斥</li>
@@ -1040,23 +886,20 @@ tcb.esp=stack;
 </ul>
 </li>
 </ul>
-<h3 id="进入临界区的第一个尝试-轮换法"><a href="#进入临界区的第一个尝试-轮换法" class="headerlink" title="进入临界区的第一个尝试-轮换法"></a>进入临界区的第一个尝试-轮换法</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/87.png" class="">
-
+<h3 id="进入临界区的第一个尝试-轮换法"><a href="#进入临界区的第一个尝试-轮换法" class="headerlink" title="进入临界区的第一个尝试-轮换法"></a>进入临界区的第一个尝试-轮换法</h3><p><img src="87.png"></p>
 <ul>
 <li> 满足互斥进入要求</li>
-<li>轮换的时候，如果有进程在进入前阻塞，那么现在临界区有空，但另一个进程想进也进不去。</li>
+<li> 轮换的时候，如果有进程在进入前阻塞，那么现在临界区有空，但另一个进程想进也进不去。</li>
 </ul>
-<h3 id="又一个尝试-标记法"><a href="#又一个尝试-标记法" class="headerlink" title="又一个尝试-标记法"></a>又一个尝试-标记法</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/88.png" class="">
-
+<h3 id="又一个尝试-标记法"><a href="#又一个尝试-标记法" class="headerlink" title="又一个尝试-标记法"></a>又一个尝试-标记法</h3><p><img src="88.png"></p>
 <ul>
 <li> 满足互斥进入要求</li>
-<li>但是，当进程调度过程中会导致两个flag都为1，P0和P1无限等待。</li>
+<li> 但是，当进程调度过程中会导致两个flag都为1，P0和P1无限等待。</li>
 </ul>
 <h3 id="非对称标记Peterson算法"><a href="#非对称标记Peterson算法" class="headerlink" title="非对称标记Peterson算法"></a>非对称标记Peterson算法</h3><ul>
 <li>带名字的便条+让一个进程更加优先</li>
 </ul>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/89.png" class="">
-
+<p><img src="89.png"></p>
 <ul>
 <li>满足有空让进：如果进程P1不在临界区，则flag[1]=false或turn=0，P0都能进入。</li>
 <li>满足有限等待：P0要求进入，flag[0]=true;后面的P1不可能一直进入，因为P1执行一次就会让turn=0。</li>
@@ -1065,8 +908,7 @@ tcb.esp=stack;
 <li>如何轮转：每个进程都获得一个序号，序号最小的进入</li>
 <li>如何标记：进程离开时序号为0，不为0的序号即标记</li>
 </ul>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/90.png" class="">
-
+<p><img src="90.png"></p>
 <p>面包店算法：每个进入商店的客户都获得一个号码，号码最小的先得到服务；号码相同时，名字靠前的先服务。</p>
 <ul>
 <li>互斥进入：总是号最小的进入</li>
@@ -1086,7 +928,7 @@ tcb.esp=stack;
 <p>sti();</p>
 <pre><code>剩余区    
 </code></pre>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">    - 多核CPU就不能这样操作</span><br><span class="line">  </span><br><span class="line">      - 只能关闭一个CPU的终端，另一个CPU还能正常操作</span><br><span class="line">  </span><br><span class="line">- 硬件原子指令法</span><br><span class="line"></span><br><span class="line">  - ```c</span><br><span class="line">    boolean TestAndSet(boolean &amp;x)</span><br><span class="line">    //只能有一个进程调用这个函数</span><br><span class="line">    &#123;</span><br><span class="line">        boolean rv=x;</span><br><span class="line">        x=true;//在进入临界区的瞬间，将lock锁上</span><br><span class="line">        return rv</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></li>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">    - 多核CPU就不能这样操作</span><br><span class="line"></span><br><span class="line">      - 只能关闭一个CPU的终端，另一个CPU还能正常操作</span><br><span class="line"></span><br><span class="line">- 硬件原子指令法</span><br><span class="line"></span><br><span class="line">  - ```c</span><br><span class="line">    boolean TestAndSet(boolean &amp;x)</span><br><span class="line">    //只能有一个进程调用这个函数</span><br><span class="line">    &#123;</span><br><span class="line">        boolean rv=x;</span><br><span class="line">        x=true;//在进入临界区的瞬间，将lock锁上</span><br><span class="line">        return rv</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></li>
 </ul>
 </li>
 <li><p>```c<br>while(TestAndSet(&amp;lock));<br>//临界区<br>lock=false;<br>//剩余区</p>
@@ -1096,19 +938,16 @@ tcb.esp=stack;
 </ul>
 <h3 id="从Linux0-11中学点东西"><a href="#从Linux0-11中学点东西" class="headerlink" title="从Linux0.11中学点东西"></a>从Linux0.11中学点东西</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//读磁盘块</span></span><br><span class="line">bread(<span class="keyword">int</span> dev , <span class="keyword">int</span> block)&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">buffer_head</span> *<span class="title">bh</span>;</span>	<span class="comment">//申请一个空闲缓冲区</span></span><br><span class="line">    ll_rw_block(READ,bh);	<span class="comment">//读</span></span><br><span class="line">    wait_on_buffer(bh);		<span class="comment">//阻塞</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//启动磁盘读以后睡眠。等待磁盘读完由磁盘中断将其唤醒。也是一种同步</span></span><br><span class="line">lock_buffer(buffer_head* bh)&#123;</span><br><span class="line">    cli();</span><br><span class="line">    <span class="keyword">while</span>(bh-&gt;b_lock)<span class="comment">//在阻塞队列全部进程唤醒后，按schedule()找一个进程进入磁盘并上锁，其他进程再次阻塞。</span></span><br><span class="line">        sleep_on(&amp;bh-&gt;b_wait）;</span><br><span class="line">    bh-&gt;b_lock = <span class="number">1</span>;<span class="comment">//上锁</span></span><br><span class="line">    sti();</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">void</span> sleep_on(struct task_struct **p)&#123;<span class="comment">//传入等待队列队首的指针</span></span><br><span class="line">    struct task_struct *tmp;</span><br><span class="line">    <span class="comment">//世界上最隐蔽的队列</span></span><br><span class="line">    tmp = *p;		<span class="comment">//在下面进程切换的过程中会切换栈，而tmp在栈中，作为局部变量，可以通过tmp找到下一个PCB，构成一个隐蔽的队列</span></span><br><span class="line">    *p = current;</span><br><span class="line">    <span class="comment">//将自己放入阻塞队列</span></span><br><span class="line">    current-&gt;state = TASK_UNINTERRUPTIBLE;</span><br><span class="line">    schedule();</span><br><span class="line">    <span class="keyword">if</span>(tmp)			<span class="comment">//链式唤醒，一次性全部唤醒，然后由schedule来决定唤醒哪一个进程，</span></span><br><span class="line">        tmp-&gt;state=<span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/94.png" class="">
-
+<p><img src="94.png"></p>
 <h3 id="如何从Linux0-11的这个队列中唤醒？"><a href="#如何从Linux0-11的这个队列中唤醒？" class="headerlink" title="如何从Linux0.11的这个队列中唤醒？"></a>如何从Linux0.11的这个队列中唤醒？</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">read_intr</span><span class="params">(<span class="keyword">void</span>)</span></span>&#123;	<span class="comment">//磁盘中断</span></span><br><span class="line">  	...</span><br><span class="line">    end_request(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line">end_request(<span class="keyword">int</span> uptodate)&#123;</span><br><span class="line">    ...</span><br><span class="line">    unlock_buffer(current-&gt;bh)</span><br><span class="line">&#125;</span><br><span class="line">unlock_buffer(struct buffer_head * bh)&#123;</span><br><span class="line">    bh-&gt;b_lock=<span class="number">0</span>;</span><br><span class="line">    wake_up(&amp;bh-&gt;b_wait);</span><br><span class="line">&#125;</span><br><span class="line">wake_up(struct task_struct **p)&#123;	<span class="comment">//传入阻塞队列队首</span></span><br><span class="line">    <span class="keyword">if</span>(p &amp;&amp; *p)&#123;</span><br><span class="line">        (**p).state=<span class="number">0</span>;				<span class="comment">//队首指向的进程唤醒</span></span><br><span class="line">        *p=<span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 
 
-<h2 id="死锁处理"><a href="#死锁处理" class="headerlink" title="死锁处理"></a>死锁处理</h2><h3 id="如果信号量这样使用"><a href="#如果信号量这样使用" class="headerlink" title="如果信号量这样使用"></a>如果信号量这样使用</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/91.png" class="">
-
+<h2 id="死锁处理"><a href="#死锁处理" class="headerlink" title="死锁处理"></a>死锁处理</h2><h3 id="如果信号量这样使用"><a href="#如果信号量这样使用" class="headerlink" title="如果信号量这样使用"></a>如果信号量这样使用</h3><p><img src="91.png"></p>
 <p>将进入区代码，先mutex再empty，先mutex再full</p>
 <p>生产者在P（empty）时，需要等待消费者V（empty）,而消费者却在P(mutex)，导致互相等待对方。</p>
 <p>死锁：多个进程由于等待对方持有的资源而造成的谁都无法执行的情况。</p>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/92.png" class="">
-
+<p><img src="92.png"></p>
 <h3 id="造成死锁的原因"><a href="#造成死锁的原因" class="headerlink" title="造成死锁的原因"></a>造成死锁的原因</h3><ul>
 <li>资源互斥使用，一旦占有别人无法使用（互斥使用）</li>
 <li>进程占有了一些资源，又不释放，还要再去申请其他资源（不可抢占）</li>
@@ -1134,7 +973,7 @@ tcb.esp=stack;
 </li>
 <li><p>安全序列：上面的执行序列</p>
 <ul>
-<li><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/93.png" class=""></li>
+<li><img src="93.png"></li>
 <li>P1、P3、P2、P4、P0</li>
 </ul>
 </li>
@@ -1172,22 +1011,17 @@ end:    for(i=0;i&lt;n;i++)
 <h3 id="死锁忽略"><a href="#死锁忽略" class="headerlink" title="死锁忽略"></a>死锁忽略</h3><ul>
 <li>死锁出现不是确定的，又可以用重启动来处理死锁</li>
 </ul>
-<h2 id="内存使用与分段"><a href="#内存使用与分段" class="headerlink" title="内存使用与分段"></a>内存使用与分段</h2><h3 id="从计算机如何工作开始讲起"><a href="#从计算机如何工作开始讲起" class="headerlink" title="从计算机如何工作开始讲起"></a>从计算机如何工作开始讲起</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/95.png" class="">
-
+<h2 id="内存使用与分段"><a href="#内存使用与分段" class="headerlink" title="内存使用与分段"></a>内存使用与分段</h2><h3 id="从计算机如何工作开始讲起"><a href="#从计算机如何工作开始讲起" class="headerlink" title="从计算机如何工作开始讲起"></a>从计算机如何工作开始讲起</h3><p><img src="95.png"></p>
 <ul>
 <li>内存使用：将程序放入内存中，PC指向开始地址</li>
 </ul>
-<h3 id="首先让程序进入内存"><a href="#首先让程序进入内存" class="headerlink" title="首先让程序进入内存"></a>首先让程序进入内存</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/96.png" class="">
-
+<h3 id="首先让程序进入内存"><a href="#首先让程序进入内存" class="headerlink" title="首先让程序进入内存"></a>首先让程序进入内存</h3><p><img src="96.png"></p>
 <p>​    用磁盘将对应的机械代码读入内存，call 40时需要在地址总线上发送40，然后main函数的入口就放在40地址处。而物理内存40正好是_entry到_main的偏移地址，所以_entry就在地址0处。</p>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/97.png" class="">
-
+<p><img src="97.png"></p>
 <p>但如果有0地址处被占用了，或多个程序在内存中，就不能都放在0地址处。</p>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/98.png" class="">
-
+<p><img src="98.png"></p>
 <p>但一旦IP修改到一个空闲的地址，那么call 40就不再是_main的地址。</p>
-<h3 id="重定位：修改程序中的地址-相对地址-逻辑地址"><a href="#重定位：修改程序中的地址-相对地址-逻辑地址" class="headerlink" title="重定位：修改程序中的地址(相对地址/逻辑地址)"></a>重定位：修改程序中的地址(相对地址/逻辑地址)</h3><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/99.png" class="">
-
+<h3 id="重定位：修改程序中的地址-相对地址-逻辑地址"><a href="#重定位：修改程序中的地址-相对地址-逻辑地址" class="headerlink" title="重定位：修改程序中的地址(相对地址/逻辑地址)"></a>重定位：修改程序中的地址(相对地址/逻辑地址)</h3><p><img src="99.png"></p>
 <p>什么时候完成重定位？</p>
 <ol>
 <li>编译时（编译时不知道执行时哪些地址是空闲的，在实际系统中何难实现。但例如嵌入式系统烧录后不再改变，就可以实现）</li>
@@ -1196,7 +1030,7 @@ end:    for(i=0;i&lt;n;i++)
 </ol>
 <h3 id="程序载入后还需要移动"><a href="#程序载入后还需要移动" class="headerlink" title="程序载入后还需要移动"></a>程序载入后还需要移动</h3><ul>
 <li>一个重要概念：交换（swap）<ul>
-<li><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/100.png" class=""></li>
+<li><img src="100.png"></li>
 <li>如果一个进程阻塞了，那么需要将睡眠的进程换出，将就绪的进程换入。</li>
 <li>一旦进程在载入后移动，地址就又发生了该百年。</li>
 </ul>
@@ -1204,7 +1038,7 @@ end:    for(i=0;i&lt;n;i++)
 </ul>
 <h3 id="重定位最合适的时机-运行时重定位"><a href="#重定位最合适的时机-运行时重定位" class="headerlink" title="重定位最合适的时机-运行时重定位"></a>重定位最合适的时机-运行时重定位</h3><ul>
 <li>在运行每条指令时才完成重定位<ul>
-<li><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/101.png" class=""></li>
+<li><img src="101.png"></li>
 <li>base放在哪里？怎么找到？<ul>
 <li>在PCB中，一旦进程执行，执行指令翻译时，就从PCB中找基地址</li>
 </ul>
@@ -1215,7 +1049,7 @@ end:    for(i=0;i&lt;n;i++)
 <h3 id="引入分段：是将整个程序一起载入内存中吗？"><a href="#引入分段：是将整个程序一起载入内存中吗？" class="headerlink" title="引入分段：是将整个程序一起载入内存中吗？"></a>引入分段：是将整个程序一起载入内存中吗？</h3><ul>
 <li>程序员眼中的程序<ul>
 <li>由若干部分（段）组成，每个段有各自的特点、用途：代码段只读，代码段/数据段不会动态增长</li>
-<li><img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/102.png" class=""></li>
+<li><img src="102.png"></li>
 </ul>
 </li>
 <li>符合用户观点：用户可独立考虑每个分段（分治）</li>
@@ -1238,136 +1072,442 @@ end:    for(i=0;i&lt;n;i++)
 <p>需要一张表，来记录每个段的<strong>基址、长度、读写权限</strong>等，即<strong>进程段表</strong>（LDT）</p>
 <p>而操作系统的那张段表就是（GDT）</p>
 <h3 id="真正的故事：GDT-LDT"><a href="#真正的故事：GDT-LDT" class="headerlink" title="真正的故事：GDT+LDT"></a>真正的故事：GDT+LDT</h3><p>GDT表项：</p>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/103.png" class="">
-
+<p><img src="103.png"></p>
 <p>通过GDT表分开各个进程的基址，通过LDT表来分开进程中各个段的基址</p>
-<img src="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/104.png" class="">
-
-<h2 id="内存分区与分页"><a href="#内存分区与分页" class="headerlink" title="内存分区与分页"></a>内存分区与分页</h2>
+<p><img src="104.png"></p>
+<h2 id="内存分区与分页"><a href="#内存分区与分页" class="headerlink" title="内存分区与分页"></a>内存分区与分页</h2> 
+      <!-- reward -->
       
     </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" data-id="ckwsy8ghq0001wotv96q26ptk" data-title="操作系统" class="article-share-link">Share</a>
-      
-      
-      
-    </footer>
-  </div>
-  
-    
-<nav id="article-nav">
-  
-    <a href="/2021/12/05/hello-world/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Newer</strong>
-      <div class="article-nav-title">
-        
-          Welcom the home of Scorpio-yyz
-        
-      </div>
-    </a>
-  
-  
-    <a href="/2021/04/12/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F/" id="article-nav-older" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Older</strong>
-      <div class="article-nav-title">深入了解计算机系统</div>
-    </a>
-  
-</nav>
-
-  
-</article>
-
-
-</section>
-        
-          <aside id="sidebar">
-  
     
 
-  
+    <!-- copyright -->
     
-
-  
-    
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Archives</h3>
-    <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a></li></ul>
-    </div>
-  </div>
-
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Recent Posts</h3>
-    <div class="widget">
-      <ul>
-        
-          <li>
-            <a href="/2021/12/05/hello-world/">Welcom the home of Scorpio-yyz</a>
-          </li>
-        
-          <li>
-            <a href="/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a>
-          </li>
-        
-          <li>
-            <a href="/2021/04/12/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F/">深入了解计算机系统</a>
-          </li>
-        
-          <li>
-            <a href="/2021/03/30/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">计算机网络</a>
-          </li>
-        
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>Copyright： </strong>
+          
+          Copyright is owned by the author. For commercial reprints, please contact the author for authorization. For non-commercial reprints, please indicate the source.
+          
+        </li>
       </ul>
     </div>
-  </div>
-
-  
-</aside>
-        
-      </div>
-      <footer id="footer">
-  
-  <div class="outer">
-    <div id="footer-info" class="inner">
-      
-      &copy; 2021 John Doe<br>
-      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
-    </div>
-  </div>
-</footer>
-
-    </div>
-    <nav id="mobile-nav">
-  
-    <a href="/" class="mobile-nav-link">Home</a>
-  
-    <a href="/archives" class="mobile-nav-link">Archives</a>
-  
-</nav>
     
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
 
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2021/07/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" alt="微信分享二维码">
+    </div>
+</div>
 
-<script src="/js/jquery-3.4.1.min.js"></script>
+<div id="share-mask"></div>  
+    </footer>
+  </div>
 
+   
+  <nav class="article-nav">
+    
+    
+      <a href="/2021/04/12/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">深入了解计算机系统</div>
+      </a>
+    
+  </nav>
 
+   
+ 
+   
+     
+</article>
 
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2020-2021
+        <i class="ri-heart-fill heart_icon"></i> YYz
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>Visitors:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>Views:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
   
-<script src="/fancybox/jquery.fancybox.min.js"></script>
+  <div class="logo">
+    <a href="/"><img src="/images/ayer-side.svg" alt="Scorpio-yyz"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/wechat.jpg">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
 
 
-
-
-<script src="/js/script.js"></script>
-
-
-
-
+    
+    
 
   </div>
 </body>
+
 </html>
