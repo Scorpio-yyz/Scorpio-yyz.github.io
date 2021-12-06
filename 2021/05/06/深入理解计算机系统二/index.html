@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+  
+
+    <head>
+      <meta charset="utf-8" />
+        
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>深入理解计算机系统二 |  Scorpio</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/favicon.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css"
+      />
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-深入理解计算机系统二"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  深入理解计算机系统二
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/" class="article-date">
+  <time datetime="2021-05-06T15:54:13.000Z" itemprop="datePublished">2021-05-06</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/CSAPP/">CSAPP</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> Word count:</span>
+            <span class="post-count">8.2k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> Reading time≈</span>
+            <span class="post-count">30 min</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h2 id="第四章：处理器体系结构"><a href="#第四章：处理器体系结构" class="headerlink" title="第四章：处理器体系结构"></a>第四章：处理器体系结构</h2><h4 id="4-1-1-程序员可见的状态"><a href="#4-1-1-程序员可见的状态" class="headerlink" title="4.1.1 程序员可见的状态"></a>4.1.1 程序员可见的状态</h4><ul>
+<li>寄存器RF：共有十五个，去掉了%r15。</li>
+<li>其中%rsp作为栈指针</li>
+<li>条件码CC：ZF SF OF 少了 CF</li>
+<li>程序计数器PC</li>
+<li>内存DMEM：用虚拟地址引用内存位置，看成一个很大的字节数组</li>
+<li>状态码Stat：表明程序执行的总体状态 正常运行、异常（ex.读取非法内存地址）</li>
+</ul>
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/24.png" class="">
+
+
+<h4 id="4-1-2-Y86-64指令"><a href="#4-1-2-Y86-64指令" class="headerlink" title="4.1.2 Y86-64指令"></a>4.1.2 Y86-64指令</h4><ul>
+<li>X86-64指令集的子集</li>
+<li>只含有8字节整数操作（字长64位）</li>
+</ul>
+<p>–</p>
+<ul>
+<li>X86-64的movq指令分为了irmovq，rrmovq，mrmovq和rmmovq</li>
+<li>i是立即数immediate，r是内存memory，r是寄存器register</li>
+<li>一个字母是源操作数，一个字母是目的操作数</li>
+<li>不允许内存传送到内存，也不允许立即数到内存</li>
+</ul>
+<p>–</p>
+<ul>
+<li><p>有四个整数操作指令</p>
+<p>OPq：addq，subq，andq，xorq</p>
+</li>
+<li><p>只对寄存器数据进行操作</p>
+</li>
+<li><p>会设置条件码</p>
+</li>
+</ul>
+<p>–</p>
+<ul>
+<li>有7个跳转指令jxx：jmp，jlem，jl，je，jne，jge，jg。</li>
+<li>根据分支指令的类型和条件代码来设置选择分治</li>
+<li>分支条件和x86-64相同</li>
+</ul>
+<p>–</p>
+<ul>
+<li><p>6个条件传送指令：</p>
+<p>cmovle，cmovl，comve，comvne，comvge，comvg</p>
+</li>
+</ul>
+<p>–</p>
+<ul>
+<li>call指令会返回地址入栈，然后调到目的地址。ret指令会从这样的调用中返回。</li>
+<li>pushq，popq实现入栈和出栈</li>
+<li>halt指令停滞指令执行，相当于x86-64的hlt指令。执行该指令会导致处理器暂停，并将Stat状态码设置为HLT。</li>
+</ul>
+<h4 id="4-1-3-指令编码"><a href="#4-1-3-指令编码" class="headerlink" title="4.1.3 指令编码"></a>4.1.3 指令编码</h4><img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/25.png" class="">
+
+
+<p>首字节区分不同指令。首字节高位表示指令代码，低位表示功能。代码的值从0x0到0xB。功能的值只在同一组指令共享代码时起作用。</p>
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/26.png" class="">
+
+
+<p>15个寄存器都在一个相对应范围在0x0到0xE之间。编号和x86-64相同</p>
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/27.png" class="">
+
+
+<p>有个指令只有一个字节长，比如halt，nop，ret等。</p>
+<p>有的指令因为需要操作数，则会更长一些。原因有如下两种：</p>
+<ol>
+<li>可能附加的寄存器指示符字节。用于指定1~2个寄存器，被称为rA和rB。可以用于源寄存器和目的寄存器或用于地址计算的基址寄存器。</li>
+<li>有些指令会附加一个8字节常数constant word。<ol>
+<li>可以作为irmovq的立即数数据</li>
+<li>可以作为rmmovq和mrmovq的地址指示符的偏移量。</li>
+<li>分支指令和调用指令的目的地址。（绝对地址，而不用PC的相对寻址）</li>
+<li>采用小端法编码。指令按照反汇编格式书写的时候，这些字节就以相反的顺序出现。</li>
+</ol>
+</li>
+</ol>
+<p>让我们尝试生成下述汇编指令的字节码。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">rmmovq %rsp,0x123456789abcd(%rdx)</span><br><span class="line">4 0 4 2 cd ab 89 67 45 23 01 00</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/28.png" class="">
+
+
+<h4 id="4-1-4-Y86-64异常"><a href="#4-1-4-Y86-64异常" class="headerlink" title="4.1.4 Y86-64异常"></a>4.1.4 Y86-64异常</h4><p>状态码Stat有四种可能值</p>
+<ol>
+<li>程序执行正常</li>
+<li>处理器执行了halt指令</li>
+<li>处理器试图从一个非法内存地址都或者写</li>
+<li>遇到非法的指令代码</li>
+</ol>
+<h2 id="第五章：优化程序性能"><a href="#第五章：优化程序性能" class="headerlink" title="第五章：优化程序性能"></a>第五章：优化程序性能</h2><h4 id="5-1-优化程序编译器的能力与局限性"><a href="#5-1-优化程序编译器的能力与局限性" class="headerlink" title="5.1 优化程序编译器的能力与局限性"></a>5.1 优化程序编译器的能力与局限性</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">twiddle1</span><span class="params">(<span class="keyword">long</span> *xp,<span class="keyword">long</span> *yp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    *xp+=*yp;</span><br><span class="line">    *xp+=*yp;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">twiddle2</span><span class="params">(<span class="keyword">long</span> *xp,<span class="keyword">long</span> *yp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    *xp+=<span class="number">2</span>* *yp;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>二者功能几乎相同，对比发现</p>
+<ul>
+<li>对于函数1，进行了六次读写操作，而对于函数2只进行了三次独写操作</li>
+<li>那么编译器会不会将函数1优化成函数2呢？</li>
+</ul>
+<p>答案是不会，</p>
+<p>如果xp与yp指向相同的地址，就会出现问题</p>
+<h4 id="5-2-表示程序性能"><a href="#5-2-表示程序性能" class="headerlink" title="5.2 表示程序性能"></a>5.2 表示程序性能</h4><p>引入计量标准：每元素周期数（CPE）</p>
+<p>4GHz，时钟周期为时钟频率的倒数（0.25ns）</p>
+<p>用时钟周期表示，计量值指示了运行指令的个数</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">psum1</span><span class="params">(<span class="keyword">float</span> a[],<span class="keyword">float</span> p[],<span class="keyword">long</span> n)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">long</span> i;</span><br><span class="line">    p[<span class="number">0</span>]=a[<span class="number">0</span>];</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">1</span>;i&lt;n;i++)</span><br><span class="line">        p[i]=p[i<span class="number">-1</span>]+a[i];</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">psum2</span><span class="params">(<span class="keyword">float</span> a[],<span class="keyword">float</span> p[],<span class="keyword">long</span> n)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">long</span> i;</span><br><span class="line">    p[<span class="number">0</span>]=a[<span class="number">0</span>];</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">1</span>;i&lt;n<span class="number">-1</span>;i+=<span class="number">2</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">float</span> mid_val=p[i<span class="number">-1</span>]+a[i];</span><br><span class="line">        p[i] = mid_val;</span><br><span class="line">        p[i+<span class="number">1</span>]=mid_val+a[i+<span class="number">1</span>];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>(i&lt;n)</span><br><span class="line">        p[i]=p[i+<span class="number">1</span>]+a[i];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/29.png" class="">
+
+
+<p>循环展开法：每次迭代的元素个数不同</p>
+<h4 id="5-3-消除循环的低效率"><a href="#5-3-消除循环的低效率" class="headerlink" title="5.3 消除循环的低效率"></a>5.3 消除循环的低效率</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">combine1</span><span class="params">(vec_ptr v,<span class="keyword">data_t</span> *dest)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">long</span> i;</span><br><span class="line">    *dest=IDENT;</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;vec_length(v);i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">data_t</span> val;</span><br><span class="line">        get_vec_element(v,i,&amp;val);</span><br><span class="line">        *dest=*dest OP val;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">combine2</span><span class="params">(vec_ptr v,<span class="keyword">data_t</span> *dest)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">long</span> i;</span><br><span class="line">    length=vec_length(v)</span><br><span class="line">    *dest=IDENT;</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;length;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">data_t</span> val;</span><br><span class="line">        get_vec_element(v,i,&amp;val);</span><br><span class="line">        *dest=*dest OP val;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>计算长度的函数只要调用一次就好，所以在开始时进行一次，然后存储下来就好。减少结果重复的不必要运算。</p>
+<p>编译器会尝试执行代码移动，但它有时候难以发现函数的副作用，因而编译器的优化会很谨慎。</p>
+<h4 id="5-4-减少不必要的内存引用"><a href="#5-4-减少不必要的内存引用" class="headerlink" title="5.4 减少不必要的内存引用"></a>5.4 减少不必要的内存引用</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">data_t</span> *<span class="title">get_vec_start</span><span class="params">(vec_ptr v)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">return</span> v-&gt;data;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">combine3</span><span class="params">(vec_ptr v, <span class="keyword">data_t</span> *dest)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">long</span> i;</span><br><span class="line">    <span class="keyword">long</span> length=vec_length(v);</span><br><span class="line">    <span class="keyword">data_t</span> *data=get_vec_start(v);</span><br><span class="line">    </span><br><span class="line">    *dest=IDENT;</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;length;i++)&#123;</span><br><span class="line">        *dest = *dest OP data[i];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;<span class="comment">//消除了循环中的函数调用,直接使用数组</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">combine4</span><span class="params">(vec_ptr v, <span class="keyword">data_t</span> *dest)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">long</span> i;</span><br><span class="line">    <span class="keyword">long</span> length=vec_length();</span><br><span class="line">    <span class="keyword">data_t</span> *data=get_vec_start(v);</span><br><span class="line">    <span class="keyword">data_t</span> acc=IDENT;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;length;i++)&#123;</span><br><span class="line">        acc=acc OP data[i];</span><br><span class="line">    &#125;</span><br><span class="line">    *dest=acc;</span><br><span class="line">&#125;<span class="comment">//指针运算：寄存器与内存之间多次读写，非常耗时</span></span><br><span class="line"><span class="comment">//临时变量用寄存器保存累计值，效率显著提高</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="5-7-理解现代处理器"><a href="#5-7-理解现代处理器" class="headerlink" title="5.7 理解现代处理器"></a>5.7 理解现代处理器</h4><ul>
+<li>生成代码应该考虑到对目标处理器进行调整</li>
+<li>现代微处理器了不起的功绩之一是：使得多条指令可以并行的运行，同时又呈现出一种简单顺序执行的表象</li>
+</ul>
+<h5 id="5-7-1-整体操作"><a href="#5-7-1-整体操作" class="headerlink" title="5.7.1 整体操作"></a>5.7.1 整体操作</h5><img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/30.png" class="">
+
+
+<ol>
+<li><p>寄存器重命名</p>
+<p>指令执行发生例外或转移指令猜测错误而取消后面的指令时可以保证现场的精确</p>
+<p>思路：当一条指令写一个结果寄存器时不直接写道这个结果寄存器，而是先写道一个中间寄存器过渡一下，当这个指令提交的时候再写到结果寄存器中</p>
+</li>
+<li><p>寄存器的更新</p>
+<p>仅当指令退役时才发生。指令退役的两种情况：</p>
+<ul>
+<li>指令操作完成，且所有分支预测被认为正确</li>
+<li>某个分支预测错误，清空指令，放弃运算结果</li>
+</ul>
+</li>
+</ol>
+<h4 id="5-7-2-功能单元的性能"><a href="#5-7-2-功能单元的性能" class="headerlink" title="5.7.2 功能单元的性能"></a>5.7.2 功能单元的性能</h4><p>延迟：完成运算需要的总时间</p>
+<p>发射：两个同类型运算间隔时间</p>
+<ul>
+<li>发射时间为1：流水线化的功能单元（如浮点加法包含三个阶段，三个周期延迟，<strong>处理指数值</strong>，<strong>对小数相加</strong>，<strong>进行舍入</strong>）各阶段完成一部分运算，对于不同操作数，只需要完成自己的部分。</li>
+</ul>
+<p>吞吐量：发射时间倒数</p>
+<p>利用<strong>延迟界限</strong>和<strong>吞吐量界限</strong>描述程序最大性能</p>
+<ul>
+<li>延迟界限：代码中数据相关限制了处理器利用指令级并行的能力，给出了任何必须按照严格顺序完成合并运算的函数所需的最小PCE值</li>
+<li>吞吐量界限： 刻画了处理器功能单元的原始计算能力，这个界限是程序性能的终极限制，给出了CPE的最小界限</li>
+</ul>
+<h4 id="5-7-3-处理器操作抽象模型"><a href="#5-7-3-处理器操作抽象模型" class="headerlink" title="5.7.3 处理器操作抽象模型"></a>5.7.3 处理器操作抽象模型</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">.L25:</span><br><span class="line">	vmulsd	(%rdx), %xmm0, %xmm0</span><br><span class="line">	addq	$8	,%rdx</span><br><span class="line">	cmpq	%rax,	%rdx</span><br><span class="line">	jne		,L25</span><br></pre></td></tr></table></figure>
+
+<p>数据流图:</p>
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/31.png" class="">
+
+
+<p>某些操作产生值可以不对应于寄存器，如load，cmp</p>
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/32.png" class="">
+
+
+<p>乘法路径为<strong>关键路径</strong>，延迟更长</p>
+<h4 id="5-8-循环展开"><a href="#5-8-循环展开" class="headerlink" title="5.8 循环展开"></a>5.8 循环展开</h4><p>通过赞加每次迭代计算的元素的数量，减少循环的迭代次数</p>
+<p>从两个反面提高程序性能：</p>
+<ol>
+<li>减少了不直接有助于程序结构的操作的数量，例如循环索引计算和条件分支</li>
+<li>提供了一些方法，可以进一步变化代码，减少整个计算中关键路径上的操作数量</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">combine5</span><span class="params">(vec_ptr v, <span class="keyword">data_t</span> *dest)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">long</span> i;</span><br><span class="line">    <span class="keyword">long</span> length=vec_length(v);</span><br><span class="line">    <span class="keyword">long</span> limit=length<span class="number">-1</span>;</span><br><span class="line">    <span class="keyword">data_t</span> *data=get_vec_start(v);</span><br><span class="line">    <span class="keyword">data_t</span> acc=IDENT;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;limit;i+=<span class="number">2</span>)&#123;</span><br><span class="line">        acc=(acc OP data[i]) OP data[i+<span class="number">1</span>];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span>(;i&lt;length;i++)&#123;</span><br><span class="line">        acc=acc OP data[i];</span><br><span class="line">    &#125;</span><br><span class="line">    *dest=acc;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="5-9-提高并行性"><a href="#5-9-提高并行性" class="headerlink" title="5.9 提高并行性"></a>5.9 提高并行性</h4><p>目前为止，代码还没有能够利用上功能单元在加法和乘法”流水线“的优势</p>
+<p>原因：需要等待前一个周期算出结果才能开始下一个周期的运算，会有一个合并操作的延迟</p>
+<h5 id="5-9-1-多个累计变量"><a href="#5-9-1-多个累计变量" class="headerlink" title="5.9.1 多个累计变量"></a>5.9.1 多个累计变量</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">combine6</span><span class="params">(vec_ptr v, <span class="keyword">data_t</span> *dest)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">long</span> i;</span><br><span class="line">    <span class="keyword">long</span> length=vec_length(v);</span><br><span class="line">    <span class="keyword">long</span> limit=length<span class="number">-1</span>;</span><br><span class="line">    <span class="keyword">data_t</span> *data=get_vec_start(v);</span><br><span class="line">    <span class="keyword">data_t</span> acc0=IDENT;</span><br><span class="line">    <span class="keyword">data_t</span> acc1=IDENT;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;limit;i+=<span class="number">2</span>)&#123;</span><br><span class="line">        acc0=acc0 OP data[i];</span><br><span class="line">        acc1=acc1 OP data[i+<span class="number">1</span>];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span>(;i&lt;length;i++)&#123;</span><br><span class="line">        acc0=acc0 OP data[i];</span><br><span class="line">    &#125;</span><br><span class="line">    *dest=acc0 OP acc1;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>两个累计变量，一个算奇数乘积，一个算偶数乘积，最后将两者乘起来。</p>
+<p>同时，还运用了循环展开，称为2*2的循环展开</p>
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/33.png" class="">
+
+
+<h5 id="5-9-2-重新结合变换"><a href="#5-9-2-重新结合变换" class="headerlink" title="5.9.2 重新结合变换"></a>5.9.2 重新结合变换</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//combine7</span></span><br><span class="line">acc=(acc OP data[i]) OP data[i+<span class="number">1</span>];</span><br><span class="line"><span class="comment">//变换为</span></span><br><span class="line">acc=acc OP (data[i] OP data[i+<span class="number">1</span>]);</span><br></pre></td></tr></table></figure>
+
+<p>对应关键路径如下：</p>
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/34.png" class="">
+
+
+<p>每次迭代内的第一个乘法不需要等待上一个迭代的累计值就可以运行</p>
+<h4 id="5-10-代码优化小结"><a href="#5-10-代码优化小结" class="headerlink" title="5.10 代码优化小结"></a>5.10 代码优化小结</h4><img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/35.png" class="">
+
+
+<h4 id="5-11-一些限制因素"><a href="#5-11-一些限制因素" class="headerlink" title="5.11 一些限制因素"></a>5.11 一些限制因素</h4><p>关键路径指明执行程序所需时间基本下限</p>
+<p>​    若程序中有某条完整的数据链，链上所有延迟之和为T，那么至少需要T个周期才能执行完</p>
+<p>吞吐量指明了程序执行时间下限</p>
+<p>​    N个某种运算的计算，C个执行单位，发射时间为I，则吞吐量下限为：N*I/C</p>
+<h5 id="5-11-1-寄存器溢出"><a href="#5-11-1-寄存器溢出" class="headerlink" title="5.11.1 寄存器溢出"></a>5.11.1 寄存器溢出</h5><p>并行度过大，超过寄存器数量，这时候某些值就会被放到内存中去（通常在运行堆栈中），这时候由于存取过程，使用时间反而更长。</p>
+<h5 id="5-11-2-分支预测和预测错误处罚"><a href="#5-11-2-分支预测和预测错误处罚" class="headerlink" title="5.11.2 分支预测和预测错误处罚"></a>5.11.2 分支预测和预测错误处罚</h5><p>分支预测并且预测错误，处理器必须丢弃所有投机执行的结果，在正确的位置重新开始取指令</p>
+<h6 id="通用原则："><a href="#通用原则：" class="headerlink" title="通用原则："></a>通用原则：</h6><ol>
+<li><p>不要过分关心可预测的分支</p>
+<p>现代处理器的分支预测逻辑非常善于辨别不同的分支指令有规律的模式和长期的趋势，只要不是分支错误，通常不需要太多关注，例如合并函数结束循环的分支通常会被预测为选择分支，只在最后一次成为运算错误被处罚。</p>
+</li>
+<li><p>书写适合用条件传送实现的代码</p>
+<p>使用功能式的风格实现函数，例如三元运算。</p>
+</li>
+</ol>
+<p>命令式的程序风格：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//正常程序</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">minmax1</span><span class="params">(<span class="keyword">long</span> a[],<span class="keyword">long</span> b[],<span class="keyword">long</span> n)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">long</span> i;</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;n;i++)&#123;</span><br><span class="line">        <span class="keyword">if</span>(a[i]&gt;b[i])&#123;</span><br><span class="line">            <span class="keyword">long</span> t=a[i];</span><br><span class="line">            a[i]=b[i];</span><br><span class="line">            b[i]=t;</span><br><span class="line">        &#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//命令式</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">minmax1</span><span class="params">(<span class="keyword">long</span> a[],<span class="keyword">long</span> b[],<span class="keyword">long</span> n)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">long</span> i;</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;n;i++)&#123;</span><br><span class="line">        <span class="keyword">long</span> min=a[i]&lt;b[i]?a[i]:b[i];</span><br><span class="line">        <span class="keyword">long</span> max=a[i]&lt;b[i]?b[i]:a[i];</span><br><span class="line">        a[i]=min;</span><br><span class="line">        b[i]=max;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="5-12-理解内存性能"><a href="#5-12-理解内存性能" class="headerlink" title="5.12 理解内存性能"></a>5.12 理解内存性能</h4><h5 id="5-12-1-加载的性能"><a href="#5-12-1-加载的性能" class="headerlink" title="5.12.1 加载的性能"></a>5.12.1 加载的性能</h5><p>所有的现代处理器都包含一个或多个高速缓存（cache）存储器，以对这样少量的存储器提供快速的访问。</p>
+<p>我们知道，现代处理器有专门的功能单元来执行加载和存储操作，这些单元有内部的缓冲区来保存未完成的内存操作请求集合。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">ELE</span>&#123;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">ELE</span> *<span class="title">next</span>;</span></span><br><span class="line">    <span class="keyword">long</span> data;</span><br><span class="line">&#125;list_ele, *list_ptr;</span><br><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">list_len</span><span class="params">(list_ptr ls)</span></span>&#123;</span><br><span class="line">    <span class="keyword">long</span> len=<span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span>(ls)&#123;</span><br><span class="line">		len++;</span><br><span class="line">        ls=ls-&gt;next;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> len;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//链表函数。其性能受限于加载操作的延迟</span></span><br></pre></td></tr></table></figure>
+
+<p>直到上一次迭代完成，下一次迭代才能开始。函数的CPE完全由加载时间的延迟来决定。</p>
+<h5 id="5-12-2-存储的性能"><a href="#5-12-2-存储的性能" class="headerlink" title="5.12.2 存储的性能"></a>5.12.2 存储的性能</h5><p>我们分析了大部分对存储器的引用都是<strong>加载操作</strong>的函数，也就是从存储位置读到寄存器中。</p>
+<p>与之对应的是存储操作：它将一个寄存器写到存储器。这个操作的性能，尤其是与加载操作的相互关系，包括了一些很细微的问题。</p>
+<p>写/读相关：一个存储器读的结果依赖于一个最近的存储器写。写/读相关导致处理速度下降。</p>
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/36.png" class="">
+
+
+<p>存储单元包含一个存储缓冲区，他包含<strong>已经被发射到存储单元</strong>而又<strong>没完成的存储操作的地址和数据</strong>，这里的完成包括更新数据高速缓存。提供这样一个缓冲区，使得一系列<strong>存储操作不必等待每个操作都更新高速缓存就能够执行</strong>。</p>
+<p>当一个加载操作发生时，它必须<strong>检查存储缓冲区</strong>中的条目，看看有没有地址相匹配。如果有地址相匹配（在写的字节与在读的字节有相同的地址）它就取出相应的数据条目作为加载操作的结果。</p>
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/37.png" class="">
+
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">.L3:</span><br><span class="line">	movq	%rax,	(%rsi)</span><br><span class="line">	movq 	(%rdi),	%rax</span><br><span class="line">	addq	$1	,	%rax</span><br><span class="line">	subq	$1	,	%rdx</span><br><span class="line">	jne		.L3</span><br></pre></td></tr></table></figure>
+
+<p>s _addr操作的地址计算必须在s_data操作之前。此外 movq     (%rdi),    %rax 需要的load操作必须检查所有未完成的存储操作的地址，这个操作与s_addr操作形成了数据相关。</p>
+<p>虚弧线表示这个相关是有条件的：</p>
+<ol>
+<li>当两个操作地址不同，那么两个操作可以独立运行；</li>
+<li>当两个操作地址相同，load操作必须等到s_data操作完成并将结果放到存储缓冲区中。</li>
+</ol>
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/38.png" class="">
+
+
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/39.png" class="">
+
+
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/40.png" class="">
+
+
+<h4 id="5-13-性能提高技术（算法）"><a href="#5-13-性能提高技术（算法）" class="headerlink" title="5.13 性能提高技术（算法）"></a>5.13 性能提高技术（算法）</h4><ol>
+<li>高级设计。为遇到的问题选择合适的算法和数据结构。避免使用那些会渐进的产生糟糕性能的算法或编码技术。</li>
+<li>基本编码原则。避免限制优化的因素，这样编译器就能产生高效的代码。<ol>
+<li>消除连续的函数调用。在可能时，将计算移到循环外。考虑有选择的妥协程序的模块性来获得更大的效率。</li>
+<li>消除不必要的存储器引用。引入临时变量来保存中间结果。</li>
+</ol>
+</li>
+<li>低级优化<ol>
+<li>展开循环，降低开销，并且使得进一步的优化成为可能</li>
+<li>通过使用例如多个累计变量和重新组合等技术，找到提高指令级并行。</li>
+<li>用功能的风格重写条件操作，使得编译采用条件数据传送。</li>
+</ol>
+</li>
+</ol>
+<h4 id="5-14-确认和消除性能瓶颈（结合硬件）"><a href="#5-14-确认和消除性能瓶颈（结合硬件）" class="headerlink" title="5.14 确认和消除性能瓶颈（结合硬件）"></a>5.14 确认和消除性能瓶颈（结合硬件）</h4><p>在处理大程序的时候很难定位需要优化的地方，就需要使用到代码剖析程序。</p>
+<p>程序剖析可以在现实的基准数据上运行实际程序的同时，进行剖析。</p>
+<p>剖析程序GPROF可以确定每个函数花费多少CPU时间。计算每个函数被调用的次数。</p>
+<h2 id="第六章：存储器层次结构"><a href="#第六章：存储器层次结构" class="headerlink" title="第六章：存储器层次结构"></a>第六章：存储器层次结构</h2><p><strong>存储器系统</strong>是一个具有不同容量、成本和访问时间的存储设备的层次结构。CPU寄存器保存着最常用的数据。</p>
+<p>靠近CPU的小的、快速的<strong>高速缓存存储器</strong>作为一部分存储在相对慢速的主存储器中数据和指令的缓冲区域。</p>
+<p>主存缓存存储在容量较大的、慢速磁盘上的数据，而这些磁盘常常又作为存储在通过网络连接的其他机器的磁盘或磁带上的数据的缓冲区域。</p>
+<h4 id="6-1-存储技术"><a href="#6-1-存储技术" class="headerlink" title="6.1 存储技术"></a>6.1 存储技术</h4><h5 id="6-1-1-随机访问存储器"><a href="#6-1-1-随机访问存储器" class="headerlink" title="6.1.1 随机访问存储器"></a>6.1.1 随机访问存储器</h5><p>分为静态RAM和动态RAM</p>
+<ol>
+<li>静态：双稳态，只要有电，数据不会变，抗干扰</li>
+<li>动态：将数据存储为对电容的充电，对干扰非常敏感，周期性地刷新</li>
+</ol>
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/59.png" class="">
+
+<p><strong>传统的DRAM</strong></p>
+<p>​    DRAM芯片中的单元被分成d个<strong>超单元</strong>，每个超单元都由w个DRAM单元组成。一个d X w的DRAM总共存储了d*w位信息。超单元被组织成一个r行c列的长方形阵列，这里rc=d。每个超单元有形如（i，j）的地址。</p>
+<p>​    信息通过称为引脚的外部连接器流入和流出芯片。</p>
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/60.png" class="">
+
+
+<p>内存模块：</p>
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/61.png" class="">
+
+
+<p>几种增强的DRAM：</p>
+<ol>
+<li>快页模式DRAM（FPM DRAM）：不舍弃同行其他列数据</li>
+<li>扩展数据输出DRAM：比FPM DRAM更快（缩短了读取行和列数据的间隔）</li>
+<li>同步DRAM：CPU发出的读取指令到达内存控制器和到达CPU芯片的时间几乎同步</li>
+<li>双倍速率同步DRAM（DDR SDRAM）：通过提高有效带宽的很小的预取缓冲区的大小来划分的：DDR（2位），DDR2（4位），DDR4（8位）。</li>
+<li>视频RAM：允许在同一时间被所有硬件访问</li>
+</ol>
+<p>非易失性存储器：ROM</p>
+<ol>
+<li>可编程ROM</li>
+<li>可擦写ROM</li>
+<li>闪存ROM</li>
+</ol>
+<p>存储在ROM中的程序称为固件（比如计算机主板上的基本输入/输出系统BIOS（Basic Input/output System)）</p>
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/62.png" class="">
+
+
+<h5 id="6-1-2-磁盘存储"><a href="#6-1-2-磁盘存储" class="headerlink" title="6.1.2 磁盘存储"></a>6.1.2 磁盘存储</h5><p><strong>磁盘构造</strong></p>
+<p>磁盘由多个盘片（platter）构成，每个盘片都有两面。盘片表面覆盖着磁性材料用于记录信息，盘片中央有一个旋转主轴控制盘片以固定的旋转速率（rotational rate）旋转,旋转速度是磁盘性能的一个参数，通常为5400~15000转每分。</p>
+<p>磁盘的每个盘面是由一组称之为磁道（track）同心圆构成，每个磁道又被划分为多个扇区（sector）。每一个扇区中包含相等的数据位（通常为512字节），数据编码在磁盘的磁性材料中。扇区之间有一些间隙（gap）分隔开，间隙中不存储数据位，间隙存储用来标识扇区的格式化位。</p>
+<p>另外还可以用柱面（cylinder）来描述多个盘片驱动器的构造，柱面指的是所有盘片表面上到主轴中心距离相等的磁道集合。比如磁盘有3个盘片，6个面，每个面上距离中心距离相等的磁道称之为一个柱面。</p>
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/63.png" class="">
+
+
+<p><strong>磁盘容量</strong></p>
+<p>一个磁盘上可以记录的最大位数称为它的最大容量，或者简称为容量。磁盘容量是由以下技术因素决定的：</p>
+<ul>
+<li>记录密度：磁道一英寸的段中可以放入的位数。</li>
+<li>磁道密度：从盘片中心出发半径上一英寸的段内可以有的磁道数。</li>
+<li>面密度：记录密度与磁道密度的乘积。</li>
+</ul>
+<p>假如某个磁盘有5个盘片，每个扇区512字节，每个面20000条磁道，每条磁道平均300个扇区，磁盘容量计算如下：</p>
+<p>磁盘容量=512字节x300扇区x20000磁道x2表面x5盘片=30 720 000 000字节=30.72G</p>
+<p><strong>磁盘操作</strong></p>
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/64.png" class="">
+
+
+<ul>
+<li>寻道时间：读/写头找到磁道的时间</li>
+<li>旋转时间：从找到磁道开始到读/写头找到扇区的时间</li>
+<li>传送时间：读/写头读写完整个扇区的时间</li>
+</ul>
+<p><strong>磁盘控制器与逻辑磁盘块</strong></p>
+<p>一个B个扇区大小的逻辑块序列，编号为0~B-1。磁盘封装中有一个小的硬件、固件设备，称为磁盘控制器，维护着逻辑块号和实际（物理）磁盘扇区之间的映射关系。</p>
+<p>当操作系统想要执行一个I/O操作时，例如读一个磁盘扇区的数据到主存，操作系统会发送一个命令到磁盘控制器，让它读某个逻辑块号。控制器上的固件执行一个快速表查找，将一个逻辑块号翻译成一个（盘面，磁道，扇区）的三元组，这个三元组唯一标识了对应的物理扇区。控制器上的硬件会解释这个三元组，将读/写头移动到适当的柱面，等待扇区移动到读/写头下，将读/写头感知到的位放到控制器上的一个小缓冲区中，然后将它们复制到主存中。</p>
+<p><strong>连接IO设备</strong></p>
+<ol>
+<li>通用串行总线</li>
+<li>图形卡</li>
+<li>主机总线适配器</li>
+</ol>
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/65.png" class="">
+
+
+<p><strong>访问磁盘</strong>：</p>
+<p>地址空间有一块IO设备通信用的地址</p>
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/66.png" class="">
+
+
+<h5 id="6-1-3-固态硬盘"><a href="#6-1-3-固态硬盘" class="headerlink" title="6.1.3 固态硬盘"></a>6.1.3 固态硬盘</h5><p>固态硬盘（SSD）是一种基于闪存的存储技术。</p>
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/67.png" class="">
+
+
+<p>SSD：读比写更快。</p>
+<p>一个闪存由B个块组成，一个块有P页。数据是以页为单位读写的，只有一页所属的块整个背擦除后，才能写这一页。不过一旦一个块被擦除了，块中每一个页都可以不需要再进行擦除就写一次。闪存块会在擦除过程中磨损。</p>
+<p>随机访问很快，因为SSD是由半导体存储器构成，没有移动的部件，所以随机访问的时间比旋转磁盘要快，能耗更低。</p>
+<p>随机写很慢，有两个原因。首先擦除块需要相对较长的时间。其次，如果写操作试图修改一个包含已经有数据的页p,那么这个块中的其他有用数据都要被复制到一个新的块中，然后才能对这个块重写。</p>
+<h5 id="6-1-4-存储技术趋势"><a href="#6-1-4-存储技术趋势" class="headerlink" title="6.1.4 存储技术趋势"></a>6.1.4 存储技术趋势</h5><ol>
+<li>不同的存储技术有不同价格和性能这种</li>
+<li>不同存储技术的价格和性能属性以截然不同的速率变化着</li>
+<li>REAM和磁盘的性能滞后于CPU的性能</li>
+</ol>
+<h4 id="6-2-局部性"><a href="#6-2-局部性" class="headerlink" title="6.2 局部性"></a>6.2 局部性</h4><p>一个编写良好的计算机程序常常具有良好的局部性。也就是，它们倾向于引用邻近于其他最近引用过的数据的数据项，或者最近引用过的数据项本身。这种倾向性，被称为<strong>局部性原理</strong>。</p>
+<p>局部性原理有两种：<strong>时间局部性</strong>和<strong>空间局部性</strong></p>
+<p>在一个具有良好时间局部性的程序中，被引用过一次的内存位置很可能在不远的将来再被多次引用。在一个具有良好的空间局部性的程序中，如果一个内存位置被引用了一次，那么程序很可能在不远的将来引用附近的一个内存位置。</p>
+<h5 id="6-2-1-对程序数据引用的局部性"><a href="#6-2-1-对程序数据引用的局部性" class="headerlink" title="6.2.1 对程序数据引用的局部性"></a>6.2.1 对程序数据引用的局部性</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sumarrayows</span><span class="params">(<span class="keyword">int</span> a[M][N])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i, j, sum = <span class="number">0</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;M;i++)&#123;</span><br><span class="line">		<span class="keyword">for</span>(j=<span class="number">0</span>;j&lt;N;j++)&#123;</span><br><span class="line">            sum += a[i][j];</span><br><span class="line">		&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面就是一个具有良好局部性的程序，因为是按照数组元素在内存中的存储顺序来访问他们。</p>
+<p>这种步长（两次内存访问位置之间的距离）为1的引用模式被称为顺序引用模式。</p>
+<p>如果将i和j位置互换，则空间局部性就会变得很差。</p>
+<h5 id="6-2-2-取指令的局部性"><a href="#6-2-2-取指令的局部性" class="headerlink" title="6.2.2 取指令的局部性"></a>6.2.2 取指令的局部性</h5><p>因为程序指令是存放在内存中的，CPU必须取出这些指令，所以我们能够评价一个程序关于取指令的局部性。for循环里的指令是按照连续的内存顺序执行的，因此循环具有良好的空间局部性。</p>
+<h5 id="6-2-3-局部性小结"><a href="#6-2-3-局部性小结" class="headerlink" title="6.2.3 局部性小结"></a>6.2.3 局部性小结</h5><ul>
+<li>重复引用相同变量的程序具有良好的局部性。</li>
+<li>对于具有步长为k的引用模式的程序，步长越小，空间局部性越好。</li>
+<li>对于取指令来说，循环具有良好的时间和空间局部性。循环体越小，循环迭代次数越多，局部性越好。</li>
+</ul>
+<h4 id="6-3-存储器层次结构"><a href="#6-3-存储器层次结构" class="headerlink" title="6.3 存储器层次结构"></a>6.3 存储器层次结构</h4><p>基于两个事实：</p>
+<ol>
+<li>不同存储技术的访问时间差很大，CPU和主存之间的速度差距在增大。</li>
+<li>良好的程序具有良好的局部性。</li>
+</ol>
+<p>人们想到一种组织存储器系统的方法：存储器层次结构。</p>
+<h5 id="6-3-1-存储器结构中的缓存"><a href="#6-3-1-存储器结构中的缓存" class="headerlink" title="6.3.1 存储器结构中的缓存"></a>6.3.1 存储器结构中的缓存</h5><p>存储器层次结构的中心思想，对于每个k，位于k层的更快更小的存储设备作为位于k+1层的更大更慢的存储设备的缓存。依次类推，直到最小的缓存：CPU寄存器组。</p>
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/68.png" class="">
+
+
+<ol>
+<li><p>缓存命中</p>
+<p>当程序需要第k+1层的某个对象d时，它首先在当前存储在第k层的一个块中查找d。如果d刚好缓存在第k层中，就是我们所说的缓存命中。例如，一个有良好时间局部性的程序可以从块14中读出一个数据对象，得到一个对k层的缓存命中。</p>
+</li>
+<li><p>缓存不命中</p>
+<p>另一方面，如果第k层中没有缓存对象d，那么就是我们所说的缓存不命中。当发生缓存不命中时，第k层的缓存从第k+1层缓存中取出包含d的那个块，如果第k层的缓存已经满了，可能就会覆盖现存的一个块。</p>
+<p>覆盖一个现存的块的过程称为<strong>替换</strong>或者<strong>驱逐</strong>这个块。被驱逐的这个块有时也被称为<strong>牺牲块</strong>。决定该替换哪个块时由缓存的<strong>替换策略</strong>来控制的。</p>
+</li>
+<li><p>缓存不命中的种类</p>
+<ul>
+<li><p><strong>强制性不命中/冷不命中</strong></p>
+<p>第k层缓存是空的则这一层叫<strong>冷缓存</strong>，如果空的缓存存入了一个数据，就叫冷缓存的<strong>暖身</strong>。</p>
+<p>硬件缓存往往使用很严格的放置策略，这个策略将k+1层的某个块限制在第k层块的一个小的子集中。如上图第k+1层的0、4、8、12会映射到第k层的块0。设置一个第k+1层的块i必须放在第k层的块i mod 4中这样的放置策略。</p>
+</li>
+<li><p><strong>冲突不命中</strong>：映射的缓存块一样。</p>
+</li>
+<li><p>容量不命中：程序通常是按照一系列阶段（如循环）来运行的，每个阶段访问缓存块的某个相对稳定不变的集合称为这个阶段的<strong>工作集</strong>。当工作集的大小超过缓存的大小时，缓存会经历<strong>容量不命中</strong>。换句话说，就是缓存小了，不能处理这个工作集。</p>
+</li>
+</ul>
+</li>
+</ol>
+<h4 id="6-4-高速缓存存储器"><a href="#6-4-高速缓存存储器" class="headerlink" title="6.4 高速缓存存储器"></a>6.4 高速缓存存储器</h4><p>早期计算机系统的存储器层次结构只有三层：CPU寄存器，DRAM主存储器和磁盘存储</p>
+<p>由于CPU和主存之间逐渐增大的差距。系统设计者被迫在CPU寄存器文件和主存之间插入了一个小的<strong>SRAM高速缓存寄存器</strong>，称为<strong>L1高速缓存（一级缓存）</strong>。</p>
+<h5 id="6-4-1-通用的高速缓存存储器组织结构"><a href="#6-4-1-通用的高速缓存存储器组织结构" class="headerlink" title="6.4.1 通用的高速缓存存储器组织结构"></a>6.4.1 通用的高速缓存存储器组织结构</h5><p>将一个存储器以字节为单位划分为S个组， E个高速缓存行， B个字节数据块；<br>在一个高速缓存行中，有一个<strong>有效位</strong>指明这行数据是否具有意义， 还有t = m-(b+s) 个标记位，指明当前存储在这个行中的块的身份。（例如， 上一层的块0， 4， 8， 12）都可以存在这一层的块0上，标志位指出具体是哪一块存在这里）；<br>高速缓存结构使用（S,E, B, m）来描述。 高速缓存的大小C是所有块的综合 = S×E×B；<br>当一条加载指令指示CPU从主存地址A读取一个字，他将这个地址发送给高速缓存；<br>参数S， B将地址分为三部分。<strong>组索引</strong>指明在哪一个组S； 然后在这个组中找寻与标记相匹配的那一个<strong>高速缓存行E</strong>，最后根据<strong>块偏移</strong>在高速缓存行中找到具体的字。</p>
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/69.png" class="">
+
+
+<h5 id="6-4-2-直接映射高速缓存"><a href="#6-4-2-直接映射高速缓存" class="headerlink" title="6.4.2 直接映射高速缓存"></a>6.4.2 直接映射高速缓存</h5><p>每个组中只含有一个高速缓存行的结构， 称为直接映射高速缓存。</p>
+<ol>
+<li><p>直接映射高速缓存中的组选择</p>
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/70.png" class=""></li>
+</ol>
+<ol start="2">
+<li><p>直接映射高速缓存中的行匹配</p>
+</li>
+<li><p>直接映射高速缓存中的字选择</p>
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/71.png" class=""></li>
+</ol>
+<ol start="4">
+<li><p>直接映射高速缓存中的行替换</p>
+<p>如果缓存不命中，那么它需要从存储器层次结构中的下一层取出被请求的块，然后将新的块存储在组索引位指示的组中的一个高速缓存行中。对于高速映射缓存来说，每个组只包含有一行，替换策略非常简单：用新取出的行代替当前的行。</p>
+</li>
+<li><p>综合：运行中的直接映射高速缓存</p>
+<ul>
+<li>标记位和索引位连起来唯一地标识了内存中的每个块。</li>
+<li>因为有8个内存块，但是只有4个高速缓存，所以多个块会映射到同一个高速缓存。</li>
+<li>映射到同一个高速缓存的块由标记位唯一地标识</li>
+</ul>
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/73.jpg" class=""></li>
+</ol>
+<h5 id="6-4-3-组相联高速缓存"><a href="#6-4-3-组相联高速缓存" class="headerlink" title="6.4.3 组相联高速缓存"></a>6.4.3 组相联高速缓存</h5><p>直接映射高速缓存中冲突不命中造成的问题源于每个组只有一行。组相联高速缓存放松了这个限制。每个组有E行的高速缓存通常称为E路高速缓存。</p>
+<p><strong>组相联高速缓存中的组选择</strong></p>
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/74.jpg" class="">
+
+
+<p><strong>组相联高速缓存中的行匹配和字选择</strong></p>
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/75.jpg" class="">
+
+
+<p><strong>组相联高速缓存不命中时的行替换</strong></p>
+<p>在缓存不命中时，高速缓存必须将内存中取出这个字的块然后进行行替换，如果有空行直接替换空行。</p>
+<p>如果没有，则运用一些复杂的策略（利用局部性原理）：<strong>最不常使用策略</strong>和<strong>最近少使用策略</strong>进行行替换。</p>
+<h5 id="6-4-4-全相联高速缓存"><a href="#6-4-4-全相联高速缓存" class="headerlink" title="6.4.4 全相联高速缓存"></a>6.4.4 全相联高速缓存</h5><img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/76.png" class="">
+
+
+<p><strong>组相联高速缓存中的行匹配和字选择</strong></p>
+<img src="/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/77.jpg" class="">
+
+
+<h5 id="6-4-5-有关写的问题"><a href="#6-4-5-有关写的问题" class="headerlink" title="6.4.5 有关写的问题"></a>6.4.5 有关写的问题</h5><p>假设我们要写一个已经缓存了的字w（写命中），在高速缓存更新了它的w的副本之后，怎么更新w在层次结构中紧接着低一层的副本？</p>
+<p><strong>直写</strong>：就是立即将w的高速缓存块写回到紧接着的低一层中。虽然简单，但是每次写都会引起总线流量</p>
+<p><strong>写回</strong>：尽可能地推迟更新，只有当替换算法要驱逐这个块时，才把它写到紧接着的低一层中。由于局部性，写回能显著地减少总线流量，但是缺点是增加了复杂性。高速缓存必须为每个高速缓存行维护一个额外的修改位，表明这个高速缓存块是否被修改过。</p>
+<p>如何处理写不命中？</p>
+<p><strong>写分配</strong>：加载相应的低一层中的块到高速缓存，然后更新这个高速缓存块</p>
+<p><strong>非写分配</strong>：避开高速缓存，直接将这个字写到低一层中。</p>
+<p>直写高速缓存通常是非写分配的。写回高速缓存通常是写分配的</p>
+<h5 id="6-4-6-高速缓存参数的性能影响"><a href="#6-4-6-高速缓存参数的性能影响" class="headerlink" title="6.4.6 高速缓存参数的性能影响"></a>6.4.6 高速缓存参数的性能影响</h5><ul>
+<li>不命中率：在一个程序执行或程序的一部分执行期间，内存引用不命中的比率。不命中数量/引用数量</li>
+<li>命中率：1-不命中率</li>
+<li>命中时间：从高速缓存传送一个字到CPU的时间，包括组选择、行确认、字选择的时间。</li>
+<li>不命中处罚：由于不命中所需要的额外的时间。</li>
+</ul>
+<ol>
+<li><p><strong>高速缓存大小的影响</strong></p>
+<p>一方面：较大的高速缓存可能提高命中率。</p>
+<p>另一方面：较大的高速缓存可能增加命中时间。</p>
+</li>
+<li><p><strong>块大小的影响</strong></p>
+<p>一方面：较大的块能利用程序可能存在的空间局部性，提高命中率。</p>
+<p>另一方面：块越大，高速缓存行越小，这会损害时间局部性比空间局部性好的程序的命中率。</p>
+</li>
+<li><p><strong>相联度的影响</strong></p>
+<p>高的相联度降低了高速缓存由于出现冲突不命中出现抖动的可能性，但会造成更高的成本，还会增加命中时间和不命中处罚。</p>
+</li>
+<li><p><strong>写策略的影响</strong></p>
+<p>直写高速缓存比较容易实现，而且能使用独立于高速缓存的写缓冲区，用来更新内存。</p>
+<p>写回引起的传送少。</p>
+</li>
+</ol>
+<h4 id="6-5-编写高速缓存友好的代码"><a href="#6-5-编写高速缓存友好的代码" class="headerlink" title="6.5 编写高速缓存友好的代码"></a>6.5 编写高速缓存友好的代码</h4><p>核心在于利用局部性。</p>
+<ol>
+<li>让最常见的情况运行得快。</li>
+<li>尽量减小循环内部的缓冲不命中数量</li>
+</ol>
+ 
+      <!-- reward -->
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>Copyright： </strong>
+          
+          Copyright is owned by the author. For commercial reprints, please contact the author for authorization. For non-commercial reprints, please indicate the source.
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2021/07/13/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            基础知识
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">物理层</div>
+      </a>
+    
+  </nav>
+
+   
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2020-2021
+        <i class="ri-heart-fill heart_icon"></i> YYz
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>Visitors:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>Views:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer-side.svg" alt="Scorpio"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/wechat.jpg">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    
+
+  </div>
+</body>
+
+</html>

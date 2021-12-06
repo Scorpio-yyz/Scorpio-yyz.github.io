@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+  
+
+    <head>
+      <meta charset="utf-8" />
+        
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>深入理解计算机系统一 |  Scorpio</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/favicon.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css"
+      />
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-深入理解计算机系统一"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  深入理解计算机系统一
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/" class="article-date">
+  <time datetime="2021-04-12T15:54:09.000Z" itemprop="datePublished">2021-04-12</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/CSAPP/">CSAPP</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> Word count:</span>
+            <span class="post-count">4.5k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> Reading time≈</span>
+            <span class="post-count">18 min</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h4 id="位："><a href="#位：" class="headerlink" title="位："></a>位：</h4><p>​        计算机中数据储存的基本单位，源程序实际上就是由0和1组成的位序列，8位等于一个字节，系统中的所有信息都是由一串比特位来表示的。</p>
+<h4 id="上下文："><a href="#上下文：" class="headerlink" title="上下文："></a>上下文：</h4><p>​        系统中的信息表达方式都十分类似，所以难以区分。帮助我们区分信息类型的方法就是观察信息所在的上下文（类似语境）不同上下文中的相同含义也会不同，计算机的理解方式也不同。</p>
+<span id="more"></span>
+
+<h3 id="1-2-程序被其他程序翻译成不同的格式"><a href="#1-2-程序被其他程序翻译成不同的格式" class="headerlink" title="1.2 程序被其他程序翻译成不同的格式"></a>1.2 程序被其他程序翻译成不同的格式</h3><p>​    源程序文件变成可执行文件需要经历四个阶段：预处理阶段 编译阶段 汇编阶段 链接阶段。</p>
+<h4 id="1：预处理阶段"><a href="#1：预处理阶段" class="headerlink" title="1：预处理阶段"></a>1：预处理阶段</h4><p>​        预处理器根据以字符# 开头的命令，修改原始的C程序。</p>
+<p>​        程序扩展名由 **.c ** -&gt; <strong>.i</strong>。</p>
+<h4 id="2：编译阶段"><a href="#2：编译阶段" class="headerlink" title="2：编译阶段"></a>2：编译阶段</h4><p>​        汇编语言为不同语言的不同编译器提供了通用的输出语言。</p>
+<p>​        程序扩展名由 <strong>.i</strong> -&gt; <strong>.s</strong></p>
+<h4 id="3：汇编阶段"><a href="#3：汇编阶段" class="headerlink" title="3：汇编阶段"></a>3：汇编阶段</h4><p>​        汇编器将.s翻译成机器语言指令，并把这些指令打包成一种可重定位目标程序，将结果保存在.o中。</p>
+<p>​        程序扩展名由 <strong>.s</strong> -&gt; <strong>.o</strong></p>
+<h4 id="4：链接阶段"><a href="#4：链接阶段" class="headerlink" title="4：链接阶段"></a>4：链接阶段</h4><p>​        目标文件中出现的函数（例如：printf函数ut）它们都存在于一个单独编译好的文件中，链接器就负责将函数所在文件与目标文件合并在一起，处理之后便得到一个可执行目标文件。</p>
+<p>​        程序扩展名由 <strong>.o</strong> -&gt; 可执行文件</p>
+<h3 id="1-3-了解编译系统工作的益处"><a href="#1-3-了解编译系统工作的益处" class="headerlink" title="1.3 了解编译系统工作的益处"></a>1.3 了解编译系统工作的益处</h3><ol>
+<li>优化程序性能，提高程序运行速度</li>
+<li>理解链接时出现的错误，便于及时解决问题，节省时间</li>
+<li>避免安全漏洞</li>
+</ol>
+<h3 id="1-4-处理器读并解释存储在内存中的指令"><a href="#1-4-处理器读并解释存储在内存中的指令" class="headerlink" title="1.4 处理器读并解释存储在内存中的指令"></a>1.4 处理器读并解释存储在内存中的指令</h3><h4 id="1-总线"><a href="#1-总线" class="headerlink" title="1. 总线"></a>1. 总线</h4><p>​        贯穿整个系统的一组电子管道（总线通常被设计成传送定长的字节块）</p>
+<h4 id="2-I-O设备"><a href="#2-I-O设备" class="headerlink" title="2. I/O设备"></a>2. I/O设备</h4><p>​        系统与外界世界的联系通道（每个I/O设备都通过一个适配器或控制器与I/O总线相连）</p>
+<h4 id="3-主存"><a href="#3-主存" class="headerlink" title="3. 主存"></a>3. 主存</h4><p>​        临时存储设备，由一组动态随机存取存储器芯片组成</p>
+<h4 id="4-处理器"><a href="#4-处理器" class="headerlink" title="4. 处理器"></a>4. 处理器</h4><p>​        中央处理单元，简称处理器。是解释（或执行）存储在内存中的指令的引擎。处理器的核心是一个大小为一个字的存储设备（或寄存器），称为程序计数器（PC）。在任何时刻，PC都指向内存中的某条机器指令。</p>
+<h3 id="1-5-高速缓存至关重要"><a href="#1-5-高速缓存至关重要" class="headerlink" title="1.5 高速缓存至关重要"></a>1.5 高速缓存至关重要</h3><p>​    一般处理器从寄存器文件中读数据比从主存中读数据几乎快100倍。针对这种处理器与主存之间的差异，我们采用告诉缓存作为暂时的集结区域，可以将常用的一些数据存放在告诉缓存中，使程序的性能提高一个数量级。</p>
+<h3 id="1-6-存储设备形成层次结构"><a href="#1-6-存储设备形成层次结构" class="headerlink" title="1.6 存储设备形成层次结构"></a>1.6 存储设备形成层次结构</h3><img src="/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/1.png" class="">
+
+
+<h3 id="1-7-操作系统管理硬件"><a href="#1-7-操作系统管理硬件" class="headerlink" title="1.7 操作系统管理硬件"></a>1.7 操作系统管理硬件</h3><h4 id="1-操作系统的两个基本功能："><a href="#1-操作系统的两个基本功能：" class="headerlink" title="1. 操作系统的两个基本功能："></a>1. 操作系统的两个基本功能：</h4><ol>
+<li>防止硬件被失控的应用程序滥用。</li>
+<li>向应用程序提供简单一致的机制来控制复杂而又通常大不相同的低级硬件设备。</li>
+</ol>
+<h4 id="2-操作系统的几个抽象概念："><a href="#2-操作系统的几个抽象概念：" class="headerlink" title="2. 操作系统的几个抽象概念："></a>2. 操作系统的几个抽象概念：</h4><ol>
+<li><h5 id="进程"><a href="#进程" class="headerlink" title="进程"></a>进程</h5><p>​    进程是操作系统对一个正在运行的程序的抽象，在一个系统上可以同时运送多个进程，看上去每个进程都在独立地占用硬件，但实际上每个进程的指令是交错执行的。</p>
+<p>​    操作系统保持跟踪进程所需的所有状态信息，也就是上下文。在任何一个时刻，切换进程都要通过转换上下文来实现。</p>
+<p>​    进程之间的转换是通过操作系统内核进行管理的，内核是操作系统代码常驻主存的部分。当应用程序需要操作系统的某些操作时，它就执行一条特殊的系统调用指令，将控制权交给内核。</p>
+<p>​    内核不是一个独立的进程，而是系统管理全部进程所用代码和数据结构的集合。</p>
+<p>​    一个进程实际上可以由多个线程执行单元组成，每个线程都运行在进程的上下文中，并共享同样的代码和全局数据。采用多线程的方法可以使程序运行更加高效。</p>
+</li>
+<li><h5 id="虚拟内存"><a href="#虚拟内存" class="headerlink" title="虚拟内存"></a>虚拟内存</h5><p>​    虚拟内存不同于物理内存，它看上去好像每个进程都在独立地使用内存，每个进程看到的内存都是一致的，称为虚拟地址空间。</p>
+<h6 id="分区："><a href="#分区：" class="headerlink" title="分区："></a>分区：</h6><p>​        程序代码和数据。</p>
+<p>​        堆：当使用malloc和free函数时可以用于动态的分配内存空间。</p>
+<p>​        共享库：用于存放C标准库和数学库这样的共享库的一片区域。</p>
+<p>​        栈：也是一片可以动态扩展的区域。</p>
+<p>​        内核虚拟空间</p>
+</li>
+<li><h5 id="文件"><a href="#文件" class="headerlink" title="文件"></a>文件</h5><p>​    文件是字节序列，每个输入输出设备都可以看成文件。他为应用程序提供了一个统一的视图，来看待系统中可能含有的所有各式的输入输出设备。</p>
+</li>
+</ol>
+<h3 id="1-8-系统之间利用网络通信"><a href="#1-8-系统之间利用网络通信" class="headerlink" title="1.8 系统之间利用网络通信"></a>1.8 系统之间利用网络通信</h3><p>​    系统不是一个孤立的硬件和软件的集合体，世界上现代系统通常通过网络和其他系统连接到一起。网络可以看成一个I/O设备，可以将信息从一台设备复制到另一台设备。</p>
+<h3 id="1-9-并发和并行"><a href="#1-9-并发和并行" class="headerlink" title="1.9 并发和并行"></a>1.9 并发和并行</h3><p>​    顺序：上一个开始执行的任务完成后，当前任务才能开始执行并发：无论上一个开始执行的任务是否完成，当前任务都可以开始执行</p>
+<p>​    并发：无论上一个开始执行的任务是否完成，当前任务都可以开始执行</p>
+<p>​    串行：有一个任务执行单元，从物理上就只能一个任务、一个任务地执行</p>
+<p>​    并行：有多个任务执行单元，从物理上就可以多个任务一起执行</p>
+<h3 id="1-10-计算机系统中的抽象"><a href="#1-10-计算机系统中的抽象" class="headerlink" title="1.10 计算机系统中的抽象"></a>1.10 计算机系统中的抽象</h3><ol>
+<li>文件是对I/O设备的抽象</li>
+<li>虚拟内存是对出现处理器的抽象</li>
+<li>进程是对一个正在运行的程序的抽象</li>
+<li>虚拟机是对整个计算机的抽象</li>
+</ol>
+<h2 id="第二章：信息的表示和处理"><a href="#第二章：信息的表示和处理" class="headerlink" title="第二章：信息的表示和处理"></a>第二章：信息的表示和处理</h2><h3 id="2-1-消息存储"><a href="#2-1-消息存储" class="headerlink" title="2.1 消息存储"></a>2.1 消息存储</h3><h4 id="2-1-1-十六进制"><a href="#2-1-1-十六进制" class="headerlink" title="2.1.1 十六进制"></a>2.1.1 十六进制</h4><p>​        一个字节由8位组成。二进制有32个数，十进制转化为二进制很麻烦。所有用十六进制表示。一个十六进制数可以表示4个二进制数。</p>
+<h4 id="2-1-2-寻址和字节顺序"><a href="#2-1-2-寻址和字节顺序" class="headerlink" title="2.1.2 寻址和字节顺序"></a>2.1.2 寻址和字节顺序</h4><p>​        多字节对线都被存储为连续的字节序列，对象的地址为所用的字节中最小的地址。</p>
+<p>​        大端法：最高有效字节存储在低地址的方法。</p>
+<p>​        小端法：最高有效字节存储在高地址的方法。</p>
+<h3 id="2-2-整数表示"><a href="#2-2-整数表示" class="headerlink" title="2.2 整数表示"></a>2.2 整数表示</h3><h4 id="2-2-1-整数的分类"><a href="#2-2-1-整数的分类" class="headerlink" title="2.2.1 整数的分类"></a>2.2.1 整数的分类</h4><p>​        有符号数和无符号数。</p>
+<img src="/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/2.png" class="">
+
+
+<h4 id="2-2-2-C语言中的转换"><a href="#2-2-2-C语言中的转换" class="headerlink" title="2.2.2 C语言中的转换"></a>2.2.2 C语言中的转换</h4><p>​        强制类型转换时，数的位表示不变。</p>
+<p>​        C语言执行一个运算时，一个无符号数和有符号数执行运算，会将有符号数强制转换成无符号数。</p>
+<h4 id="2-2-3-扩展一个数字的位表示"><a href="#2-2-3-扩展一个数字的位表示" class="headerlink" title="2.2.3 扩展一个数字的位表示"></a>2.2.3 扩展一个数字的位表示</h4><p>​        无符号数的零扩展：前补0。</p>
+<p>​        补码数的符号扩展：前补符号位。</p>
+<p>​        截断无符号数：一个数x，将其截断为k位的结果为：x‘= x mod 2^k。</p>
+<p>​        截断补码数值：先按无符号数截断，再转为补码形式。</p>
+<h3 id="2-3-整数加法"><a href="#2-3-整数加法" class="headerlink" title="2.3 整数加法"></a>2.3 整数加法</h3><h4 id="2-3-1-无符号数加法"><a href="#2-3-1-无符号数加法" class="headerlink" title="2.3.1 无符号数加法"></a>2.3.1 无符号数加法</h4><p>​        二进制加法，会溢出。</p>
+<p>​        加法逆元原理：无符号数求反。</p>
+<img src="/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/3.png" class="">
+
+
+<h4 id="2-3-2-补码加法"><a href="#2-3-2-补码加法" class="headerlink" title="2.3.2 补码加法"></a>2.3.2 补码加法</h4><p>​        存在正溢出和负溢出。        </p>
+<img src="/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/4.png" class="">
+
+
+<p>​        对TMin来说，自己是自己加法的逆，其他任何数都有-x作为加法的逆。</p>
+<p>​        对任何数x，都有-x=~x+1。</p>
+<h3 id="2-4-浮点数"><a href="#2-4-浮点数" class="headerlink" title="2.4 浮点数"></a>2.4 浮点数</h3><h4 id="2-4-1-IEEE浮点表示"><a href="#2-4-1-IEEE浮点表示" class="headerlink" title="2.4.1 IEEE浮点表示"></a>2.4.1 IEEE浮点表示</h4><p>​        公式：V=(-1)^s * M * 2^E</p>
+<p>​        s符号</p>
+<p>​        M尾数是一个二进制小数</p>
+<p>​        E阶码对浮点数加权，权重是2的E次幂</p>
+<img src="/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/5.png" class="">
+
+
+<p>​        单精度浮点数（float）是1位s，8位阶码，23位尾码。</p>
+<p>​        双精度浮点数（double）是1位s，11位阶码，52位尾码。</p>
+<h5 id="规范化的值："><a href="#规范化的值：" class="headerlink" title="规范化的值："></a>规范化的值：</h5><p>​                E=e-Bias。Bias是对n位E来说是2^（n-1）-1。float的Bias是127，double是1023。</p>
+<p>​                当二进制小数点再最高有效位的左边是，会补上一个1，这也叫做隐含的以1开头表示。</p>
+<h5 id="非规格化数的值："><a href="#非规格化数的值：" class="headerlink" title="非规格化数的值："></a>非规格化数的值：</h5><p>​                当阶码域全0时，所表示的数是非规格化形式，这是E=1-Bias，M=f是小数字段的值，不包含隐含的1。</p>
+<p>​                非规格化数表示的是那些非常接近于0的数。</p>
+<h5 id="特殊值："><a href="#特殊值：" class="headerlink" title="特殊值："></a>特殊值：</h5><h5 id="无穷和NaN。"><a href="#无穷和NaN。" class="headerlink" title="无穷和NaN。"></a>无穷和NaN。</h5><img src="/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/6.png" class="">
+
+
+<p>​            非规格化数和规格化数的平滑转变，归功于非规格化数的E=1-Bias。</p>
+<img src="/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/7.png" class="">
+
+
+<h4 id="2-4-2-舍入"><a href="#2-4-2-舍入" class="headerlink" title="2.4.2 舍入"></a>2.4.2 舍入</h4><p>​        <strong>四舍六入五向偶。</strong></p>
+<h2 id="第三章：程序的机器级表示"><a href="#第三章：程序的机器级表示" class="headerlink" title="第三章：程序的机器级表示"></a>第三章：程序的机器级表示</h2><h3 id="3-1-数据格式"><a href="#3-1-数据格式" class="headerlink" title="3.1 数据格式"></a>3.1 数据格式</h3><p>​    Inter称呼16位数字类型为“字（word）”32位是双字，64位是四字。</p>
+<img src="/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/8.png" class="">
+
+
+<h3 id="3-2-访问信息"><a href="#3-2-访问信息" class="headerlink" title="3.2 访问信息"></a>3.2 访问信息</h3><p>​    一个x86-64的中央处理单元（CPU）包含一组16个存储64位值的通用目的寄存器，用来存储数据类型和指针。</p>
+<img src="/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/9.png" class="">
+
+
+<h4 id="3-2-1-操作数指示符"><a href="#3-2-1-操作数指示符" class="headerlink" title="3.2.1 操作数指示符"></a>3.2.1 操作数指示符</h4><p>​        操作数分为：</p>
+<ol>
+<li>立即数——表示常数值</li>
+<li>寄存器——表示某个寄存器的内容</li>
+<li>内存引用——它会根据计算出来的地址访问某个内存位置。</li>
+</ol>
+<p>内存引用寻址有很多方式：</p>
+<img src="/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/10.png" class="">
+
+
+<h4 id="3-2-2-数据传送指令"><a href="#3-2-2-数据传送指令" class="headerlink" title="3.2.2 数据传送指令"></a>3.2.2 数据传送指令</h4><p>​    MOV类：</p>
+<img src="/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/11.png" class="">
+
+
+<p>​        MOV的五种可能组合：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">movl $0x4050,%eax		立即数-&gt;寄存器	4 bytes</span><br><span class="line">movw %bp,%sp			寄存器-&gt;寄存器	2 bytes</span><br><span class="line">movb (%rdi,%rcx),%al	内存-&gt;寄存器		 1 bytes</span><br><span class="line">movb $17,(%rsp)			立即数-&gt;内存		 1 bytes</span><br><span class="line">movq %rax，-12(%rbp)		寄存器-&gt;内存	  `	8 bytes</span><br></pre></td></tr></table></figure>
+
+<p>​        零扩展和符号扩展：</p>
+<img src="/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/12.png" class="">
+
+
+
+
+<h4 id="3-2-3-压入和弹出栈数据"><a href="#3-2-3-压入和弹出栈数据" class="headerlink" title="3.2.3 压入和弹出栈数据"></a>3.2.3 压入和弹出栈数据</h4><p>​    栈：后进先出，通过push将数据压入栈中，通过pop将数据弹出。</p>
+<p>​    栈向下增长，栈顶元素的地址是所有栈元素地址中最低的。</p>
+<img src="/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/13.png" class="">
+
+
+<h3 id="3-3-算术和逻辑操作"><a href="#3-3-算术和逻辑操作" class="headerlink" title="3.3 算术和逻辑操作"></a>3.3 算术和逻辑操作</h3><img src="/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/14.png" class="">
+
+
+<h4 id="3-3-1-加载有效地址"><a href="#3-3-1-加载有效地址" class="headerlink" title="3.3.1 加载有效地址"></a>3.3.1 加载有效地址</h4><p>​        lea：加载有效地址。</p>
+<p>​                    即将有效地址写入目的操作数。</p>
+<p>​        可以为内存引入指针。</p>
+<p>​        mov和lea:</p>
+<p>​            lea eax,[eax+2*eax]的效果是eax = eax + eax * 2</p>
+<p>​            mov edx [ebp+16]的效果是edx=*(ebp+16)</p>
+<h4 id="3-3-2-一元和二元操作"><a href="#3-3-2-一元和二元操作" class="headerlink" title="3.3.2 一元和二元操作"></a>3.3.2 一元和二元操作</h4><p>​    第二组中的操作是一元操作，只有一个操作数，既是源操作数又是目的操作数，既可以是寄存器也可以是内存位置。</p>
+<p>​    第三组中的操作是二元操作，第二个操作数既是源操作数又是目的操作数。第一个操作数可以是立即数也可以是寄存器和内存，第二个操作数可以是寄存器也可以是内存位置。</p>
+<h4 id="3-3-3-移位操作"><a href="#3-3-3-移位操作" class="headerlink" title="3.3.3 移位操作"></a>3.3.3 移位操作</h4><p>​    逻辑左移和算术左移，没有区别，都是右边补0。</p>
+<p>​    逻辑右移：左边补0。</p>
+<p>​    算术右移：左边补符号位。</p>
+<h4 id="3-3-4-特殊的算术操作"><a href="#3-3-4-特殊的算术操作" class="headerlink" title="3.3.4 特殊的算术操作"></a>3.3.4 特殊的算术操作</h4><img src="/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/15.png" class="">
+
+
+<h3 id="3-4-控制"><a href="#3-4-控制" class="headerlink" title="3.4 控制"></a>3.4 控制</h3><h4 id="3-4-1-条件码"><a href="#3-4-1-条件码" class="headerlink" title="3.4.1 条件码"></a>3.4.1 条件码</h4><p>​    除了整数寄存器，CPU还维护者一组单个位的条件码寄存器</p>
+<p>​    他们描述了最近的逻辑或算术操作的属性</p>
+<img src="/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/16.png" class="">
+
+
+<h4 id="3-4-2-SET指令"><a href="#3-4-2-SET指令" class="headerlink" title="3.4.2 SET指令"></a>3.4.2 SET指令</h4><img src="/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/17.png" class="">
+
+
+<h4 id="3-4-3-跳转指令"><a href="#3-4-3-跳转指令" class="headerlink" title="3.4.3 跳转指令"></a>3.4.3 跳转指令</h4><img src="/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/18.png" class="">
+
+
+<h4 id="3-4-4-实现条件分支"><a href="#3-4-4-实现条件分支" class="headerlink" title="3.4.4 实现条件分支"></a>3.4.4 实现条件分支</h4><ul>
+<li><p>条件控制</p>
+<p>当条件满足时，程序按照一种方式进行，不满足时切换。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">diff</span><span class="params">(<span class="keyword">int</span> a,<span class="keyword">int</span> b)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(a&lt;b)</span><br><span class="line">        <span class="keyword">return</span> b-a;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="keyword">return</span> a-b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>条件传送</p>
+<p>同时计算程序的两种结果，再根据程序是否满足选择其中的一种。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">diff</span><span class="params">(<span class="keyword">int</span> a,<span class="keyword">int</span> b)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> x1=a-b;</span><br><span class="line">    <span class="keyword">int</span> x2=b-a;</span><br><span class="line">    <span class="keyword">if</span>(a&lt;b)</span><br><span class="line">        <span class="keyword">return</span> x2;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="keyword">return</span> x1;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h4 id="3-4-5-循环"><a href="#3-4-5-循环" class="headerlink" title="3.4.5 循环"></a>3.4.5 循环</h4><p>C语言代码</p>
+<p>do{}while()语句</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">fact_do</span><span class="params">(<span class="keyword">long</span> n)</span></span>&#123;</span><br><span class="line">    <span class="keyword">long</span> result = <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        result *= n;</span><br><span class="line">        n = n - <span class="number">1</span>;</span><br><span class="line">    &#125; <span class="keyword">while</span> (n &gt; <span class="number">1</span>);</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其对应的汇编代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">fact_do:</span><br><span class="line">	movl	$1,%eax</span><br><span class="line">.L2:</span><br><span class="line">	imulq	%rdi,%rax</span><br><span class="line">	subq	$1,%rdi</span><br><span class="line">	cmpq	$1,%rdi</span><br><span class="line">	jg		.L2</span><br><span class="line">	rep:ret</span><br></pre></td></tr></table></figure>
+
+<p>C语言代码while（）语句</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">long</span> <span class="title">fact_while</span><span class="params">(<span class="keyword">long</span> n)</span></span>&#123;</span><br><span class="line">    <span class="keyword">long</span> result = <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">while</span> (n &gt; <span class="number">1</span>)&#123;</span><br><span class="line">        result *= n;</span><br><span class="line">        n = n - <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对应的汇编代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">fact_while:</span><br><span class="line">	movl	$1,%eax</span><br><span class="line">	jmp		,L5</span><br><span class="line">.L6:</span><br><span class="line">	imulq	%rdi,%rax</span><br><span class="line">	subq	$1,%rdi</span><br><span class="line">.L5:</span><br><span class="line">	cmp		$1,%rdi</span><br><span class="line">	jg		.L6</span><br><span class="line">	rep:ret</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-4-6-switch语句"><a href="#3-4-6-switch语句" class="headerlink" title="3.4.6 switch语句"></a>3.4.6 switch语句</h4><p>C语言描述</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">switch</span><span class="params">(<span class="keyword">long</span> x,<span class="keyword">long</span> n,<span class="keyword">long</span>* dest)</span></span>&#123;</span><br><span class="line">        <span class="keyword">long</span> val = x;</span><br><span class="line">        <span class="keyword">switch</span>(n)&#123;</span><br><span class="line">            <span class="keyword">case</span> <span class="number">100</span>:</span><br><span class="line">            	val *= <span class="number">13</span>;</span><br><span class="line">            	<span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> <span class="number">102</span>:</span><br><span class="line">            	val += <span class="number">10</span>;</span><br><span class="line">            <span class="keyword">case</span> <span class="number">103</span>:</span><br><span class="line">            	val += <span class="number">11</span>;</span><br><span class="line">            <span class="keyword">case</span> <span class="number">104</span>:</span><br><span class="line">            <span class="keyword">case</span> <span class="number">106</span>：</span><br><span class="line">                val *= val;</span><br><span class="line">            	<span class="keyword">break</span>;</span><br><span class="line">           	dafault:</span><br><span class="line">            	val = <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        *dest = val;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>汇编语言描述</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">#void switch(long x,long n,long* dest)</span><br><span class="line">#x in %rdi	y in %rsi	dest in %rdx</span><br><span class="line">switch:</span><br><span class="line">	subq	$100,%rsi	#index = n-100</span><br><span class="line">	cmpq	$6	,%rsi	#compare index:6</span><br><span class="line">	ja		.L8			#if &gt; ，goto loc_def</span><br><span class="line">	jmp		*.L4(,%rsi,8)	#跳转到&amp;.L4+%rsi*8（一个指针占8个字节）</span><br><span class="line">.L3:</span><br><span class="line">	leaq	(%rdi,%rdi,2),%rax	#	3*x</span><br><span class="line">	leaq	(%rdi,%rax,4),%rdi	#	13*x</span><br><span class="line">	jmp		.L2</span><br><span class="line">.L5:</span><br><span class="line">	addq	$10	,%rdi	#val=val+10</span><br><span class="line">.L6:</span><br><span class="line">	addq	$11	,%rdi	#val=val+11</span><br><span class="line">	jmp		.L2</span><br><span class="line">.L7:</span><br><span class="line">	imulq	%rdi,%rdi	#val=val*val</span><br><span class="line">	jmp		,L2</span><br><span class="line">.L8:</span><br><span class="line">	movl	$0	,%edi	#val=0</span><br><span class="line">.L2:</span><br><span class="line">	movq	%rdi,(%rdx)	#*dest=val</span><br><span class="line">	ret</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-5-进程"><a href="#3-5-进程" class="headerlink" title="3.5 进程"></a>3.5 进程</h3><p>​    进程是软件中一种很重要的抽象。为了讨论方便，假设过程P调用过程Q，Q执行后返回P。这些动作包括以下几个机制：</p>
+<ul>
+<li>传递控制。进入过程Q的时候，程序计数器必须被设置为Q的代码的起始地址，然后在返回时，要把程序计数器设置为P中调用Q后面的那条指令地址。</li>
+<li>传递数据。P必须能够向Q提供一个或多个参数，Q必须能够向P返回一个值。</li>
+<li>分配和释放内存。在开始时，Q可能需要为局部变量分配空间空间，而在返回前，又必须释放这些存储空间。</li>
+</ul>
+<h4 id="3-5-1-运行时栈"><a href="#3-5-1-运行时栈" class="headerlink" title="3.5.1 运行时栈"></a>3.5.1 运行时栈</h4><ol>
+<li>压栈: 函数参数压栈，返回地址压栈</li>
+<li>跳转: 跳转到函数所在代码处执行</li>
+<li>执行: 执行函数代码</li>
+<li>返回: 平衡堆栈，找出之前的返回地址，跳转回之前的调用点之后，完成函数调用</li>
+</ol>
+<img src="/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/19.png" class="">
+
+
+<p>下面我们看一下函数调用指令call：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">0x210000 call swap</span><br><span class="line">0x210005 mov ecx,eax </span><br></pre></td></tr></table></figure>
+
+<p>我们可以把它理解为2个指令：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">push 0x210005	//call指令的下一条指令地址作为本次函数调用的返回地址压栈</span><br><span class="line">jmp  swap		//然后使用jmp指令修改指令指针寄存器EIP，使cpu执行swap函数的指令代码</span><br></pre></td></tr></table></figure>
+
+<p>Leave等价于：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">movl %ebp %esp</span><br><span class="line">popl %ebp</span><br></pre></td></tr></table></figure>
+
+<p>Ret指令的内部操作是：</p>
+<ol>
+<li>栈顶字单元出栈，其值赋给IP寄存器。</li>
+</ol>
+<p>实例：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">add</span><span class="params">(<span class="keyword">int</span> x,<span class="keyword">int</span> y)</span></span>&#123;	</span><br><span class="line">    <span class="keyword">int</span> z;	z=x+y;	</span><br><span class="line">    <span class="keyword">if</span>(z&gt;=<span class="number">10</span>)		</span><br><span class="line">        <span class="keyword">return</span> z;	</span><br><span class="line">    add(x,y);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;	</span><br><span class="line">    <span class="keyword">int</span> a=<span class="number">2</span>,b=<span class="number">3</span>;	</span><br><span class="line">    <span class="keyword">int</span> c=add(a,b);	</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>汇编:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">#add函数</span><br><span class="line">   0x0000555555555129 &lt;+0&gt;:		endbr64 </span><br><span class="line">   0x000055555555512d &lt;+4&gt;:		push   %rbp</span><br><span class="line">   0x000055555555512e &lt;+5&gt;:		mov    %rsp,%rbp</span><br><span class="line">   0x0000555555555131 &lt;+8&gt;:		sub    $0x20,%rsp</span><br><span class="line">   0x0000555555555135 &lt;+12&gt;:	mov    %edi,-0x14(%rbp)</span><br><span class="line">   0x0000555555555138 &lt;+15&gt;:	mov    %esi,-0x18(%rbp)</span><br><span class="line">   0x000055555555513b &lt;+18&gt;:	mov    -0x14(%rbp),%edx</span><br><span class="line">   0x000055555555513e &lt;+21&gt;:	mov    -0x18(%rbp),%eax</span><br><span class="line">   0x0000555555555141 &lt;+24&gt;:	add    %edx,%eax</span><br><span class="line">   0x0000555555555143 &lt;+26&gt;:	mov    %eax,-0x4(%rbp)</span><br><span class="line">   0x0000555555555146 &lt;+29&gt;:	cmpl   $0x9,-0x4(%rbp)</span><br><span class="line">   0x000055555555514a &lt;+33&gt;:	jle    0x555555555151 &lt;add+40&gt;</span><br><span class="line">   0x000055555555514c &lt;+35&gt;:	mov    -0x4(%rbp),%eax</span><br><span class="line">   0x000055555555514f &lt;+38&gt;:	jmp    0x555555555160 &lt;add+55&gt;</span><br><span class="line">   0x0000555555555151 &lt;+40&gt;:	mov    -0x18(%rbp),%edx</span><br><span class="line">   0x0000555555555154 &lt;+43&gt;:	mov    -0x14(%rbp),%eax</span><br><span class="line">   0x0000555555555157 &lt;+46&gt;:	mov    %edx,%esi</span><br><span class="line">   0x0000555555555159 &lt;+48&gt;:	mov    %eax,%edi</span><br><span class="line">   0x000055555555515b &lt;+50&gt;:	callq  0x555555555129 &lt;add&gt;</span><br><span class="line">   0x0000555555555160 &lt;+55&gt;:	leaveq </span><br><span class="line">   0x0000555555555161 &lt;+56&gt;:	retq  </span><br><span class="line">#main函数</span><br><span class="line">   0x0000555555555162 &lt;+0&gt;:		endbr64 </span><br><span class="line">   0x0000555555555166 &lt;+4&gt;:		push   %rbp</span><br><span class="line">   0x0000555555555167 &lt;+5&gt;:		mov    %rsp,%rbp</span><br><span class="line">   0x000055555555516a &lt;+8&gt;:		sub    $0x10,%rsp</span><br><span class="line">   0x000055555555516e &lt;+12&gt;:	movl   $0x2,-0xc(%rbp)</span><br><span class="line">   0x0000555555555175 &lt;+19&gt;:	movl   $0x3,-0x8(%rbp)</span><br><span class="line">   0x000055555555517c &lt;+26&gt;:	mov    -0x8(%rbp),%edx</span><br><span class="line">   0x000055555555517f &lt;+29&gt;:	mov    -0xc(%rbp),%eax</span><br><span class="line">   0x0000555555555182 &lt;+32&gt;:	mov    %edx,%esi</span><br><span class="line">   0x0000555555555184 &lt;+34&gt;:	mov    %eax,%edi</span><br><span class="line">   0x0000555555555186 &lt;+36&gt;:	callq  0x555555555129 &lt;add&gt;</span><br><span class="line">   0x000055555555518b &lt;+41&gt;:	mov    %eax,-0x4(%rbp)</span><br><span class="line">   0x000055555555518e &lt;+44&gt;:	mov    $0x0,%eax</span><br><span class="line">   0x0000555555555193 &lt;+49&gt;:	leaveq </span><br><span class="line">   0x0000555555555194 &lt;+50&gt;:	retq   </span><br></pre></td></tr></table></figure>
+
+<h3 id="3-6数组分配与访问"><a href="#3-6数组分配与访问" class="headerlink" title="3.6数组分配与访问"></a>3.6数组分配与访问</h3><h4 id="3-6-1-基本原则"><a href="#3-6-1-基本原则" class="headerlink" title="3.6.1 基本原则"></a>3.6.1 基本原则</h4><img src="/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/20.png" class="">
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">movl	(%rdx,%rcx,4),	%eax//rcx是i，rdx是首地址，计算的是地址xE+4i的值</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-6-2-指针运算"><a href="#3-6-2-指针运算" class="headerlink" title="3.6.2 指针运算"></a>3.6.2 指针运算</h4><img src="/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/21.png" class="">
+
+
+<h4 id="3-6-3-嵌套数组"><a href="#3-6-3-嵌套数组" class="headerlink" title="3.6.3 嵌套数组"></a>3.6.3 嵌套数组</h4><p>​    假设一个二维数组的一维长度是<strong>C</strong>，一个元素长度为<strong>L</strong></p>
+<p>​    <strong>&amp;D[i][j] = xD + L( C*i + j )</strong></p>
+<p>​    汇编将A[i][j]复制到%eax寄存器里：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">leaq	(%rsi,%rsi,2),	%rax	//3*i</span><br><span class="line">leaq	(%rdi,%rax,4),	%rax	//xA+12i</span><br><span class="line">movl	(%rax,%rdx,4),	%eax	//M[xA+12i+4j]</span><br></pre></td></tr></table></figure>
+
+<p>一个可变长数组A[n][n]必须在n参数后面，这样函数在遇到这个数组时就可以计算出数组的维度</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">var_ele</span><span class="params">(<span class="keyword">long</span> n,<span class="keyword">int</span> A[n][n],<span class="keyword">long</span> i,<span class="keyword">long</span> j)</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> A[i][j];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">var_ele:</span><br><span class="line">	imulq	%rdx,	%rdi		//n*i</span><br><span class="line">	leaq	(%rsi,%rdi,4),	%rax//xA+4(n*i)</span><br><span class="line">	movl	(%rax,%rcx,4),	%eax//M[XA+4(n*i)+4*j]</span><br><span class="line">	ret</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-7-异质的数据结构"><a href="#3-7-异质的数据结构" class="headerlink" title="3.7 异质的数据结构"></a>3.7 异质的数据结构</h3><h4 id="3-7-1-结构体"><a href="#3-7-1-结构体" class="headerlink" title="3.7.1 结构体"></a>3.7.1 结构体</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">rec</span>&#123;</span></span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    <span class="keyword">int</span> j;</span><br><span class="line">    <span class="keyword">int</span> a[<span class="number">2</span>];</span><br><span class="line">    <span class="keyword">int</span> *p;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>这个结构体包括了4个字段；两个4字节int、一个由两个int元素组成的数组和一个8字节的整型指针，总共24字节。</p>
+<img src="/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/22.png" class="">
+
+
+<p>若要r-&gt;i复制给r-&gt;j</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">movl	(%rdi),	%eax	//Get r-&gt;i</span><br><span class="line">movl	%eax,	4(%rdi)	//存储到r-&gt;j</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-7-2-数据对齐"><a href="#3-7-2-数据对齐" class="headerlink" title="3.7.2 数据对齐"></a>3.7.2 数据对齐</h4><p>许多计算机系统对基本数据类型的合法地址做出了一些限制，要求某种类型对象的地址必须必须是某个值K（通常是2、4、8）的倍数。这种对齐限制简化了形成处理器和内存系统之间的硬件设计。</p>
+<p><strong>对齐原则</strong>：任何K字节的基本对象的地址必须是K的倍数。</p>
+<p>如下</p>
+<img src="/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/23.png" class="">
+
+
+<p>编辑器在汇编代码中放入命令**.align 8**,指明了全局数据所需的对齐。保证了后面的数据的起始地址是8的倍数。</p>
+ 
+      <!-- reward -->
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>Copyright： </strong>
+          
+          Copyright is owned by the author. For commercial reprints, please contact the author for authorization. For non-commercial reprints, please indicate the source.
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            物理层
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2021/04/12/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">深入了解计算机系统</div>
+      </a>
+    
+  </nav>
+
+   
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2020-2021
+        <i class="ri-heart-fill heart_icon"></i> YYz
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>Visitors:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>Views:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer-side.svg" alt="Scorpio"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/wechat.jpg">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    
+
+  </div>
+</body>
+
+</html>
