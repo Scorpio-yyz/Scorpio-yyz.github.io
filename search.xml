@@ -3653,15 +3653,15 @@ end:    for(i=0;i&lt;n;i++)
   </entry>
   <entry>
     <title>深入理解计算机系统三</title>
-    <url>/2021/07/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/</url>
+    <url>/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/</url>
     <content><![CDATA[<h2 id="第八章：异常控制流"><a href="#第八章：异常控制流" class="headerlink" title="第八章：异常控制流"></a>第八章：异常控制流</h2><p><strong>控制流：</strong></p>
-<img src="/2021/07/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/78.png" class="">
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/78.png" class="">
 
 <h4 id="8-1-异常"><a href="#8-1-异常" class="headerlink" title="8.1 异常"></a>8.1 异常</h4><p>​    异常是异常控制流的一种形式，一部分由硬件实现，一部分由操作系统实现，这一节中主要是对异常和异常处理有一个一般性的了解。异常就是控制流中的突变，用来相应处理器状态中的某些变化。</p>
-<img src="/2021/07/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/79.png" class="">
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/79.png" class="">
 
 <p>在任何情况下，当处理器检测到有事件发生，会通过一张叫<strong>异常表</strong>的跳转表，进行一个间接过程调用（异常），到一个专门设计用来处理这类时间的操作系统子程序（<strong>异常处理程序</strong>）。</p>
-<img src="/2021/07/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/80.png" class="">
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/80.png" class="">
 
 <p>当异常处理程序完成以后，根据引起异常的事件类型会发生以下三种情况的一种：</p>
 <ol>
@@ -3679,10 +3679,10 @@ end:    for(i=0;i&lt;n;i++)
 </ul>
 <p>系统启动时，会初始化一张异常表的跳转表，使条目k包含异常k的处理程序地址。</p>
 <p>在运行时，处理器检测到发生了一个事件，并确定了相应的<strong>异常号</strong>k，随后，处理器触发异常，方法是执行间接过程调用，通过异常表的条目k转到相应的处理程序。</p>
-<img src="/2021/07/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/80.png" class="">
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/80.png" class="">
 
 <p>异常表的起始地址放在一个叫做<strong>异常表基质寄存器</strong>的特殊CPU寄存器中。</p>
-<img src="/2021/07/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/81.png" class="">
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/81.png" class="">
 
 <p>异常处理过程类似于调用但有一些不同：</p>
 <ul>
@@ -3692,27 +3692,27 @@ end:    for(i=0;i&lt;n;i++)
 <li>异常处理程序运行在内核模式下，意味着它们对所有的系统资源都有完全的访问权限。</li>
 </ul>
 <h5 id="8-1-2-异常的类型"><a href="#8-1-2-异常的类型" class="headerlink" title="8.1.2 异常的类型"></a>8.1.2 异常的类型</h5><p>异常可以分为四类：中断、陷阱、故障、终止。</p>
-<img src="/2021/07/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/84.jpg" class="">
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/84.jpg" class="">
 
 <p><strong>中断：</strong></p>
 <p>中断是<strong>异步</strong>发生的，来自处理器外部的I/O设备的信号的结果。</p>
-<img src="/2021/07/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/82.png" class="">
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/82.png" class="">
 
 <p>在当前指令完成执行之后，处理器注意到中断引脚的电压变高了，就从系统总线读取异常号，然后调用适当的中断程序。当处理程序返回时，它就将控制返回给下一条指令。结果就好像程序继续执行，好像没有发生过中断一样。</p>
 <p>剩下的异常类型（陷阱、故障和终止）是同步执行的，是执行当前指令的结果，我们把这类指令叫做<strong>故障指令</strong>。</p>
 <p><strong>陷阱和系统调用:</strong></p>
 <p>陷阱是有意的异常，是执行一条指令的结果。</p>
 <p>陷阱最重要的用途是在用户程序和内核之间提供一个像过程一样的接口，叫做<strong>系统调用</strong>。</p>
-<img src="/2021/07/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/82.5.png" class="">
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/82.5.png" class="">
 
 <p>​    用户程序经常需要向内核请求服务。为了允许对这些服务的受控访问，处理器提供了一条特殊的“syscall n”指令，当用户程序想要请求服务n时，可以执行这条指令。执行syscall指令会导致一个到异常处理程序的陷阱，这个 处理程序解析参数，并调用适当的内核程序。</p>
 <p>​    函数调用是在用户模式，系统调用在内核模式。</p>
 <p><strong>故障和终止：</strong></p>
 <p>故障是由错误情况引起的，它可能被故障处理程序修正。如果被修正，则将控制转移到当前指令。</p>
 <p>如果不可修正，则终止，终止处理程序不会将控制返回给应用程序。将返回一个abort例程，该例程将终止程序。</p>
-<img src="/2021/07/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/83.png" class="">
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/83.png" class="">
 
-<h5 id="8-1-3-Linux-x86-64系统中的异常"><a href="#8-1-3-Linux-x86-64系统中的异常" class="headerlink" title="8.1.3 Linux/x86-64系统中的异常"></a>8.1.3 Linux/x86-64系统中的异常</h5><img src="/2021/07/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/85.png" class="">
+<h5 id="8-1-3-Linux-x86-64系统中的异常"><a href="#8-1-3-Linux-x86-64系统中的异常" class="headerlink" title="8.1.3 Linux/x86-64系统中的异常"></a>8.1.3 Linux/x86-64系统中的异常</h5><img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/85.png" class="">
 
 <ol>
 <li><p><strong>Linux/x86-64故障和终止：</strong></p>
@@ -3724,7 +3724,7 @@ end:    for(i=0;i&lt;n;i++)
 </ul>
 </li>
 <li><p><strong>Linux/x86-64系统调用：</strong></p>
-<img src="/2021/07/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/86.png" class=""></li>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/86.png" class=""></li>
 </ol>
 <h4 id="8-2-进程"><a href="#8-2-进程" class="headerlink" title="8.2 进程"></a>8.2 进程</h4><p>​    在现代操作系统上运行一个程序时，会得到一个假象，就好像程序时目前系统中唯一的程序，程序似乎独占处理器和内存等等假象都通过进程的概念提供给我们的。</p>
 <pre><code> 进程提供给应用程序的关键抽象：
@@ -3734,7 +3734,7 @@ end:    for(i=0;i&lt;n;i++)
 <li>一个私有的地址空间，提供一个假象，好像我们的程序独占的使用内存系统。</li>
 </ul>
 <h5 id="8-2-1-逻辑控制流"><a href="#8-2-1-逻辑控制流" class="headerlink" title="8.2.1 逻辑控制流"></a>8.2.1 逻辑控制流</h5><p>​    即使在系统中通常有许多其他程序在运行，进程也可以像每个程序提供一种假象，好像它在独占的使用处理器，如果想用调试器单步执行程序，会看到一系列PC值，这些值唯一的对应包含在程序的可执行目标文件中的指令，或是包含在运行时动态连接到程序的共享对象的指令，这个PC值的序列叫做<strong>逻辑控制流</strong>。</p>
-<img src="/2021/07/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/87.png" class="">
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/87.png" class="">
 
 <h5 id="8-2-2-并发流"><a href="#8-2-2-并发流" class="headerlink" title="8.2.2 并发流"></a>8.2.2 并发流</h5><p>计算机系统中逻辑流有许多不同形式，异常处理程序、进程、信号处理程序、线程等都是逻辑流的例子。</p>
 <p>一个逻辑流的执行在时间上与另一个流重叠，称为<strong>并发流</strong>。</p>
@@ -3743,7 +3743,7 @@ end:    for(i=0;i&lt;n;i++)
 <p>并发：多个流并发执行的一般现象。</p>
 <p>并行流：两个流并发的运行在不同的处理机核或者计算机上，它们并行地运行。</p>
 <h5 id="8-2-3-私有地址空间"><a href="#8-2-3-私有地址空间" class="headerlink" title="8.2.3 私有地址空间"></a>8.2.3 私有地址空间</h5><p>私有地址空间—进程为程序提供的假象，好像它独占的使用系统地址空间。一般而言，和这个空间中某个地址相关联的那个存储器字节是不能被其他进程读写的。</p>
-<img src="/2021/07/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/88.png" class="">
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/88.png" class="">
 
 <h5 id="8-2-4-用户模式和内核模式"><a href="#8-2-4-用户模式和内核模式" class="headerlink" title="8.2.4 用户模式和内核模式"></a>8.2.4 用户模式和内核模式</h5><p>​    处理器提供一种机制，限制一个应用可以执行的指令以及它可以访问的地址空间范围。通常是通过控制某个寄存器的模式位来提供这种功能，该寄存器描述了进程当前享有的特权。</p>
 <ul>
@@ -3755,7 +3755,7 @@ end:    for(i=0;i&lt;n;i++)
 <h5 id="8-2-5-上下文切换"><a href="#8-2-5-上下文切换" class="headerlink" title="8.2.5 上下文切换"></a>8.2.5 上下文切换</h5><p>​    操作系统内核使用一种称为上下文切换的较高层次的异常控制流来实现多任务。上下文切换机制是建立在上面讨论过的低层的异常机制上的。</p>
 <p>​    内核为每个进程维持一个<strong>上下文</strong>，上下文就是内核重新启动一个被抢占的进程所需要的状态，由一些对象的值组成，包括通用目的寄存器、浮点寄存器、程序计数器、用户栈、状态寄存器、内存栈和各种内核数据结构，比如描述地址空间的页表、包含当前进程信息的进程表，以及包含进程已打开文件的信息的文件表。</p>
 <p>下图为一对进程上下文切换的示例，进程A初始运行在用户模式在，直到执行系统调用read陷入内核，内核中的陷阱处理程序请求来自磁盘控制器的DMA传输，并安排在磁盘控制器完成从磁盘到内存的数据传输后，磁盘中断处理器：</p>
-<img src="/2021/07/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/89.png" class="">
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/89.png" class="">
 
 <p>上下文切换：</p>
 <ol>
@@ -3763,7 +3763,7 @@ end:    for(i=0;i&lt;n;i++)
 <li>恢复某个先前被强占的进程被保存的上下文。</li>
 <li>将控制传递给这个新恢复的进程。</li>
 </ol>
-<h4 id="8-3-系统调用错误处理"><a href="#8-3-系统调用错误处理" class="headerlink" title="8.3 系统调用错误处理"></a>8.3 系统调用错误处理</h4><img src="/2021/07/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/90.png" class="">
+<h4 id="8-3-系统调用错误处理"><a href="#8-3-系统调用错误处理" class="headerlink" title="8.3 系统调用错误处理"></a>8.3 系统调用错误处理</h4><img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/90.png" class="">
 
 <h4 id="8-4-进程控制"><a href="#8-4-进程控制" class="headerlink" title="8.4 进程控制"></a>8.4 进程控制</h4><h5 id="8-4-1-获取进程ID"><a href="#8-4-1-获取进程ID" class="headerlink" title="8.4.1 获取进程ID"></a>8.4.1 获取进程ID</h5><p>每个进程都有唯一的正数（非0）进程ID（PID），getpid函数返回调用进程的PID，getppid函数返回他的父进程的PID（创建调用进程的进程）。</p>
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="keyword">pid_t</span> <span class="title">getpid</span><span class="params">(<span class="keyword">void</span>)</span>；</span></span><br><span class="line"><span class="function"><span class="keyword">pid_t</span> <span class="title">getppid</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br></pre></td></tr></table></figure>
@@ -3789,7 +3789,7 @@ end:    for(i=0;i&lt;n;i++)
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&quot;csapp.h&quot;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">pid_t</span> pid;</span><br><span class="line">	<span class="keyword">int</span> x=<span class="number">1</span>;</span><br><span class="line">	pid=Fork();</span><br><span class="line">	<span class="keyword">if</span>(pid==<span class="number">0</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">//子进程</span></span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;child:x = %d\n&quot;</span>,++x);</span><br><span class="line">		<span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;parent :x=%d\n &quot;</span>,--x);</span><br><span class="line">	<span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 
-<img src="/2021/07/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/91.png" class="">
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/91.png" class="">
 
 <p> 从上述可以看到：</p>
 <ol>
@@ -3804,7 +3804,7 @@ end:    for(i=0;i&lt;n;i++)
 </ol>
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   Fork();</span><br><span class="line">   Fork();</span><br><span class="line">   <span class="built_in">printf</span>(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">   <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/07/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/92.png" class="">
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/92.png" class="">
 
 <h5 id="8-4-3-回收子进程"><a href="#8-4-3-回收子进程" class="headerlink" title="8.4.3 回收子进程"></a>8.4.3 回收子进程</h5><p>​    当一个进程由于某种原因终止时，内核并不是立即把它从系统中清除，相反进程被保持在一种已终止的状态中，直到被父进程回收，当父进程回收已终止的子进程时，内核将子进程的退出状态传递给父进程，然后抛弃已终止的进程。从此时开始，该进程就不存在了。一个终止了但没有被回收的进程称为僵尸进程。</p>
 <p>​    如果一个父进程终止了，内核会安排init进程称为它的孤儿进程（如果父进程先退出,子进程还没退出那么子进程将被 托孤给init进程）的养父。init进程的PID为1，是系统在启动时由内核创建的，他不会终止，是所有进程的祖先。如果父进程没有回收它的僵尸进程就终止了，那么内核会安排init进程回收它们，长时间运行的程序，比如shell或者服务器，总是应该回收它们的僵尸子进程，即使僵尸进程没有运行，仍然会消耗系统的内存资源。一个进程可以通过调用waitpid函数等待它的子进程终止或停止。</p>
@@ -3856,13 +3856,13 @@ end:    for(i=0;i&lt;n;i++)
 
 <p>​    execve函数加载并运行可执行目标文件filename，且带参数列表argv和环境变量列表envp。只有当出现错误时，例如找不到filename，execve才会返回到调用程序，所以，与fork一次调用两次返回不同，execve调用一次不返回。</p>
 <p>​    argv变量指向一个以null结尾的指针数组，其中每个指针都指向一个参数字符串，按惯例，argv[0]是可执行文件的名字，环境变量的列表是由一个类似的数据结构表示的，envp变量指向一个以null结尾的指针数组，其中每个指针指向一个环境变量字符串。</p>
-<img src="/2021/07/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/93.png" class="">
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/93.png" class="">
 
 <p>在exceve加载了filename之后，调用一些启动代码，启动代码设置栈，并将控制传递给新程序的主函数，该主函数有如下形式：</p>
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> **argv, <span class="keyword">char</span> **envp)</span></span>;</span><br></pre></td></tr></table></figure>
 
 <p>​    当main开始执行时，用户的栈组织结构如下图所示，从栈底（高地址）往栈顶（低地址）看，首先是参数和环境字符串，栈网上紧随其后的是以null结尾的指针数组，其中每个指针都指向栈中一个环境变量字符串，全局变量environ指向这些指针中的第一个envp[0]，紧跟环境变量数组之后的是以null结尾的argv[]数组，其中每个元素都指向栈中的一个参数字符串，在栈顶部是系统启动函数libc_start_main的栈帧。</p>
-<img src="/2021/07/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/94.png" class="">
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/94.png" class="">
 
 <p>main函数又3个参数：</p>
 <ol>
@@ -3873,7 +3873,7 @@ end:    for(i=0;i&lt;n;i++)
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;ctype.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;signal.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;errno.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="keyword">char</span> **environ;    </span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAXLINE    1024   <span class="comment">/* max line size */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAXARGS     128   <span class="comment">/* max args on a command line */</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">unix_error</span><span class="params">(<span class="keyword">char</span> *msg)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">eval</span><span class="params">(<span class="keyword">char</span> *cmdline)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">builtin_cmd</span><span class="params">(<span class="keyword">char</span> **argv)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">parseline</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *cmdline, <span class="keyword">char</span> **argv)</span></span>; </span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> **argv)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> cmdline[MAXLINE];</span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;tsh&gt; &quot;</span>);</span><br><span class="line">        fgets(cmdline,MAXLINE,<span class="built_in">stdin</span>);</span><br><span class="line">	<span class="keyword">if</span> (feof(<span class="built_in">stdin</span>)) &#123; </span><br><span class="line">	    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	eval(cmdline);</span><br><span class="line">    &#125; </span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">eval</span><span class="params">(<span class="keyword">char</span> *cmdline)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> *argv[MAXLINE];</span><br><span class="line">    <span class="keyword">char</span> buf[MAXLINE];</span><br><span class="line">    <span class="keyword">int</span> bg;                 <span class="comment">/*should the job run in bg or fg?*/</span></span><br><span class="line">    <span class="keyword">pid_t</span> pid;</span><br><span class="line">    </span><br><span class="line">    stpcpy(buf,cmdline);</span><br><span class="line">    bg = parseline(buf,argv);</span><br><span class="line">    <span class="keyword">if</span>(argv[<span class="number">0</span>]==<span class="literal">NULL</span>)&#123;</span><br><span class="line">        <span class="keyword">return</span>;     <span class="comment">/*ignore empty line*/</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(!builtin_cmd(argv))&#123;                         <span class="comment">/*not a build in cmd*/</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>((pid = fork())==<span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">                <span class="keyword">if</span>(execve(argv[<span class="number">0</span>],argv,environ)&lt;<span class="number">0</span>)&#123;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;%s: Command not found. \n&quot;</span>,argv[<span class="number">0</span>]);</span><br><span class="line">                <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(!bg)</span><br><span class="line">        &#123;</span><br><span class="line">        	<span class="keyword">int</span> status;</span><br><span class="line">        	<span class="keyword">if</span>(waitpid(pid, &amp;status, <span class="number">0</span>)&lt;<span class="number">0</span>)</span><br><span class="line">        		unix_error(<span class="string">&quot;waitfg:waitpid\n&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        	<span class="built_in">printf</span>(<span class="string">&quot;%d %s&quot;</span>,pid,cmdline);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">parseline</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *cmdline, <span class="keyword">char</span> **argv)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">char</span> <span class="built_in">array</span>[MAXLINE]; <span class="comment">/* holds local copy of command line */</span></span><br><span class="line">    <span class="keyword">char</span> *buf = <span class="built_in">array</span>;          <span class="comment">/* ptr that traverses command line */</span></span><br><span class="line">    <span class="keyword">char</span> *delim;                <span class="comment">/* points to first space delimiter */</span></span><br><span class="line">    <span class="keyword">int</span> argc;                   <span class="comment">/* number of args */</span></span><br><span class="line">    <span class="keyword">int</span> bg;                     <span class="comment">/* background job? */</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">strcpy</span>(buf, cmdline);</span><br><span class="line">    buf[<span class="built_in">strlen</span>(buf)<span class="number">-1</span>] = <span class="string">&#x27; &#x27;</span>;  <span class="comment">/* replace trailing &#x27;\n&#x27; with space */</span></span><br><span class="line">    <span class="keyword">while</span> (*buf &amp;&amp; (*buf == <span class="string">&#x27; &#x27;</span>)) <span class="comment">/* ignore leading spaces */</span></span><br><span class="line">	buf++;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Build the argv list */</span></span><br><span class="line">    argc = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span> (*buf == <span class="string">&#x27;\&#x27;&#x27;</span>) &#123;</span><br><span class="line">	buf++;</span><br><span class="line">	delim = <span class="built_in">strchr</span>(buf, <span class="string">&#x27;\&#x27;&#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">	delim = <span class="built_in">strchr</span>(buf, <span class="string">&#x27; &#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (delim) &#123;</span><br><span class="line">	argv[argc++] = buf;</span><br><span class="line">	*delim = <span class="string">&#x27;\0&#x27;</span>;</span><br><span class="line">	buf = delim + <span class="number">1</span>;</span><br><span class="line">	<span class="keyword">while</span> (*buf &amp;&amp; (*buf == <span class="string">&#x27; &#x27;</span>)) <span class="comment">/* ignore spaces */</span></span><br><span class="line">	       buf++;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (*buf == <span class="string">&#x27;\&#x27;&#x27;</span>) &#123;</span><br><span class="line">	    buf++;</span><br><span class="line">	    delim = <span class="built_in">strchr</span>(buf, <span class="string">&#x27;\&#x27;&#x27;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span> &#123;</span><br><span class="line">	    delim = <span class="built_in">strchr</span>(buf, <span class="string">&#x27; &#x27;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">    &#125;</span><br><span class="line">    argv[argc] = <span class="literal">NULL</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (argc == <span class="number">0</span>)  <span class="comment">/* ignore blank line */</span></span><br><span class="line">	<span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* should the job run in the background? */</span></span><br><span class="line">    <span class="keyword">if</span> ((bg = (*argv[argc<span class="number">-1</span>] == <span class="string">&#x27;&amp;&#x27;</span>)) != <span class="number">0</span>) &#123;</span><br><span class="line">	argv[--argc] = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> bg;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">builtin_cmd</span><span class="params">(<span class="keyword">char</span> **argv)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(!<span class="built_in">strcmp</span>(argv[<span class="number">0</span>],<span class="string">&quot;quit&quot;</span>))</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">    <span class="keyword">if</span>(!<span class="built_in">strcmp</span>(argv[<span class="number">0</span>],<span class="string">&quot;&amp;&quot;</span>))</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;     <span class="comment">/* not a builtin command */</span>    <span class="comment">/* not a builtin command */</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">unix_error</span><span class="params">(<span class="keyword">char</span> *msg)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">fprintf</span>(<span class="built_in">stdout</span>, <span class="string">&quot;%s: %s\n&quot;</span>, msg, strerror(errno));</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <h4 id="8-5-信号"><a href="#8-5-信号" class="headerlink" title="8.5 信号"></a>8.5 信号</h4><p>信号是一种更高层的软件形式的异常，它允许进程和内核中断其他进程。一个信号就是一条小消息，它通知进程系统中发生一个某种类型的事件。每种信号对应某种系统事件，低层的硬件异常是由内核异常处理程序处理的，正常情况下，对用户进程而言是不可见的，信号提供一种机制，通知用户进程发生了这些异常，比如，一个进程试图除以0，那么内核就会发送一个SIGFPE信号，如果一个进程执行一条非法指令，那么内核就发送给它一个SIGSEGV信号。下图为linux信号。</p>
-<img src="/2021/07/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/95.png" class="">
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/95.png" class="">
 
 <h2 id="第九章：虚拟内存"><a href="#第九章：虚拟内存" class="headerlink" title="第九章：虚拟内存"></a>第九章：虚拟内存</h2><p>什么是虚拟内存？</p>
 <p>​    内存容易被破坏，如果一个进程写入了另一个进程使用的内存，就有可能会造成崩溃。虚拟内存是对主存概念的抽象概念。</p>
@@ -3884,11 +3884,11 @@ end:    for(i=0;i&lt;n;i++)
 <li>保护每个内存空间的进程不被其他进程破坏</li>
 </ul>
 <h4 id="9-1-物理和虚拟寻址"><a href="#9-1-物理和虚拟寻址" class="headerlink" title="9.1 物理和虚拟寻址"></a>9.1 物理和虚拟寻址</h4><p>早期PC：物理寻址</p>
-<img src="/2021/07/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/96.png" class="">
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/96.png" class="">
 
 <p>近代PC：虚拟寻址</p>
 <p>​    CPU生成虚拟地址访问主存，虚拟地址被送到主存之前首先通过MMU转换为物理地址</p>
-<img src="/2021/07/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/97.png" class="">
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/97.png" class="">
 
 
 
