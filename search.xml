@@ -4383,18 +4383,23 @@ end:    for(i=0;i&lt;n;i++)
     <title>无线DOS之取消验证洪水攻击</title>
     <url>/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/</url>
     <content><![CDATA[<h1 id="攻击原理"><a href="#攻击原理" class="headerlink" title="攻击原理"></a>攻击原理</h1><p>​    取消验证洪水攻击，全程为De-authenticationFloodAttack,简称为Deauth攻击。首先，攻击者通过扫描周围的WIFI网络，获取WIFI站点的SSID。然后扫描连接周围连接网络的设备。最后，对周边网络进行抓包（嗅探），寻找要攻击的WIFI站点和连接该站点的设备，以获取的包头信息重新构造一个取消验证包，发给WIFI站点。WIFI站点会被欺骗，从而取消对设备的连接。我们只要一直发送取消验证帧，形成DOS攻击，占满服务器资源。</p>
-<h1 id="攻击实现"><a href="#攻击实现" class="headerlink" title="攻击实现"></a>攻击实现</h1><p>​    参考已有的张馆长的工程，将其烧录到esp8266模块上。<img src="%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB%5C1.jpg"></p>
+<h1 id="攻击实现"><a href="#攻击实现" class="headerlink" title="攻击实现"></a>攻击实现</h1><p>​    参考已有的张馆长的工程，将其烧录到esp8266模块上。<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/1.jpg" class=""></p>
 <p>简单配置一下</p>
-<p><img src="%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB%5C2.jpg"></p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/2.jpg" class="">
+
 <p>烧录</p>
-<p><img src="%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB%5C3.jpg"></p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/3.jpg" class="">
+
 <p>这时，esp8266会建立一个WIFI，</p>
-<p><img src="%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB%5C4.jpg"></p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/4.jpg" class="">
+
 <p>我们连接这个wifi，进入192.168.4.1，可以看到攻击界面，里面会显示当前的AP站点，我们选取一个作为攻击对象。这里我们设置的是无差别攻击。当我们要定点攻击时，需要扫描连接该WiFi的设备，选择一个攻击。</p>
-<p><img src="%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB%5C5.jpg"></p>
-<p><img src="%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB%5C6.jpg"></p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/5.jpg" class="">
+
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/6.jpg" class="">
+
 <p>​        选择Deauth攻击，然后我们就可以观察到连接该网的设备断连的现象，手机上方的WiFi图标会不断闪烁。</p>
-]]></content>
+<h1 id="代码架构"><a href="#代码架构" class="headerlink" title="代码架构"></a>代码架构</h1>]]></content>
       <categories>
         <category>软件安全</category>
       </categories>
