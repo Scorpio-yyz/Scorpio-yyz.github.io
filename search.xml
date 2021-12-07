@@ -403,1034 +403,6 @@
       </categories>
   </entry>
   <entry>
-    <title>进程管理</title>
-    <url>/2021/09/05/%E8%BF%9B%E7%A8%8B%E7%AE%A1%E7%90%86/</url>
-    <content><![CDATA[<h2 id="CPU管理的直观想法"><a href="#CPU管理的直观想法" class="headerlink" title="CPU管理的直观想法"></a>CPU管理的直观想法</h2><h3 id="管理CPU，先使用CPU"><a href="#管理CPU，先使用CPU" class="headerlink" title="管理CPU，先使用CPU"></a>管理CPU，先使用CPU</h3><ul>
-<li>CPU的工作原理<ul>
-<li>CPU上电以后发生了什么？<ul>
-<li>把一个程序存放到一个内存里，设置一个PC指向程序，使得CPU取指令，将指令从内存中取出。</li>
-<li>CPU解释执行这个指令。</li>
-</ul>
-</li>
-<li>CPU怎么工作？<ul>
-<li>不断的取值，执行</li>
-</ul>
-</li>
-<li>CPU怎么管理？<ul>
-<li>设置PC一个初值，PC自加，不断取值执行</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h3 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h3><p>IO指令比计算指令慢很多，且IO指令执行时不用CPU。如果线性处理，那么就无法使CPU一直忙碌。CPU的使用效率会很低。</p>
-<p><strong>所以</strong>，我们将在执行IO指令时，将CPU切到其他地方执行其他指令。等IO指令执行结束再返回来。</p>
-<p>这样，使得多个程序在内存中。</p>
-<h3 id="多道程序交替执行"><a href="#多道程序交替执行" class="headerlink" title="多道程序交替执行"></a>多道程序交替执行</h3><p><img src="35.png"></p>
-<p><img src="36.png"></p>
-<p>一个CPU上交替执行多个程序，成为<strong>并发</strong>。</p>
-<h3 id="只要修改PC就可以了吗？"><a href="#只要修改PC就可以了吗？" class="headerlink" title="只要修改PC就可以了吗？"></a>只要修改PC就可以了吗？</h3><ul>
-<li>要记录返回的地址，要记录上一个程序所需要的数据</li>
-<li>每个程序有了一个存放信息的结构：PCB</li>
-<li>运行的程序和静态程序不一样了…</li>
-</ul>
-<h3 id="进程"><a href="#进程" class="headerlink" title="进程"></a>进程</h3><ul>
-<li>运行的程序和静态程序不一样！<ul>
-<li>需要描述这些不一样</li>
-<li>程序+这些不一样的地方=》一个概念</li>
-</ul>
-</li>
-<li>进程是进行（执行）中的程序<ul>
-<li>进程有开始、有结束，程序没有</li>
-<li>进程会走走停停，程序没有</li>
-<li>进程需要记录当前状态，程序不用</li>
-<li>…</li>
-</ul>
-</li>
-</ul>
-<h2 id="多进程图像"><a href="#多进程图像" class="headerlink" title="多进程图像"></a>多进程图像</h2><h3 id="多个进程使用CPU的图像"><a href="#多个进程使用CPU的图像" class="headerlink" title="多个进程使用CPU的图像"></a>多个进程使用CPU的图像</h3><ul>
-<li>如何使用CPU<ul>
-<li>让程序执行起来</li>
-</ul>
-</li>
-<li>如何充分利用CPU<ul>
-<li>启动多个程序，交替执行</li>
-</ul>
-</li>
-<li>启动了的程序就是进程，所以是多个进程推进<ul>
-<li>操作系统只需要把这些进程<strong>记录</strong>好、要按照合理的次序推进（分配资源、进行调度）</li>
-</ul>
-</li>
-</ul>
-<p><img src="27.png"></p>
-<h3 id="多进程图像从启动开始到关机结束"><a href="#多进程图像从启动开始到关机结束" class="headerlink" title="多进程图像从启动开始到关机结束"></a>多进程图像从启动开始到关机结束</h3><ul>
-<li>main中的fork()创建了第一个进程<ul>
-<li>init执行了shell</li>
-</ul>
-</li>
-<li>shell再启动其他进程</li>
-</ul>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">scanf</span>(<span class="string">&quot;%s&quot;</span>,cmd);</span><br><span class="line">        <span class="keyword">if</span>(!fork())</span><br><span class="line">        &#123;</span><br><span class="line">            exec(cmd);</span><br><span class="line">		&#125;</span><br><span class="line">        wait();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><img src="28.png"></p>
-<h3 id="多进程图像：多进程如何组织？"><a href="#多进程图像：多进程如何组织？" class="headerlink" title="多进程图像：多进程如何组织？"></a>多进程图像：多进程如何组织？</h3><ul>
-<li>有一个进程在执行（运行）<ul>
-<li><img src="29.png"></li>
-</ul>
-</li>
-<li>有一些进程等待执行（就绪）<ul>
-<li><img src="30.png"></li>
-</ul>
-</li>
-<li>有一些进程在等待某事件（阻塞）<ul>
-<li><img src="31.png"></li>
-</ul>
-</li>
-</ul>
-<h3 id="多进程的组织：PCB-状态-队列"><a href="#多进程的组织：PCB-状态-队列" class="headerlink" title="多进程的组织：PCB+状态+队列"></a>多进程的组织：PCB+状态+队列</h3><p>进程状态图：</p>
-<p><img src="32.png"></p>
-<ul>
-<li>它能给出进程生存期的清晰描述</li>
-<li>它是认识操作系统进程管理的一个窗口</li>
-</ul>
-<h3 id="多进程图像：多进程如何交替？"><a href="#多进程图像：多进程如何交替？" class="headerlink" title="多进程图像：多进程如何交替？"></a>多进程图像：多进程如何交替？</h3><ol>
-<li>启动磁盘读写；</li>
-<li>pCur.state=’W’;//阻塞态</li>
-<li>pCur放到DiskWaitQueue；</li>
-<li>schedule()</li>
-</ol>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">schedule()</span><br><span class="line">&#123;</span><br><span class="line">    pNew=getNext(ReadyQueue);</span><br><span class="line">    <span class="comment">//从就绪队列中找到下一个进程的PCB</span></span><br><span class="line">    switch_to(pCur,pNew);</span><br><span class="line">    <span class="comment">//将当前进程的PCB切换为当前PCB</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="交替的三个部分：队列操作-调度-切换"><a href="#交替的三个部分：队列操作-调度-切换" class="headerlink" title="交替的三个部分：队列操作+调度+切换"></a>交替的三个部分：队列操作+调度+切换</h3><ul>
-<li>进程调度，有很多种算法思想。</li>
-<li>FIFO？先来先调度<ul>
-<li>FIFO显然是公平的策略</li>
-<li>FIFO显然没有考虑进程执行的任务的区别</li>
-</ul>
-</li>
-<li>Priority？<ul>
-<li>优先级怎么设定？还可能使得进程饥饿</li>
-</ul>
-</li>
-</ul>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">switch_to(pCur,pNew)&#123;</span><br><span class="line">    pCur.ax	= CPU.ax;</span><br><span class="line">    pCur.bx = CPU.bx;</span><br><span class="line">    ...</span><br><span class="line">    pCur.cs = CPU .cs;</span><br><span class="line">    pCur.retpc = CPU.pc;</span><br><span class="line">    <span class="comment">//将当前进程保存</span></span><br><span class="line">    CPU.ax = pNew.ax;</span><br><span class="line">    CPU.bx = pNew.bx;</span><br><span class="line">    ...</span><br><span class="line">    CPU.cs = pNew.cs;</span><br><span class="line">    CPU.retpc = pNew.pc;</span><br><span class="line">    <span class="comment">//将下一个进程的状态赋给CPU</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="多进程图像：多进程如何影响？"><a href="#多进程图像：多进程如何影响？" class="headerlink" title="多进程图像：多进程如何影响？"></a>多进程图像：多进程如何影响？</h3><ul>
-<li>多个 进程同时存在于内存会出现下面的问题<ul>
-<li><img src="33.png"></li>
-</ul>
-</li>
-<li>解决办法：限制对地址100的读写</li>
-<li>如何限制：多进程的地址空间分离，操作系统的内存管理</li>
-</ul>
-<p><img src="34.png"></p>
-<p>通过映射表将多个进程数据的地址分离开。</p>
-<h3 id="多进程图像：多进程如何合作？"><a href="#多进程图像：多进程如何合作？" class="headerlink" title="多进程图像：多进程如何合作？"></a>多进程图像：多进程如何合作？</h3><ul>
-<li>想象打印工作过程<ul>
-<li>应用程序提交打印任务</li>
-<li>打印任务被放进打印队列</li>
-<li>打印进程从队列中提取任务</li>
-<li>打印进程控制打印机打印</li>
-</ul>
-</li>
-</ul>
-<p>多个进程对同一个内存进行覆盖时，交替执行会乱套。</p>
-<h3 id="核心在于进程同步（合理的推进顺序）"><a href="#核心在于进程同步（合理的推进顺序）" class="headerlink" title="核心在于进程同步（合理的推进顺序）"></a>核心在于进程同步（合理的推进顺序）</h3><p>使得多个进程有一个合理的进程推进顺序，从而实现进程的合作。</p>
-<h2 id="用户级线程"><a href="#用户级线程" class="headerlink" title="用户级线程"></a>用户级线程</h2><p><img src="37.png"></p>
-<img src="38.png" style="zoom: 67%;" />
-
-<h3 id="是否可以资源不动而切换指令序列？"><a href="#是否可以资源不动而切换指令序列？" class="headerlink" title="是否可以资源不动而切换指令序列？"></a>是否可以资源不动而切换指令序列？</h3><ul>
-<li>进程=资源+指令执行序列<ul>
-<li>将资源和指令分开</li>
-<li>一个资源+多个指令执行序列</li>
-<li><img src="39.png"></li>
-</ul>
-</li>
-</ul>
-<p>我们只切换指令，而资源内存不用切换</p>
-<ul>
-<li>线程：保留了并发的优点，避免了进程切换代价</li>
-<li>实质就是映射表不变而PC指针变</li>
-</ul>
-<h3 id="多个执行序列-一个地址空间是否实用？"><a href="#多个执行序列-一个地址空间是否实用？" class="headerlink" title="多个执行序列+一个地址空间是否实用？"></a>多个执行序列+一个地址空间是否实用？</h3><ul>
-<li>一个网页浏览器<ul>
-<li>一个线程用来从服务器接收数据</li>
-<li>一个线程用来显示文本</li>
-<li>一个线程用来处理图片</li>
-<li>一个线程用来显示图片</li>
-</ul>
-</li>
-<li>这些线程需要共享资源吗？<ul>
-<li>接收数据都放在缓冲区里</li>
-<li>所有的文本、图片都显示在一个屏幕上</li>
-</ul>
-</li>
-</ul>
-<h3 id="开始实现这样的浏览器…"><a href="#开始实现这样的浏览器…" class="headerlink" title="开始实现这样的浏览器…"></a>开始实现这样的浏览器…</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">WebExplorer</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> URL[] = <span class="string">&quot;http://cms.hit.edu.cn&quot;</span>;</span><br><span class="line">    <span class="keyword">char</span> buffer[<span class="number">1000</span>];</span><br><span class="line">    <span class="comment">//创建两个线程</span></span><br><span class="line">    pthread_creat(..., Getdata, URL, buffer);</span><br><span class="line">    pthread_creat(..., Show, buffer);</span><br><span class="line">    </span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">GetData</span><span class="params">(<span class="keyword">char</span> *URL, <span class="keyword">char</span> *p)</span></span>&#123;...&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Show</span><span class="params">(<span class="keyword">char</span> *p)</span></span>&#123;...&#125;</span><br></pre></td></tr></table></figure>
-
-<p><img src="40.png"></p>
-<h3 id="核心是Yield"><a href="#核心是Yield" class="headerlink" title="核心是Yield"></a>核心是Yield</h3><ul>
-<li>需要知道切换时进程的样子</li>
-<li>Create就是制造出第一次切换时的样子</li>
-</ul>
-<p><img src="42.png" alt="42"></p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="number">100</span>:A()</span><br><span class="line">&#123;</span><br><span class="line">    B();</span><br><span class="line">    <span class="number">104</span>:</span><br><span class="line">&#125;</span><br><span class="line"><span class="number">200</span>:B()</span><br><span class="line">&#123;</span><br><span class="line">    Yield();</span><br><span class="line">    <span class="number">204</span>:</span><br><span class="line">&#125;</span><br><span class="line"><span class="number">300</span>:C()</span><br><span class="line">&#123;</span><br><span class="line">    D();</span><br><span class="line">    <span class="number">304</span>:</span><br><span class="line">&#125;</span><br><span class="line"><span class="number">400</span>:D()</span><br><span class="line">&#123;</span><br><span class="line">    Yield();</span><br><span class="line">    <span class="number">404</span>:</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><img src="42.png"></p>
-<h3 id="两个执行序列与一个栈"><a href="#两个执行序列与一个栈" class="headerlink" title="两个执行序列与一个栈"></a>两个执行序列与一个栈</h3><p><img src="41.png"></p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Yield</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    找到<span class="number">300</span>;</span><br><span class="line">    jmp <span class="number">300</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Yield</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    找到<span class="number">204</span>;</span><br><span class="line">    jmp <span class="number">204</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>最后B()执行完，需要返回到A()，但目前栈中esp-&gt;404，会ret到D()中，从而出现问题。</p>
-<h3 id="解决方法：每个线程都要有自己的栈"><a href="#解决方法：每个线程都要有自己的栈" class="headerlink" title="解决方法：每个线程都要有自己的栈"></a>解决方法：每个线程都要有自己的栈</h3><p><img src="43.png"></p>
-<ul>
-<li>Yield切换要先切换栈</li>
-</ul>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Yield</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    TCB2.esp=esp;</span><br><span class="line">    esp=TCB1.esp;</span><br><span class="line">    <span class="comment">//jmp 204;*不需要用jmp，直接用栈中的204ret*</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="两个线程的样子：两个TCB、两个栈、切换的PC在栈中"><a href="#两个线程的样子：两个TCB、两个栈、切换的PC在栈中" class="headerlink" title="两个线程的样子：两个TCB、两个栈、切换的PC在栈中"></a>两个线程的样子：两个TCB、两个栈、切换的PC在栈中</h3><ul>
-<li>ThreadCreate的核心就是用程序做出这三样东西</li>
-</ul>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">ThreadCreate</span><span class="params">(A)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    TCB *tcb=<span class="built_in">malloc</span>();</span><br><span class="line">    *<span class="built_in">stack</span>=<span class="built_in">malloc</span>();</span><br><span class="line">    *<span class="built_in">stack</span>=A;</span><br><span class="line">    tcb.esp=<span class="built_in">stack</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><img src="44.png"></p>
-<h3 id="用户级线程和内核级线程？"><a href="#用户级线程和内核级线程？" class="headerlink" title="用户级线程和内核级线程？"></a>用户级线程和内核级线程？</h3><p><img src="45.png"></p>
-<p>而如果进程1进入了内核，并且阻塞，则会进入进程2，进程1中的其他线程都会不执行。</p>
-<p><img src="46.png"></p>
-<h2 id="内核级线程"><a href="#内核级线程" class="headerlink" title="内核级线程"></a>内核级线程</h2><h3 id="和用户级相比，核心级线程有什么不同？"><a href="#和用户级相比，核心级线程有什么不同？" class="headerlink" title="和用户级相比，核心级线程有什么不同？"></a>和用户级相比，核心级线程有什么不同？</h3><ul>
-<li> ThreadCreate是系统调用，内核管理TCB，内核负责切换线程</li>
-<li>如何让切换成型？–内核栈，TCB<ul>
-<li>用户栈是否还要用？<ul>
-<li>执行的代码仍在用户态，还要进行函数调用</li>
-</ul>
-</li>
-<li>一个栈到一套栈；两个栈到两套栈</li>
-<li>TCB关联内核栈，那用户栈怎么办？<ul>
-<li>根据TCB切换一套栈</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<p><img src="47.png"></p>
-<h3 id="用户栈和内核栈之间的关联"><a href="#用户栈和内核栈之间的关联" class="headerlink" title="用户栈和内核栈之间的关联"></a>用户栈和内核栈之间的关联</h3><p><img src="48.png"></p>
-<p>一旦INT中断启动，就启用内核栈。</p>
-<p>当中断结束IRET，回到用户栈。</p>
-<h3 id="看A-B-C-D"><a href="#看A-B-C-D" class="headerlink" title="看A()B()C()D()"></a>看A()B()C()D()</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="number">100</span>:A()&#123;</span><br><span class="line">    B();</span><br><span class="line">    <span class="number">104</span>:</span><br><span class="line">&#125;</span><br><span class="line"><span class="number">200</span>:B()&#123;</span><br><span class="line">    read();</span><br><span class="line">    <span class="number">204</span>:</span><br><span class="line">&#125;</span><br><span class="line"><span class="number">300</span>:read()&#123;</span><br><span class="line">    <span class="keyword">int</span> <span class="number">0x80</span>;</span><br><span class="line">    <span class="number">304</span>:</span><br><span class="line">&#125;</span><br><span class="line">system_call:</span><br><span class="line">	call sys_read;</span><br><span class="line"><span class="number">1000</span>:</span><br><span class="line"><span class="number">2000</span>:sys_read()&#123;&#125;</span><br></pre></td></tr></table></figure>
-
-<p><img src="49.png"></p>
-<h3 id="开始内核中的切换：switch-to"><a href="#开始内核中的切换：switch-to" class="headerlink" title="开始内核中的切换：switch_to"></a>开始内核中的切换：switch_to</h3><p><img src="50.png"></p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">sys_read()&#123;</span><br><span class="line">	启动磁盘读；</span><br><span class="line">    将自己变成阻塞；</span><br><span class="line">    找到next；</span><br><span class="line">    switch_to(cur,next);    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>switch_to</strong>:仍然是通过<strong>TCB</strong>找到内核栈指针；然后通过<strong>ret</strong>切到某个内核程序；最后再用<strong>CS:PC</strong>切到用户程序。</p>
-<h3 id="上面的？都是什么？"><a href="#上面的？都是什么？" class="headerlink" title="上面的？都是什么？"></a>上面的？都是什么？</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="number">100</span>:A()&#123;<span class="comment">//线程S代码</span></span><br><span class="line">    ...</span><br><span class="line">       <span class="keyword">int</span> <span class="number">0x80</span>;</span><br><span class="line">    ...</span><br><span class="line"><span class="number">2000</span>:sys_read()&#123;...&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>？？？:sys_read函数的函数的某个地方</li>
-<li>？？:中断之前的某个地方</li>
-<li>？？？:sys_xxx函数中的某个地方</li>
-</ul>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="number">500</span>:C()&#123;<span class="comment">//线程T代码</span></span><br><span class="line">    ...</span><br><span class="line">interrupt:</span><br><span class="line">    call sys_xxx;</span><br><span class="line"><span class="number">3000</span>:</span><br><span class="line"><span class="number">4000</span>:sys_xxx()&#123;...&#125;</span><br></pre></td></tr></table></figure>
-
-<p>当T创建时：</p>
-<ul>
-<li>？？:500，函数C()的开始地址</li>
-<li>？？？？:一段能完成第二级返回的代码，一段包含iret的代码,从中断中返回</li>
-</ul>
-<h3 id="内核线程switch-to的五段论"><a href="#内核线程switch-to的五段论" class="headerlink" title="内核线程switch_to的五段论"></a>内核线程switch_to的五段论</h3><p><img src="51.png"></p>
-<p>第一级切换：</p>
-<p><img src="52.png"></p>
-<p>第二级切换：</p>
-<p><img src="53.png"></p>
-<p>最后，S、T非同一进程，所以还要进行地址切换。首先要切换地址映射表；</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">TCB[cur].ldtr = %ldtr</span><br><span class="line">%ldtr = TCB[next].ldtr</span><br><span class="line">    <span class="comment">//内存管理</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="ThreadCreate"><a href="#ThreadCreate" class="headerlink" title="ThreadCreate!"></a>ThreadCreate!</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">ThreadCreate</span><span class="params">(...)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    TCB tcb=get_free_page();</span><br><span class="line">    *krlstack=...;</span><br><span class="line">    *userstack传入;</span><br><span class="line">    填写两个<span class="built_in">stack</span>;</span><br><span class="line">    tcb.esp=krlstack;</span><br><span class="line">    tcb.状态=就绪;</span><br><span class="line">    tcb入队;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="用户级线程和核心级线程的对比"><a href="#用户级线程和核心级线程的对比" class="headerlink" title="用户级线程和核心级线程的对比"></a>用户级线程和核心级线程的对比</h3><p><img src="54.png"></p>
-<h2 id="内核级线程实现"><a href="#内核级线程实现" class="headerlink" title="内核级线程实现"></a>内核级线程实现</h2><h3 id="核心级线程的两套栈，核心是内核栈"><a href="#核心级线程的两套栈，核心是内核栈" class="headerlink" title="核心级线程的两套栈，核心是内核栈"></a>核心级线程的两套栈，核心是内核栈</h3><p><img src="55.png"></p>
-<h3 id="从进入内核开始，某个中断开始"><a href="#从进入内核开始，某个中断开始" class="headerlink" title="从进入内核开始，某个中断开始"></a>从进入内核开始，某个中断开始</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line">main()&#123;</span><br><span class="line">	A();</span><br><span class="line">    B();</span><br><span class="line">&#125;</span><br><span class="line">A()</span><br><span class="line">&#123;</span><br><span class="line">    fork();<span class="comment">//fork是系统调用，会引起中断</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p> <img src="56.png"></p>
-<p>一旦执行int指令，将找到内核栈，然后通过内核栈找到用户栈。</p>
-<h3 id="切换五段论的中断入口和中断出口"><a href="#切换五段论的中断入口和中断出口" class="headerlink" title="切换五段论的中断入口和中断出口"></a>切换五段论的中断入口和中断出口</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">sched_init</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    set_system_gate(<span class="number">0x80</span>,&amp;system_call);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>初始化时将各种中断处理设置好</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">_system_call:</span><br><span class="line">	push %ds..%fs</span><br><span class="line">	pushl %eax...</span><br><span class="line">	call sys_fork	#执行过程中可能引起切换</span><br><span class="line">	pushl %eax</span><br><span class="line">#将用户态的东西保存起来</span><br><span class="line">	movl _current,%eax	#当前PCB</span><br><span class="line">	cmpl $0,state(%eax)	#当前PCB的状态，0是运行或就绪，非0是阻塞</span><br><span class="line">	jne	reschedule	#阻塞则跳转reschedule，重新调度</span><br><span class="line">	cmpl $0,counter(%eax)	#当前PCB的时间片是否用完</span><br><span class="line">	je rechedule	#时间片用完也要进行调度</span><br><span class="line">ret_from_sys_call:</span><br><span class="line">	popl %eax	#返回值</span><br><span class="line">	popl %ebx	</span><br><span class="line">	...</span><br><span class="line">	pop %fs	</span><br><span class="line">	...</span><br><span class="line">	iret	#切换用户栈</span><br><span class="line">#中断返回函数</span><br><span class="line">reschedule:</span><br><span class="line">	push $ret_form_sys_call</span><br><span class="line">	jmp	_schedule</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">schedule</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    next=...;<span class="comment">//看调度算法给出下一给线程</span></span><br><span class="line">    switch_to(next);<span class="comment">//next是下一个线程的TCB</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> switch_to(n)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> &#123;</span><span class="keyword">long</span> a,b;&#125;</span><br><span class="line">    _asm_(</span><br><span class="line">    	<span class="string">&quot;movw %%dx,%1\n\t&quot;</span></span><br><span class="line">        <span class="string">&quot;ljmp %0\n\t&quot;</span>	<span class="comment">//长跳转指令，段与段之间的跳转</span></span><br><span class="line">        ::<span class="string">&quot;m&quot;</span>(*&amp;__tmp.a),</span><br><span class="line">        <span class="string">&quot;m&quot;</span>(*&amp;__tmp.b),</span><br><span class="line">        <span class="string">&quot;d&quot;</span>(_TSS(n))	<span class="comment">//n就是next，指向新的段</span></span><br><span class="line">    )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><img src="57.png"></p>
-<h3 id="ThreadCreate-1"><a href="#ThreadCreate-1" class="headerlink" title="ThreadCreate"></a>ThreadCreate</h3><ul>
-<li>从_sys_fork开始ThreadCreate</li>
-</ul>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">_sys_fork:</span><br><span class="line">	push %gs</span><br><span class="line">	pushl %esi</span><br><span class="line">	...</span><br><span class="line">	pushl %eax</span><br><span class="line">	#将当前状态值都入栈</span><br><span class="line">	call _copy_process	#复制父进程的所有参数</span><br><span class="line">	addl $20,%esp</span><br><span class="line">	ret</span><br></pre></td></tr></table></figure>
-
-<h3 id="copy-process的细节：创建栈"><a href="#copy-process的细节：创建栈" class="headerlink" title="copy_process的细节：创建栈"></a>copy_process的细节：创建栈</h3><p><img src="58.png"></p>
-<p>创建TCB，初始化TSS</p>
-<p><img src="59.png"></p>
-<h3 id="copy-process的细节：执行前准备"><a href="#copy-process的细节：执行前准备" class="headerlink" title="copy_process的细节：执行前准备"></a>copy_process的细节：执行前准备</h3><p><img src="60.png"></p>
-<h3 id="如何执行我们想要的代码"><a href="#如何执行我们想要的代码" class="headerlink" title="如何执行我们想要的代码"></a>如何执行我们想要的代码</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc,<span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>)&#123;</span><br><span class="line">        <span class="built_in">scanf</span>(<span class="string">&quot;%s&quot;</span>,cmd);</span><br><span class="line">        <span class="keyword">if</span>(!fork())<span class="comment">//子进程的代码</span></span><br><span class="line">        &#123;</span><br><span class="line">            exec(cmd);</span><br><span class="line">        &#125;</span><br><span class="line">        wait(<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>fork()何时返回0，何时不会？<ul>
-<li><img src="61.png"></li>
-<li><img src="62.png"></li>
-<li>子进程里，eax被置为0，然后通过TSS找到了返回地址</li>
-<li>父进程里eax则非0</li>
-</ul>
-</li>
-</ul>
-<h3 id="结构：子进程进入A-父进程等待…"><a href="#结构：子进程进入A-父进程等待…" class="headerlink" title="结构：子进程进入A,父进程等待…"></a>结构：子进程进入A,父进程等待…</h3><ul>
-<li><p>关于exec这个系统调用</p>
-<ul>
-<li>```c<br>if(fork()){exec(cmd);}<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">```assembly</span><br><span class="line">_system_call:</span><br><span class="line">	push %ds..%fs</span><br><span class="line">	pushl %edx..</span><br><span class="line">	call sys_execve	</span><br><span class="line">_sys_execve:</span><br><span class="line">	lea EIP(%esp),%eax</span><br><span class="line">	pushl %eax	#将ret的地址（cmd指令的位置）压栈，当exec()在内核态iret时，找到这个地址，执行cmd指令</span><br><span class="line">	call _do_execve</span><br><span class="line">EIP = 0x1c</span><br></pre></td></tr></table></figure></li>
-</ul>
-</li>
-</ul>
-<p><img src="63.png"></p>
-<h3 id="让A执行"><a href="#让A执行" class="headerlink" title="让A执行"></a>让A执行</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">do_exec</span><span class="params">(* eip,...)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    p+=change_ldt(...);</span><br><span class="line">    eip[<span class="number">0</span>]=ex.a_entry;<span class="comment">//ex.a_entry是可执行程序入口地址，产生可执行文件时写入</span></span><br><span class="line">    eip[<span class="number">3</span>]=p;<span class="comment">//修改栈</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">exec</span>&#123;</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> a_magic;</span><br><span class="line">    <span class="keyword">unsigned</span> a_entry;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p><img src="64.png"></p>
-<h2 id="操作系统的那颗“树”"><a href="#操作系统的那颗“树”" class="headerlink" title="操作系统的那颗“树”"></a>操作系统的那颗“树”</h2><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span>	i,to,*fp,sum=<span class="number">0</span>;</span><br><span class="line">    to=atoi(argv[<span class="number">1</span>]);</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;=to;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        sum=sum+i;</span><br><span class="line">        <span class="comment">//CPU工作了10毫秒</span></span><br><span class="line">        <span class="built_in">fprintf</span>(fp,<span class="string">&quot;%d&quot;</span>,sum);</span><br><span class="line">        <span class="comment">//CPU停留了10秒钟</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="得让CPU好好运转"><a href="#得让CPU好好运转" class="headerlink" title="得让CPU好好运转"></a>得让CPU好好运转</h3><p><img src="65.png"></p>
-<p><img src="66.png"></p>
-<h3 id="一个栈-Yield造成的混乱"><a href="#一个栈-Yield造成的混乱" class="headerlink" title="一个栈+Yield造成的混乱"></a>一个栈+Yield造成的混乱</h3><p><img src="67.png"></p>
-<h3 id="使用两个栈-两个用户TCB"><a href="#使用两个栈-两个用户TCB" class="headerlink" title="使用两个栈+两个用户TCB"></a>使用两个栈+两个用户TCB</h3><p><img src="68.png"></p>
-<p>Yield()找到下一个TCB—&gt;找到新的栈—&gt;切到新的栈</p>
-<h3 id="不能一直执行用户态"><a href="#不能一直执行用户态" class="headerlink" title="不能一直执行用户态"></a>不能一直执行用户态</h3><p><img src="69.png"></p>
-<p>如果进程1进入了内核，并且阻塞，则会进入进程2，进程1中的其他线程都会不执行。</p>
-<h3 id="引入内核栈的切换"><a href="#引入内核栈的切换" class="headerlink" title="引入内核栈的切换"></a>引入内核栈的切换</h3><p><img src="70.png"></p>
-<h3 id="目标：交替的打出A和B"><a href="#目标：交替的打出A和B" class="headerlink" title="目标：交替的打出A和B"></a>目标：交替的打出A和B</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line">#AB.<span class="function">c</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(!fork())&#123;<span class="keyword">while</span>(<span class="number">1</span>)<span class="built_in">printf</span>(<span class="string">&quot;A&quot;</span>);&#125;</span><br><span class="line">    <span class="keyword">if</span>(!fork())&#123;<span class="keyword">while</span>(<span class="number">1</span>)<span class="built_in">printf</span>(<span class="string">&quot;B&quot;</span>);&#125;</span><br><span class="line">    wait();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">main()&#123;</span><br><span class="line">	mov __NR_fork,%eax</span><br><span class="line">	int 0x80</span><br><span class="line">100:</span><br><span class="line">	mov %eax,res</span><br><span class="line">	cmpl res,0</span><br><span class="line">	jne 208</span><br><span class="line">200:</span><br><span class="line">	printf(&quot;A&quot;)</span><br><span class="line">208:</span><br><span class="line">	...</span><br><span class="line">304:</span><br><span class="line">	wait()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="INT进入内核"><a href="#INT进入内核" class="headerlink" title="INT进入内核"></a>INT进入内核</h3><p><img src="71.png"></p>
-<p><img src="72.png"></p>
-<h3 id="开始sys-fork"><a href="#开始sys-fork" class="headerlink" title="开始sys_fork"></a>开始sys_fork</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sys_fork:</span><br><span class="line">	push ...</span><br><span class="line">	call copy_process</span><br><span class="line">	ret</span><br></pre></td></tr></table></figure>
-
-<h3 id="开始copy-process"><a href="#开始copy-process" class="headerlink" title="开始copy_process"></a>开始copy_process</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">copy_process</span><span class="params">(...<span class="keyword">long</span> eip=<span class="number">100</span>,)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    p=(PCB *)get_free_page();</span><br><span class="line">    p-&gt;tss.esp0=p+<span class="number">4</span>k;</span><br><span class="line">    p-&gt;tss.esp=esp;</span><br><span class="line">    p-&gt;tss.eax=<span class="number">0</span>;</span><br><span class="line">    p-&gt;tss.eip=eip;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><img src="73.png"></p>
-<h3 id="开始返回"><a href="#开始返回" class="headerlink" title="开始返回"></a>开始返回</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">copy_process()&#123;...&#125;</span><br><span class="line">sys_fork:</span><br><span class="line">	...</span><br><span class="line">	call copy_process</span><br><span class="line">	...</span><br><span class="line">	ret</span><br><span class="line">system_call:</span><br><span class="line">	...</span><br><span class="line">	call sys_call_table(,%eax,4)</span><br><span class="line">	cmpl $0,state(current)</span><br><span class="line">	jne reschedule</span><br><span class="line">	iret</span><br><span class="line">main:</span><br><span class="line">	int 0x80</span><br><span class="line">100:</span><br><span class="line">	mov %eax,res</span><br><span class="line">	cmpl res,0;</span><br></pre></td></tr></table></figure>
-
-<h3 id="main继续执行"><a href="#main继续执行" class="headerlink" title="main继续执行"></a>main继续执行</h3><p>又一次fork()，再一次int 0x80</p>
-<p>在内核中再产生一个PCB和内核栈…</p>
-<p><img src="74.png"></p>
-<p>???：是B()函数的执行地址</p>
-<h3 id="wait（）"><a href="#wait（）" class="headerlink" title="wait（）"></a>wait（）</h3><p>接下来，wait()函数，将父进程变成阻塞态。</p>
-<h3 id="schedule（）"><a href="#schedule（）" class="headerlink" title="schedule（）"></a>schedule（）</h3><p>父进程阻塞，将当前进程变成A或者B</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">schedule</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>((*P)-&gt;satae==TASK_RUNNING&amp;&amp;(*p)-&gt;counter&gt;c)</span><br><span class="line">    &#123;</span><br><span class="line">        c=(*p)-&gt;counter,next=i;</span><br><span class="line">    	...</span><br><span class="line">    &#125;</span><br><span class="line">     switch_to(next);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="swtich-to-切换"><a href="#swtich-to-切换" class="headerlink" title="swtich_to()切换"></a>swtich_to()切换</h3><p><img src="75.png"></p>
-<h3 id="怎么调度：时钟中断"><a href="#怎么调度：时钟中断" class="headerlink" title="怎么调度：时钟中断"></a>怎么调度：时钟中断</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">sched_init</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    set_intr_gate(<span class="number">0x20</span>,&amp;timer_interrupt);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">void _timer_interrupt:</span><br><span class="line">	...</span><br><span class="line">	call do_timer</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">do_timer</span><span class="params">(...)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>((--current)-&gt;counter&gt;<span class="number">0</span>)<span class="keyword">return</span>;</span><br><span class="line">    current-&gt;counter=<span class="number">0</span>;</span><br><span class="line">    schedule();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="CPU调度策略"><a href="#CPU调度策略" class="headerlink" title="CPU调度策略"></a>CPU调度策略</h2><h3 id="多进程图像与CPU调度"><a href="#多进程图像与CPU调度" class="headerlink" title="多进程图像与CPU调度"></a>多进程图像与CPU调度</h3><p><img src="76.png"></p>
-<h3 id="CPU调度（进程调度）的直观想法"><a href="#CPU调度（进程调度）的直观想法" class="headerlink" title="CPU调度（进程调度）的直观想法"></a>CPU调度（进程调度）的直观想法</h3><ol>
-<li>FIFO<ul>
-<li>先进先调度</li>
-<li>如果一个简单的任务也要等很久，就不太合理</li>
-</ul>
-</li>
-<li>Priority<ul>
-<li>任务短可以适当优先</li>
-<li>如果都是短任务，那么长任务就得不到处理</li>
-</ul>
-</li>
-</ol>
-<h3 id="如何设计调度算法使得进程满意"><a href="#如何设计调度算法使得进程满意" class="headerlink" title="如何设计调度算法使得进程满意"></a>如何设计调度算法使得进程满意</h3><ul>
-<li>尽快结束任务：周转时间短</li>
-<li>用户操作尽快响应：响应时间短</li>
-<li>系统内耗时间少：吞吐量大</li>
-</ul>
-<h3 id="需要折中处理"><a href="#需要折中处理" class="headerlink" title="需要折中处理"></a>需要折中处理</h3><ul>
-<li>吞吐量和响应时间之间有矛盾<ul>
-<li>响应时间小=》切换次数多=》系统内耗大=》吞吐量小</li>
-</ul>
-</li>
-<li>前台任务和后台任务的关注点不同<ul>
-<li>前台任务关注响应时间、后台任务关注周转时间</li>
-</ul>
-</li>
-<li>IO约束型任务和CPU约束型任务各有各的特点</li>
-</ul>
-<h3 id="各种基本调度算法"><a href="#各种基本调度算法" class="headerlink" title="各种基本调度算法"></a>各种基本调度算法</h3><h4 id="First-Come，First-Service（FCFS）"><a href="#First-Come，First-Service（FCFS）" class="headerlink" title="First Come，First Service（FCFS）"></a>First Come，First Service（FCFS）</h4><ul>
-<li>先来先服务</li>
-<li><img src="77.png"></li>
-<li>缺点：平均周转时间大。</li>
-</ul>
-<p>因为短的作业越前平均周转时间越短，长的作业越后平均周转时间越长。</p>
-<h4 id="SJF：短作业优先"><a href="#SJF：短作业优先" class="headerlink" title="SJF：短作业优先"></a>SJF：短作业优先</h4><ul>
-<li>平均周转时间最小</li>
-<li>响应时间无法控制，长作业要等好久才能执行</li>
-<li><img src="78.png"></li>
-</ul>
-<h4 id="RR：按时间片来轮转调度"><a href="#RR：按时间片来轮转调度" class="headerlink" title="RR：按时间片来轮转调度"></a>RR：按时间片来轮转调度</h4><p><img src="79.png"></p>
-<ul>
-<li>时间片大：响应时间太长；时间片小：吞吐量小</li>
-<li>折中：时间片10~100ms，切换时间0.1-1ms</li>
-</ul>
-<h4 id="一个调度算法怎样让多种类型任务同时满意"><a href="#一个调度算法怎样让多种类型任务同时满意" class="headerlink" title="一个调度算法怎样让多种类型任务同时满意"></a>一个调度算法怎样让多种类型任务同时满意</h4><p>直观想法：定义前台任务和后台任务两队列，前台RR，后台SJF。只有当没有前台任务，才调度后台任务。</p>
-<p><img src="80.png"></p>
-<p>如果一直有前台任务，那么怎么办？</p>
-<h3 id="饥饿"><a href="#饥饿" class="headerlink" title="饥饿"></a>饥饿</h3><ul>
-<li>如果后台任务长时间没有运行，就会饥饿，提高其优先级。</li>
-</ul>
-<p>让后台任务优先级动态升高，但后台任务（用SJF调度）一旦执行，前台任务就不能很快的响应。</p>
-<p>前后台任务都用时间片，后台任务的SJF如何体现？</p>
-<h3 id="其他问题"><a href="#其他问题" class="headerlink" title="其他问题"></a>其他问题</h3><p>如何知道哪些是前台任务，哪些是后台任务，fork时能告诉我们吗？</p>
-<p>gcc就一点不需要交互吗？word就不会执行一段批处理吗？</p>
-<p>SJF中的短作业优先如何体现？如何判断作业的长度？</p>
-<h2 id="一个实际的schedule函数"><a href="#一个实际的schedule函数" class="headerlink" title="一个实际的schedule函数"></a>一个实际的schedule函数</h2><p>void schedule（）：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">	c = <span class="number">-1</span>;</span><br><span class="line">	next = <span class="number">0</span>;</span><br><span class="line">	i = NR_TASKS;</span><br><span class="line">       </span><br><span class="line">	p = &amp;task[NR_TASKS];<span class="comment">//讲从任务列表末尾开始</span></span><br><span class="line">	<span class="keyword">while</span> (--i) &#123;		<span class="comment">//向前移动</span></span><br><span class="line">		<span class="keyword">if</span> (!*--p)</span><br><span class="line">			<span class="keyword">continue</span>;</span><br><span class="line">		<span class="keyword">if</span> ((*p)-&gt;state == TASK_RUNNING &amp;&amp; (*p)-&gt;counter &gt; c)</span><br><span class="line">			c = (*p)-&gt;counter, next = i;</span><br><span class="line">	&#125;<span class="comment">//求大的counter（优先级）（时间片）</span></span><br><span class="line">	<span class="keyword">if</span> (c) <span class="keyword">break</span>;</span><br><span class="line">       <span class="comment">//如果c==0，重置一下counter</span></span><br><span class="line">       <span class="comment">/*</span></span><br><span class="line"><span class="comment">       1.当不存在就绪态进程后，c=-1，执行for循环</span></span><br><span class="line"><span class="comment">       2.for循环使就绪态进程（counter=0）=priority，而使得阻塞态进程counter&gt;priority。这样使得等待时间越长的进程优先级越高</span></span><br><span class="line"><span class="comment">       3.当阻塞态就绪后，会立即获得高优先级</span></span><br><span class="line"><span class="comment">       */</span></span><br><span class="line">	<span class="keyword">for</span>(p = &amp;LAST_TASK ; p &gt; &amp;FIRST_TASK ; --p)</span><br><span class="line">		<span class="keyword">if</span> (*p)</span><br><span class="line">			(*p)-&gt;counter = ((*p)-&gt;counter &gt;&gt; <span class="number">1</span>) +</span><br><span class="line">					(*p)-&gt;priority;</span><br><span class="line">&#125;</span><br><span class="line">switch_to(next); </span><br></pre></td></tr></table></figure>
-
-<h3 id="counter的作用：时间片"><a href="#counter的作用：时间片" class="headerlink" title="counter的作用：时间片"></a>counter的作用：时间片</h3><p>void do_timer(…)</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> ((--current-&gt;counter)&gt;<span class="number">0</span>) <span class="keyword">return</span>;</span><br><span class="line">	current-&gt;counter=<span class="number">0</span>;</span><br><span class="line">	schedule();</span><br></pre></td></tr></table></figure>
-
-<p>每次都让counter–，直到等于0时切换任务</p>
-<h3 id="counter的作用：优先级"><a href="#counter的作用：优先级" class="headerlink" title="counter的作用：优先级"></a>counter的作用：优先级</h3><p>每次找counter最大的调度，counter表现了优先级。</p>
-<p>这个优先级可以不断的动态调整。I/O操作具有前台进程的特征，具有高优先级。</p>
-<h3 id="counter作用的整理"><a href="#counter作用的整理" class="headerlink" title="counter作用的整理"></a>counter作用的整理</h3><ul>
-<li>counter保证了响应时间的界限</li>
-<li>经过I/O以后，counter就会变大；I/O时间越长，counter越大。从而照顾了前台进程。</li>
-<li>后台进程一直按照counter轮转，近似SJF调度</li>
-<li>每个进程只维护一个counter变量，简单高效</li>
-</ul>
-<h2 id="进程同步与信号量"><a href="#进程同步与信号量" class="headerlink" title="进程同步与信号量"></a>进程同步与信号量</h2><h3 id="进程合作：多进程共同完成一个任务"><a href="#进程合作：多进程共同完成一个任务" class="headerlink" title="进程合作：多进程共同完成一个任务"></a>进程合作：多进程共同完成一个任务</h3><p><img src="81.png"></p>
-<h3 id="生产者-消费者实例"><a href="#生产者-消费者实例" class="headerlink" title="生产者-消费者实例"></a>生产者-消费者实例</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//共享数据</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> BUFFER_SIZE 10</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span>&#123;</span>...&#125;item;</span><br><span class="line">item buffer[BUFFER_SIZE];</span><br><span class="line"><span class="keyword">int</span> in=out=counter=<span class="number">0</span>;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//生产者进程</span></span><br><span class="line"><span class="keyword">while</span>(<span class="literal">true</span>)&#123;</span><br><span class="line">    <span class="keyword">while</span>(counter==BUFFER_SIZE)</span><br><span class="line">        ;<span class="comment">//缓存区满，生产者要停</span></span><br><span class="line">    buffer[in]=item;</span><br><span class="line">    in=(in+<span class="number">1</span>)%BUFFER_SIZE;</span><br><span class="line">    counter++;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//消费者进程</span></span><br><span class="line"><span class="keyword">while</span>(<span class="literal">true</span>)&#123;</span><br><span class="line">    <span class="keyword">while</span>(counter==<span class="number">0</span>)</span><br><span class="line">        ;<span class="comment">//缓存区空，消费者要停</span></span><br><span class="line">    item=buffer[out];</span><br><span class="line">    out=(out+<span class="number">1</span>)%BUFFER_SIZE;</span><br><span class="line">    counter--;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>通过进程同步来保证多进程合作的合理有序。</p>
-<h3 id="只发信号还不够"><a href="#只发信号还不够" class="headerlink" title="只发信号还不够"></a>只发信号还不够</h3><p><img src="82.png"></p>
-<ol>
-<li>缓冲区满以后生产者P1生产一个item放入，会sleep</li>
-<li>又一个生产者P2生产一个item放入，会sleep</li>
-<li>消费者C执行1次循环，counter=BUFFER_SIZE-1，发信号给P1，P1wakeup</li>
-<li>消费者C再执行1次循环，counter=BUFFER_SIZE-2 ,P2不能被唤醒</li>
-</ol>
-<ul>
-<li>问题的关键在于消费者仅仅是在缓冲区满的时候知道有生产者在等待</li>
-<li>也就是sleep了两个进程，而wakeup的时候只能唤醒一个进程，p2永远不会唤醒</li>
-</ul>
-<h3 id="从信号到信号量"><a href="#从信号到信号量" class="headerlink" title="从信号到信号量"></a>从信号到信号量</h3><p>不只是等待信号和发信号？对应睡眠和唤醒</p>
-<p>还应该记录一些其他信息</p>
-<ul>
-<li>能记录有几个进程在睡眠中需要被唤醒<ol>
-<li>缓冲区满，P1执行，P1sleep，记录下1个进程等待</li>
-<li>P2执行，P2sleep，记录下2个进程等待</li>
-<li>C执行一次循环，发现2个进程等待，wakeup1个</li>
-<li>C再执行1次循环，发现1个进程等待，wakeup1个</li>
-</ol>
-</li>
-</ul>
-<h3 id="信号量开始工作。。。"><a href="#信号量开始工作。。。" class="headerlink" title="信号量开始工作。。。"></a>信号量开始工作。。。</h3><ol>
-<li>缓冲区满，P1执行，P1sleep，sem=-1</li>
-<li>P2执行，P2sleep，sem=-2</li>
-<li>C执行1次循环，wakeup P1，sem=-1</li>
-<li>C再执行一次循环，wakeup P2，sem=0</li>
-<li>C再执行一次循环，sem=1</li>
-<li>P3执行，sem=0</li>
-</ol>
-<p><img src="83.png"></p>
-<p><img src="84.png"></p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">V(semaphore s)</span><br><span class="line">&#123;</span><br><span class="line">    s.value++;</span><br><span class="line">    <span class="keyword">if</span>(s.value &lt;= <span class="number">0</span>)</span><br><span class="line">        wakeup(s.<span class="built_in">queue</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="用信号量解生产者-消费者问题"><a href="#用信号量解生产者-消费者问题" class="headerlink" title="用信号量解生产者-消费者问题"></a>用信号量解生产者-消费者问题</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//用文件定义共享缓冲区</span></span><br><span class="line"><span class="keyword">int</span> fd = open(<span class="string">&quot;buffer.txt&quot;</span>);</span><br><span class="line">write(fd, <span class="number">0</span>, <span class="keyword">sizeof</span>(<span class="keyword">int</span>));</span><br><span class="line">write(fd, <span class="number">0</span>, <span class="keyword">sizeof</span>(<span class="keyword">int</span>));</span><br><span class="line"><span class="comment">//信号量的定义和初始化</span></span><br><span class="line">semaphore full=<span class="number">0</span>;</span><br><span class="line">semaphore empty=BUFFER_SIZE;</span><br><span class="line">semaphore mutex=<span class="number">1</span>;</span><br><span class="line"><span class="comment">/*实现互斥，P(mutex)将mutex置为0，其他进程就没法进入缓冲区，V(mutex)再置为1，其他进程就可以进入缓冲区。*/</span></span><br><span class="line"></span><br><span class="line">Producer(item)&#123;</span><br><span class="line">    P(empty);<span class="comment">//缓冲区是否满了,满了停止写入</span></span><br><span class="line">    P(mutex);</span><br><span class="line">    读入in;</span><br><span class="line">    将item写入到in的位置上;</span><br><span class="line">    V(mutex);</span><br><span class="line">    V(full);<span class="comment">//生产者增加内容full++</span></span><br><span class="line">&#125;</span><br><span class="line">Consumer()&#123;</span><br><span class="line">    P(full);<span class="comment">//生产的内容为0，就阻塞，否则full--</span></span><br><span class="line">    P(mutex);</span><br><span class="line">    读入out;</span><br><span class="line">    从文件中的out位置读出到item;</span><br><span class="line">    打印item;</span><br><span class="line">	V(mutex);</span><br><span class="line">    V(empty);<span class="comment">//缓冲区是否为空，空了停止读出</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="信号量临界区保护"><a href="#信号量临界区保护" class="headerlink" title="信号量临界区保护"></a>信号量临界区保护</h2><p>上述方案，在进程切换的过程中，可能会发生信号还没修改就进入了另一个进程从而导致语义错误。</p>
-<h3 id="竞争条件（RaceCondition）"><a href="#竞争条件（RaceCondition）" class="headerlink" title="竞争条件（RaceCondition）"></a>竞争条件（RaceCondition）</h3><p>竞争条件：和调度有关的共享数据语义错误。</p>
-<ul>
-<li>错误由多个进程并发操作共享数据引起</li>
-<li>错误和调度顺序有关，难于发现和调试</li>
-</ul>
-<h3 id="解决竞争条件的直观想法"><a href="#解决竞争条件的直观想法" class="headerlink" title="解决竞争条件的直观想法"></a>解决竞争条件的直观想法</h3><ul>
-<li><p>在写共享变量empty时阻止其他进程访问empty</p>
-<ul>
-<li>生产者P1：检查并给empty上锁</li>
-<li>生产者P2：检查empty的锁</li>
-<li>生产者P1：给empty开锁</li>
-<li>生产者P2：检查并给empty上锁</li>
-<li>生产者P2：给empty开锁</li>
-</ul>
-</li>
-<li><p>临界区：一次只允许一个进程进入的该进程的那一段代码</p>
-<ul>
-<li><img src="85.png"></li>
-<li>一个非常重要的工作：找出进程中的临界区代码（读写信号量的代码必须是临界区）</li>
-</ul>
-</li>
-</ul>
-<p><img src="86.png"></p>
-<h3 id="临界区代码的保护原则"><a href="#临界区代码的保护原则" class="headerlink" title="临界区代码的保护原则"></a>临界区代码的保护原则</h3><ul>
-<li>基本原则：<strong>互斥进入</strong>：如果一个进程在临界区中执行，则其他进程不允许进入<ul>
-<li>这些进程间的约束条件称为互斥</li>
-<li>这保证了是临界区</li>
-</ul>
-</li>
-<li>好的临界区保护原则：<ul>
-<li><strong>有空让进</strong></li>
-<li><strong>有限等待</strong></li>
-</ul>
-</li>
-</ul>
-<h3 id="进入临界区的第一个尝试-轮换法"><a href="#进入临界区的第一个尝试-轮换法" class="headerlink" title="进入临界区的第一个尝试-轮换法"></a>进入临界区的第一个尝试-轮换法</h3><p><img src="87.png"></p>
-<ul>
-<li> 满足互斥进入要求</li>
-<li> 轮换的时候，如果有进程在进入前阻塞，那么现在临界区有空，但另一个进程想进也进不去。</li>
-</ul>
-<h3 id="又一个尝试-标记法"><a href="#又一个尝试-标记法" class="headerlink" title="又一个尝试-标记法"></a>又一个尝试-标记法</h3><p><img src="88.png"></p>
-<ul>
-<li> 满足互斥进入要求</li>
-<li> 但是，当进程调度过程中会导致两个flag都为1，P0和P1无限等待。</li>
-</ul>
-<h3 id="非对称标记Peterson算法"><a href="#非对称标记Peterson算法" class="headerlink" title="非对称标记Peterson算法"></a>非对称标记Peterson算法</h3><ul>
-<li>带名字的便条+让一个进程更加优先</li>
-</ul>
-<p><img src="89.png"></p>
-<ul>
-<li>满足有空让进：如果进程P1不在临界区，则flag[1]=false或turn=0，P0都能进入。</li>
-<li>满足有限等待：P0要求进入，flag[0]=true;后面的P1不可能一直进入，因为P1执行一次就会让turn=0。</li>
-</ul>
-<h3 id="多进程怎么办？面包店算法"><a href="#多进程怎么办？面包店算法" class="headerlink" title="多进程怎么办？面包店算法"></a>多进程怎么办？面包店算法</h3><ul>
-<li>如何轮转：每个进程都获得一个序号，序号最小的进入</li>
-<li>如何标记：进程离开时序号为0，不为0的序号即标记</li>
-</ul>
-<p><img src="90.png"></p>
-<p>面包店算法：每个进入商店的客户都获得一个号码，号码最小的先得到服务；号码相同时，名字靠前的先服务。</p>
-<ul>
-<li>互斥进入：总是号最小的进入</li>
-<li>有空让进：如果没有进程在临界区，最小序号的进程一定能进入</li>
-<li>有限等待：离开临界区的进程再次区号一定排在最后。所有有一个FIFO的思想</li>
-</ul>
-<h3 id="临界区保护的另一类解法"><a href="#临界区保护的另一类解法" class="headerlink" title="临界区保护的另一类解法"></a>临界区保护的另一类解法</h3><ul>
-<li><p>再想一下临界区：只允许一个进程进入，进入另一个进程意味着什么？</p>
-<ul>
-<li><p>被调度：另一个进程只有被调度才能执行，才可能进入临界区，如何阻止调度？</p>
-<ul>
-<li><p>关闭中断</p>
-</li>
-<li><p>```C<br>cli();</p>
-<pre><code>临界区
-</code></pre>
-<p>sti();</p>
-<pre><code>剩余区    
-</code></pre>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">    - 多核CPU就不能这样操作</span><br><span class="line"></span><br><span class="line">      - 只能关闭一个CPU的终端，另一个CPU还能正常操作</span><br><span class="line"></span><br><span class="line">- 硬件原子指令法</span><br><span class="line"></span><br><span class="line">  - ```c</span><br><span class="line">    boolean TestAndSet(boolean &amp;x)</span><br><span class="line">    //只能有一个进程调用这个函数</span><br><span class="line">    &#123;</span><br><span class="line">        boolean rv=x;</span><br><span class="line">        x=true;//在进入临界区的瞬间，将lock锁上</span><br><span class="line">        return rv</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></li>
-</ul>
-</li>
-<li><p>```c<br>while(TestAndSet(&amp;lock));<br>//临界区<br>lock=false;<br>//剩余区</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">    </span><br><span class="line"></span><br><span class="line">## 信号量的代码实现</span><br><span class="line"></span><br><span class="line">```c</span><br><span class="line">//producer.c</span><br><span class="line">sd=sem_open(&quot;empty&quot;);</span><br><span class="line">for(i=1 to 5)&#123;</span><br><span class="line">    sem_wait(sd);</span><br><span class="line">    write(fd,&amp;i,4);</span><br><span class="line">&#125;</span><br><span class="line">//sem.c</span><br><span class="line">typedef struct&#123;</span><br><span class="line">    char name[20];</span><br><span class="line">    int value;</span><br><span class="line">    task_struct *queue;</span><br><span class="line">&#125;semtable[20];</span><br><span class="line">sys_sem_open(char *name)&#123;</span><br><span class="line">    在semtable中寻找name对应的；</span><br><span class="line">    没有则创建；</span><br><span class="line">    返回对应的下标</span><br><span class="line">&#125;</span><br><span class="line">sys_sem_wait(int sd)&#123;</span><br><span class="line">    cli();</span><br><span class="line">    if(semtable[sd].value-- &lt; 0)&#123;</span><br><span class="line">        设置自己为阻塞;</span><br><span class="line">        将自己加入semtable[sd].queue中;</span><br><span class="line">        schedule();</span><br><span class="line">    &#125;</span><br><span class="line">    sti();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
-</ul>
-</li>
-</ul>
-<h3 id="从Linux0-11中学点东西"><a href="#从Linux0-11中学点东西" class="headerlink" title="从Linux0.11中学点东西"></a>从Linux0.11中学点东西</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//读磁盘块</span></span><br><span class="line">bread(<span class="keyword">int</span> dev , <span class="keyword">int</span> block)&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">buffer_head</span> *<span class="title">bh</span>;</span>	<span class="comment">//申请一个空闲缓冲区</span></span><br><span class="line">    ll_rw_block(READ,bh);	<span class="comment">//读</span></span><br><span class="line">    wait_on_buffer(bh);		<span class="comment">//阻塞</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//启动磁盘读以后睡眠。等待磁盘读完由磁盘中断将其唤醒。也是一种同步</span></span><br><span class="line">lock_buffer(buffer_head* bh)&#123;</span><br><span class="line">    cli();</span><br><span class="line">    <span class="keyword">while</span>(bh-&gt;b_lock)<span class="comment">//在阻塞队列全部进程唤醒后，按schedule()找一个进程进入磁盘并上锁，其他进程再次阻塞。</span></span><br><span class="line">        sleep_on(&amp;bh-&gt;b_wait）;</span><br><span class="line">    bh-&gt;b_lock = <span class="number">1</span>;<span class="comment">//上锁</span></span><br><span class="line">    sti();</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">void</span> sleep_on(struct task_struct **p)&#123;<span class="comment">//传入等待队列队首的指针</span></span><br><span class="line">    struct task_struct *tmp;</span><br><span class="line">    <span class="comment">//世界上最隐蔽的队列</span></span><br><span class="line">    tmp = *p;		<span class="comment">//在下面进程切换的过程中会切换栈，而tmp在栈中，作为局部变量，可以通过tmp找到下一个PCB，构成一个隐蔽的队列</span></span><br><span class="line">    *p = current;</span><br><span class="line">    <span class="comment">//将自己放入阻塞队列</span></span><br><span class="line">    current-&gt;state = TASK_UNINTERRUPTIBLE;</span><br><span class="line">    schedule();</span><br><span class="line">    <span class="keyword">if</span>(tmp)			<span class="comment">//链式唤醒，一次性全部唤醒，然后由schedule来决定唤醒哪一个进程，</span></span><br><span class="line">        tmp-&gt;state=<span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><img src="94.png"></p>
-<h3 id="如何从Linux0-11的这个队列中唤醒？"><a href="#如何从Linux0-11的这个队列中唤醒？" class="headerlink" title="如何从Linux0.11的这个队列中唤醒？"></a>如何从Linux0.11的这个队列中唤醒？</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">read_intr</span><span class="params">(<span class="keyword">void</span>)</span></span>&#123;	<span class="comment">//磁盘中断</span></span><br><span class="line">  	...</span><br><span class="line">    end_request(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line">end_request(<span class="keyword">int</span> uptodate)&#123;</span><br><span class="line">    ...</span><br><span class="line">    unlock_buffer(current-&gt;bh)</span><br><span class="line">&#125;</span><br><span class="line">unlock_buffer(struct buffer_head * bh)&#123;</span><br><span class="line">    bh-&gt;b_lock=<span class="number">0</span>;</span><br><span class="line">    wake_up(&amp;bh-&gt;b_wait);</span><br><span class="line">&#125;</span><br><span class="line">wake_up(struct task_struct **p)&#123;	<span class="comment">//传入阻塞队列队首</span></span><br><span class="line">    <span class="keyword">if</span>(p &amp;&amp; *p)&#123;</span><br><span class="line">        (**p).state=<span class="number">0</span>;				<span class="comment">//队首指向的进程唤醒</span></span><br><span class="line">        *p=<span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="死锁处理"><a href="#死锁处理" class="headerlink" title="死锁处理"></a>死锁处理</h2><h3 id="如果信号量这样使用"><a href="#如果信号量这样使用" class="headerlink" title="如果信号量这样使用"></a>如果信号量这样使用</h3><p><img src="91.png"></p>
-<p>将进入区代码，先mutex再empty，先mutex再full</p>
-<p>生产者在P（empty）时，需要等待消费者V（empty）,而消费者却在P(mutex)，导致互相等待对方。</p>
-<p>死锁：多个进程由于等待对方持有的资源而造成的谁都无法执行的情况。</p>
-<p><img src="92.png"></p>
-<h3 id="造成死锁的原因"><a href="#造成死锁的原因" class="headerlink" title="造成死锁的原因"></a>造成死锁的原因</h3><ul>
-<li>资源互斥使用，一旦占有别人无法使用（互斥使用）</li>
-<li>进程占有了一些资源，又不释放，还要再去申请其他资源（不可抢占）</li>
-<li>进程必须占有资源，再去申请（请求和保持）</li>
-<li>循环等待（资源分配图中存在一个环路）<ul>
-<li>各自占有的资源和互相申请的资源形成了环路等待</li>
-</ul>
-</li>
-</ul>
-<h3 id="死锁预防"><a href="#死锁预防" class="headerlink" title="死锁预防"></a>死锁预防</h3><ul>
-<li>在进程执行前，一次性申请所有需要的资源，不会占有资源再去申请。<ul>
-<li>需要预知未来，编程困难</li>
-<li>许多资源分配后很长时间才使用， 资源利用率低</li>
-</ul>
-</li>
-<li>对资源类型进行排序，资源申请必须按序进行，不会出现环路<ul>
-<li>仍然造成资源的浪费</li>
-</ul>
-</li>
-</ul>
-<h3 id="死锁避免"><a href="#死锁避免" class="headerlink" title="死锁避免"></a>死锁避免</h3><ul>
-<li><p>如果系统中的所有进程存在一个可完成的执行序列P1….Pn，则称系统处于安全状态。</p>
-</li>
-<li><p>安全序列：上面的执行序列</p>
-<ul>
-<li><img src="93.png"></li>
-<li>P1、P3、P2、P4、P0</li>
-</ul>
-</li>
-<li><p>银行家算法</p>
-<ul>
-<li><pre><code class="c">int Available[1..m];
-int Allocation[1..n,1..m];
-int Need[1..n,1..m];
-int Work[1..n,1..m];
-bool Finish[1..n];
-
-Work = Available;Finish[1..n] = false;
-while(true)&#123;
-    for(int i=0;i&lt;n;i++)&#123;
-        if(Finish[i]==false &amp;&amp; Need[i]&lt;=Work)&#123;
-            Work = Work + Allocation[i];
-            Finish[i] = true;
-            break;
-        &#125;
-        else &#123; goto end;&#125;
-    &#125;
-&#125;
-end:    for(i=0;i&lt;n;i++)
-            if(Finish[i]==false)
-                return deadlock;
-</code></pre>
-<p>T(n)=O(m*n^2)</p>
-</li>
-</ul>
-</li>
-</ul>
-<h3 id="死锁检测-恢复"><a href="#死锁检测-恢复" class="headerlink" title="死锁检测+恢复"></a>死锁检测+恢复</h3><ul>
-<li>恢复很不容易，进程的改变很难恢复</li>
-</ul>
-<h3 id="死锁忽略"><a href="#死锁忽略" class="headerlink" title="死锁忽略"></a>死锁忽略</h3><ul>
-<li>死锁出现不是确定的，又可以用重启动来处理死锁</li>
-</ul>
-]]></content>
-      <categories>
-        <category>操作系统</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>计算机网络绪论</title>
-    <url>/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/</url>
-    <content><![CDATA[<h2 id="第一章"><a href="#第一章" class="headerlink" title="第一章"></a>第一章</h2><h3 id="1-1-1-概念、组成、功能和分类"><a href="#1-1-1-概念、组成、功能和分类" class="headerlink" title="1.1.1 概念、组成、功能和分类"></a>1.1.1 概念、组成、功能和分类</h3><h4 id="计算机网络的概念："><a href="#计算机网络的概念：" class="headerlink" title="计算机网络的概念："></a>计算机网络的概念：</h4><p>​    计算机网络：是一个将分散的、具有独立功能的计算机系统。通过通信设备与线路连接起来，由功能完善的软件实现资源共享和信息传递的系统。</p>
-<p>​    计算机网络是<strong>互联的、自治的</strong>计算机集合。</p>
-<p>​        互联-互联互通 通信链路</p>
-<p>​        自治-无主从关系</p>
-<span id="more"></span>
-
-<h4 id="计算机网络的功能："><a href="#计算机网络的功能：" class="headerlink" title="计算机网络的功能："></a>计算机网络的功能：</h4><p>​    1数据通信（连通性）</p>
-<p>​    2资源共享    </p>
-<p>​         硬件    软件    数据</p>
-<p>​    3分布式处理    多台计算机各自承担同一工作任务的不同部分</p>
-<p>​    4提高可靠性(替代机)</p>
-<p>​    5负载均衡    各计算机之间更亲密</p>
-<h4 id="计算机网络的组成："><a href="#计算机网络的组成：" class="headerlink" title="计算机网络的组成："></a>计算机网络的组成：</h4><p>​    1组成部分：硬件、软件、协议</p>
-<p>​    2工作方式:</p>
-<p>​        边缘部分    用户直接使用（C/S方式；P2P方式）</p>
-<p>​        核心部分    为边缘部分服务</p>
-<p>​    3功能组成：</p>
-<img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/1.png" class="">
-
-<h6 id="资源子网-实现资源共享-数据处理"><a href="#资源子网-实现资源共享-数据处理" class="headerlink" title="资源子网    实现资源共享/数据处理"></a>资源子网    实现资源共享/数据处理</h6><p>​                实现资源共享功能的设备和软件的集合</p>
-<h6 id="通信子网-实现数据通信"><a href="#通信子网-实现数据通信" class="headerlink" title="通信子网    实现数据通信"></a>通信子网    实现数据通信</h6><p>​                各种传输介质、通讯设备、相应的网络协议组成</p>
-<h4 id="计算机网络的分类："><a href="#计算机网络的分类：" class="headerlink" title="计算机网络的分类："></a>计算机网络的分类：</h4><h6 id="1按分布范围分："><a href="#1按分布范围分：" class="headerlink" title="1按分布范围分："></a>1按分布范围分：</h6><p>​    广域网WAN    城域网MAN    局域网WAN    个人区域网PAN</p>
-<h6 id="2按使用者分："><a href="#2按使用者分：" class="headerlink" title="2按使用者分："></a>2按使用者分：</h6><p>​    公用网    专用网</p>
-<h6 id="3按交换技术分："><a href="#3按交换技术分：" class="headerlink" title="3按交换技术分："></a>3按交换技术分：</h6><p>​    电路交换    报文交换    分组交换</p>
-<h6 id="4按拓扑结构分："><a href="#4按拓扑结构分：" class="headerlink" title="4按拓扑结构分："></a>4按拓扑结构分：</h6><p>​    总线型    星型    环型    网状型</p>
-<h6 id="5按传输技术分："><a href="#5按传输技术分：" class="headerlink" title="5按传输技术分："></a>5按传输技术分：</h6><p>​    广播式网络（共享公共通信信道）</p>
-<p>​    点对点网络（使用分组存储转发和路由选择机制）</p>
-<h3 id="1-1-2-标准化工作及相关知识"><a href="#1-1-2-标准化工作及相关知识" class="headerlink" title="1.1.2 标准化工作及相关知识"></a>1.1.2 标准化工作及相关知识</h3><h4 id="标准换工作"><a href="#标准换工作" class="headerlink" title="标准换工作"></a>标准换工作</h4><h5 id="标准的分类："><a href="#标准的分类：" class="headerlink" title="标准的分类："></a>标准的分类：</h5><p>​        法定标准    由权威机构制定的正式的、合法的标准</p>
-<p>​        事实标准    某些公司的产品在竞争中占据了主流，时间长了，这些产品的协议和技术就成了标准</p>
-<h5 id="标准化工作："><a href="#标准化工作：" class="headerlink" title="标准化工作："></a>标准化工作：</h5><p>​        <strong>RFC</strong>    因特网标准的形式</p>
-<p>​        RFC要上升为因特网正式标准的<strong>四个阶段</strong>：</p>
-<p>​            1）因特网草案    这个阶段还不是RFC文档</p>
-<p>​            2）建议标准        这个阶段开始成为RFC文档</p>
-<p>​            3）草案标准        IETF、IAB认证</p>
-<p>​            4）因特网标准</p>
-<h4 id="标准化工作的相关组织"><a href="#标准化工作的相关组织" class="headerlink" title="标准化工作的相关组织"></a>标准化工作的相关组织</h4><p>​    国际标准化组织ISO</p>
-<p>​    国际电信联盟ITU</p>
-<p>​    国际电气电子工程师协会IEEE</p>
-<p>​    Internet工程任务组IETE</p>
-<h3 id="1-1-3-速率相关的性能指标"><a href="#1-1-3-速率相关的性能指标" class="headerlink" title="1.1.3 速率相关的性能指标"></a>1.1.3 速率相关的性能指标</h3><h4 id="速率"><a href="#速率" class="headerlink" title="速率"></a>速率</h4><p>​    速率即数据率或称数据传输率或比特率。</p>
-<p>​    比特    1/0    位</p>
-<p>​    连接在计算机网络上的主机在数字信道上传送熟虑位数的速率。</p>
-<p>​    单位b/s，kb/s，Mb/s，Gb/s，Tb/s</p>
-<img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/2.png" class="">
-
-<h4 id="带宽"><a href="#带宽" class="headerlink" title="带宽"></a>带宽</h4><p>​    ”带宽”原本指某个信号具有的<strong>频带宽度</strong>，即最高频率与最低速率之差，单位是赫兹（HZ）。</p>
-<p>​    计算机网络中，带宽用来表示网络的通讯线路传送数据的能力，通常是单位时间从网络的某一点到另一点所能通过的“<strong>最高数据率</strong>”。单位是“比特每秒”。网络设备所支持的最高速度。</p>
-<h4 id="吞吐量"><a href="#吞吐量" class="headerlink" title="吞吐量"></a>吞吐量</h4><p>​    表示<strong>单位时间</strong>内通过<strong>某个网络（或信道、接口）</strong>的数据量。单位是比特每秒。    </p>
-<p>​    吞吐量受网络的带宽或网络的额定速率的限制。</p>
-<h3 id="1-1-4-时延、时延带宽积、RTT和利用率"><a href="#1-1-4-时延、时延带宽积、RTT和利用率" class="headerlink" title="1.1.4 时延、时延带宽积、RTT和利用率"></a>1.1.4 时延、时延带宽积、RTT和利用率</h3><h4 id="时延"><a href="#时延" class="headerlink" title="时延"></a>时延</h4><p>​    指数据从<strong>网络（或链路）</strong>的一段传送到另一端所需的时间。也叫<strong>延迟</strong>或<strong>迟延</strong>。单位是s。</p>
-<img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/3.png" class="">
-
-<h4 id="时延带宽积"><a href="#时延带宽积" class="headerlink" title="时延带宽积"></a>时延带宽积</h4><p>​    时延带宽积=<strong>传播时延</strong>X<strong>带宽</strong></p>
-<p>​    又称为以比特为单位的链路长度</p>
-<h4 id="往返时延RTT"><a href="#往返时延RTT" class="headerlink" title="往返时延RTT"></a>往返时延RTT</h4><p>​    从发送方发送数据开始，到发送方收到接受方的确认，总共经历的时延。</p>
-<p>​    RTT越大，在收到确认之前，可以发送的数据越多。</p>
-<p>​    <img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/4.png" class=""></p>
-<h4 id="利用率"><a href="#利用率" class="headerlink" title="利用率"></a>利用率</h4><p>​    利用率分为信道利用率和网络利用率。</p>
-<h5 id="1-信道利用率"><a href="#1-信道利用率" class="headerlink" title="1.信道利用率"></a>1.信道利用率</h5><p>​            =有数据通过时间/（有+无）数据通过时间</p>
-<h5 id="2-网络利用率"><a href="#2-网络利用率" class="headerlink" title="2.网络利用率"></a>2.网络利用率</h5><p>​            =信道利用率加权平均值</p>
-<h4 id="1-2-1-分层结构、协议、接口、服务"><a href="#1-2-1-分层结构、协议、接口、服务" class="headerlink" title="1.2.1 分层结构、协议、接口、服务"></a>1.2.1 分层结构、协议、接口、服务</h4><h5 id="为什么要分层？"><a href="#为什么要分层？" class="headerlink" title="为什么要分层？"></a>为什么要分层？</h5><p>​        发送前要完成的工作：</p>
-<p>​            （1）发起通信的计算机必须将数据通信的通路进行激活。</p>
-<p>​            （2）要告诉网络如何识别目的主机。</p>
-<p>​            （3）发起通信的计算机要查明目的主机是否开机，并且与网络连接正常。</p>
-<p>​            （4）发起通信的计算机要弄清楚，对方计算机中文件管理程序是否已经做好准备工作。</p>
-<p>​            （5）确保差错和意外可以解决</p>
-<h5 id="怎么分层？"><a href="#怎么分层？" class="headerlink" title="怎么分层？"></a>怎么分层？</h5><h6 id="分层的基本原则："><a href="#分层的基本原则：" class="headerlink" title="分层的基本原则："></a>分层的<strong>基本原则</strong>：</h6><p>​        1.各层直接相互独立，每层只实现一种相对独立的功能</p>
-<p>​        2.各层之间界面自然清晰，易于理解，相互交流可能少</p>
-<p>​        3.结构上可分隔开。各层都采用最合适的技术实现</p>
-<p>​        4.保持下层对上层的独立性，上层单向使用下层提供的服务</p>
-<p>​        5.整个分层结构应该促进标准化工作</p>
-<h5 id="正式认识分层结构"><a href="#正式认识分层结构" class="headerlink" title="正式认识分层结构:"></a>正式认识分层结构:</h5><p>​        1.实体：第n层中的活动元素称为n层实体。同一层的实体叫对等实体。</p>
-<p>​        2.协议：为进行网络中的对等实体数据交换而建立的规则、标准或约定成为网络协议。</p>
-<p>​            <img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/5.png" class=""></p>
-<p>​        3.接口（访问服务点SAP）：上层使用下层的服务。</p>
-<p>​        4.服务：下层为相邻上层提供的功能调用。【垂直】</p>
-<h5 id="概念总结"><a href="#概念总结" class="headerlink" title="概念总结:"></a>概念总结:</h5><p>​        网络体系结构是从功能上描述计算机网络结构。</p>
-<p>​        计算机网络体系结构简称网络体系结构是分层结构。</p>
-<p>​        每层遵守某个/些网络协议以完成本层功能。</p>
-<p>​        计算机网络体系结构是计算机网路的各层及其协议的集合。</p>
-<p>​        第n层在向n+1层提供服务时，此服务不仅包含第n层本身的功能，还包含由下层服务提供的功能。</p>
-<p>​        仅仅在在相邻层间有接口，且所提供服务的具体实现细节对上一层完全屏蔽。</p>
-<p>​        体系结构是抽象的，而实现是指能运行的一些软件和硬件。</p>
-<h4 id="1-2-2-OSI参考模型"><a href="#1-2-2-OSI参考模型" class="headerlink" title="1.2.2 OSI参考模型"></a>1.2.2 OSI参考模型</h4><p>​    <img src="C:\Users\86189\blog\source\_posts\6.png" style="zoom:50%;" /></p>
-<h5 id="ISO-OSI参考模型–怎么来的？"><a href="#ISO-OSI参考模型–怎么来的？" class="headerlink" title="ISO/OSI参考模型–怎么来的？"></a>ISO/OSI参考模型–怎么来的？</h5><p>​        为了解决计算机网络复杂的大问题=》分层结构（按功能）</p>
-<p>​        目的：支持异构网络系统的互联互通。</p>
-<p>​        国际标准化组织（ISO）于1984年提出开放系统互连（OSI）参考模型。</p>
-<img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/7.png" class="">
-
-<h5 id="ISO-OSI参考模型"><a href="#ISO-OSI参考模型" class="headerlink" title="ISO/OSI参考模型"></a>ISO/OSI参考模型</h5><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/8.png" class="">
-
-<h4 id="1-2-3-OSI参考模型（2）"><a href="#1-2-3-OSI参考模型（2）" class="headerlink" title="1.2.3 OSI参考模型（2）"></a><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/9.png" class="">1.2.3 OSI参考模型（2）</h4><h5 id="应用层："><a href="#应用层：" class="headerlink" title="应用层："></a>应用层：</h5><p>​            所有能和用户产生网络流量的程序</p>
-<p>​            典型应用层服务：</p>
-<p>​                文件传输（FTP）</p>
-<p>​                电子邮件（SMTP）</p>
-<p>​                万维网（HTTP）</p>
-<p>​                ······</p>
-<h5 id="表示层："><a href="#表示层：" class="headerlink" title="表示层："></a>表示层：</h5><p>​            用于处理两个通信系统中变换消息的表示方式（语法和语义）</p>
-<p>​                功能一：数据格式变换</p>
-<p>​                功能二：数据加密解密</p>
-<p>​                功能三：数据压缩和恢复</p>
-<p>​            主要协议：JPEG，ASCII</p>
-<h5 id="会话层："><a href="#会话层：" class="headerlink" title="会话层："></a>会话层：</h5><p>​            向表示层实体/用户进程提供建立连接并在连接上有序地传输数据。</p>
-<p>​                这是会话，也是<strong>建立同步</strong>（SYN）</p>
-<p>​            功能一：建立、管理、终止会话</p>
-<p>​            功能二：使用校验点可使会话在通信失效时从校验点/同步点继续回复通信，实现数据同步。</p>
-<h5 id="传输层："><a href="#传输层：" class="headerlink" title="传输层："></a>传输层：</h5><p>​            负责主机中两个进程的通信，即端到端的通信。传输单位是<strong>报文段</strong>或<strong>用户数据报</strong>。</p>
-<p>​                功能一：可靠传输、不可靠传输</p>
-<p>​                功能二：差错控制</p>
-<p>​                功能三：流量控制</p>
-<p>​                功能四：复用分用</p>
-<p>​                                <strong>复用</strong>：多个应用层进程可同时使用下面运输层的服务。</p>
-<p>​                                <strong>分用</strong>：运输层把收到的信息分别交付到上面应用层中相应的进程。</p>
-<p>​            </p>
-<h5 id="网络层："><a href="#网络层：" class="headerlink" title="网络层："></a>网络层：</h5><p>​            主要任务是把分组从源端传到目的端，为分组交换网上的不同主机提供通信服务。网络层传输单位是<strong>数据报</strong>。</p>
-<p>​                功能一：路由选择    为了找到数据传输和的<strong>最佳路径</strong></p>
-<p>​                功能二：流量控制</p>
-<p>​                功能三：差错控制</p>
-<p>​                功能四：拥塞控制</p>
-<h5 id="数据链路层："><a href="#数据链路层：" class="headerlink" title="数据链路层："></a>数据链路层：</h5><p>​            主要任务是把网络层传下来的数据报组装成<strong>帧</strong>。数据链路层的传输单位是<strong>帧</strong>。</p>
-<p>​                功能一：成帧（<strong>定义帧的开始和结束</strong>）</p>
-<p>​                功能二：差错控制 <strong>帧错+位错</strong></p>
-<p>​                功能三：流量控制</p>
-<p>​                功能四：访问（接入）控制 <strong>控制对信道的访问</strong></p>
-<h5 id="物理层："><a href="#物理层：" class="headerlink" title="物理层："></a>物理层：</h5><p>​            主要任务是在物理媒体上实现比特流的<strong>透明传输</strong>。物理层传输单位是<strong>比特</strong>。</p>
-<p>​            物理层传输单位是比特。</p>
-<p>​                功能一：定义接口特性</p>
-<p>​                功能二：定义传输模式     <strong>单工</strong>、<strong>半双工</strong>、<strong>双工</strong></p>
-<p>​                功能三：定义传输速率</p>
-<p>​                功能四：比特同步</p>
-<p>​                功能五：比特编码</p>
-<h4 id="1-2-4-TCP、IP参考模型和5层参考模型"><a href="#1-2-4-TCP、IP参考模型和5层参考模型" class="headerlink" title="1.2.4 TCP、IP参考模型和5层参考模型"></a>1.2.4 TCP、IP参考模型和5层参考模型</h4><h5 id="OSI参考模型与TCP-IP参考模型"><a href="#OSI参考模型与TCP-IP参考模型" class="headerlink" title="OSI参考模型与TCP/IP参考模型"></a>OSI参考模型与TCP/IP参考模型</h5><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/10.png" class="">
-
-<h6 id="OSI参考模型与TCP-IP参考模型的相同点"><a href="#OSI参考模型与TCP-IP参考模型的相同点" class="headerlink" title="OSI参考模型与TCP/IP参考模型的相同点"></a>OSI参考模型与TCP/IP参考模型的相同点</h6><p>​            1.都分层</p>
-<p>​            2.基于独立的协议栈的概念</p>
-<p>​            3可以实现异构网络互联</p>
-<h6 id="OSI参考模型与TCP-IP参考模型的不同点"><a href="#OSI参考模型与TCP-IP参考模型的不同点" class="headerlink" title="OSI参考模型与TCP/IP参考模型的不同点"></a>OSI参考模型与TCP/IP参考模型的不同点</h6><p>​            1.OSI定义三点：<strong>服务、协议、接口</strong></p>
-<p>​            2.OSI先出现，参考模型先于协议发明，不偏向特定协议</p>
-<p>​            3.TCP/IP设计之初就考虑到互联网异构问题，将IP作为重要层次</p>
-<p>​        <img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/11.png" class=""></p>
-<p>​            <strong>面向连接</strong>：第一是建立连接，发出一个建立连接的请求。第二阶段开始传输数据。最后传输完毕，必须释放连接。</p>
-<p>​            <strong>无连接</strong>：直接进行数据传输。</p>
-<h5 id="五层参考模型"><a href="#五层参考模型" class="headerlink" title="五层参考模型"></a>五层参考模型</h5><h5 id=""><a href="#" class="headerlink" title=""></a><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/12.png" class=""></h5><h4 id="5层参考模型的数据封装与解封装"><a href="#5层参考模型的数据封装与解封装" class="headerlink" title="5层参考模型的数据封装与解封装"></a>5层参考模型的数据封装与解封装</h4><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/13.png" class="">
-]]></content>
-      <categories>
-        <category>计算机网络</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>物理层</title>
-    <url>/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/</url>
-    <content><![CDATA[<h2 id="第二章"><a href="#第二章" class="headerlink" title="第二章"></a>第二章</h2><h4 id="2-1-1-物理层的基本概念"><a href="#2-1-1-物理层的基本概念" class="headerlink" title="2.1.1 物理层的基本概念"></a>2.1.1 物理层的基本概念</h4><h5 id="基本概念："><a href="#基本概念：" class="headerlink" title="基本概念："></a>基本概念：</h5><p>​        物理层解决如何在连接各种计算机的传输媒体上<strong>传输数据比特流</strong>，而不是指具体的传输媒体。</p>
-<p>​        物理层的主要任务：确定与传输媒体<strong>接口</strong>有关的一些特性。=》定义标准</p>
-<ol>
-<li><p>机械特性：定义物理连接的特性，规定物理连接时所采用的<strong>规格</strong>、<strong>接口形状</strong>、<strong>引线数目</strong>、<strong>引脚数量</strong>和<strong>排列情况</strong>。</p>
-</li>
-<li><p>电气特性：规定传输二进制位时，线路上的信号的<strong>电压范围</strong>、<strong>阻抗匹配</strong>、<strong>传输速率</strong>、<strong>距离限制</strong>等。</p>
-</li>
-<li><p>功能特性：指明某条线上出现的<strong>某一电平表示何种意义</strong>，接口部件的信号线的用途。</p>
-<p>例如：描述一个物理层接口引脚处于高电平时的含义等。</p>
-</li>
-<li><p>规程特性：（过程特性）定义各条物理线路的工作规程和时序的关系。</p>
-</li>
-</ol>
-<h4 id="2-1-2-数据通信基础知识"><a href="#2-1-2-数据通信基础知识" class="headerlink" title="2.1.2 数据通信基础知识"></a>2.1.2 数据通信基础知识</h4><h5 id="典型的数据通信模型"><a href="#典型的数据通信模型" class="headerlink" title="典型的数据通信模型"></a>典型的数据通信模型</h5><img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/14.png" class="">
-
-<p>源系统：信源，发送器</p>
-<p>传输系统：传输系统</p>
-<p>目的系统：接收器，信宿</p>
-<h5 id="数据通信相关术语"><a href="#数据通信相关术语" class="headerlink" title="数据通信相关术语"></a>数据通信相关术语</h5><p>通信的目的是<strong>传送信息</strong>。</p>
-<p>数据：传送信息的实体，通常是有意义的符号序列</p>
-<p>信号：数据的电气/电磁的表现，是数据在传输过程中的存在形式。</p>
-<p>​    数字信号：代表消息的参数取值是离散的。</p>
-<p>​    模拟信号：代表消息的参数取值是连续的。</p>
-<p>信源：产生和发送数据的源头。</p>
-<p>信宿：接收数据的终点。</p>
-<p>信道：信号的传输媒介。一般用来表示向某一个方向传送信息的介质，因此一条通信线路往往包含一条发送信道和接收信道。</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/15.png" class="">
-
-<h5 id="三种通信方式"><a href="#三种通信方式" class="headerlink" title="三种通信方式"></a>三种通信方式</h5><p>从通信双方信息的交互方式来看，可以有三种基本方式：</p>
-<ol>
-<li>单工通信：只有一个方向的通信而没有反方向的交互，仅需要一条信道</li>
-<li>半双工通信：通信的双方都可以发送或接收消息，但任何一方都不能同时发送和接收，需要两条信道</li>
-<li>全双工通信：通信双方可以同时发送和接受信息，也需要两条信道 </li>
-</ol>
-<h5 id="两种数据传输方式"><a href="#两种数据传输方式" class="headerlink" title="两种数据传输方式"></a>两种数据传输方式</h5><p>传输方式：串行传输，并行传输</p>
-<p>​    串行传输：速度慢，费用低，适合远距离</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/16.png" class="">
-
-<p>​    并行传输：速度快，费用高，适合近距离（常用于计算机内部的数据传输）</p>
-<img src="C:/Users/86189/blog/source/_posts/17.png"  />
-
-<h4 id="2-1-3-码元、波特、速率、带宽"><a href="#2-1-3-码元、波特、速率、带宽" class="headerlink" title="2.1.3 码元、波特、速率、带宽"></a>2.1.3 码元、波特、速率、带宽</h4><h5 id="码元"><a href="#码元" class="headerlink" title="码元"></a>码元</h5><p>​    指用一个固定时长的信号波形（数字脉冲），代表不同离散值的基本波形，是数字通信中数字信号的计量单位，这个时长内的信号称为k进制码元，而该时长称为码元宽度。当码元的离散状态有M个时（M大于2），此时码元为M进制码元。</p>
-<p>​    1码元可以携带多个比特的信息量。</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/18.png" class="">
-
-<p>K进制码元——4进制码元=&gt;码元的离散状态有4个=&gt;4中高低不同的信号波形    00、01、10、11    此时一个码元代表2比特内容</p>
-<h5 id="速率、波特、带宽"><a href="#速率、波特、带宽" class="headerlink" title="速率、波特、带宽"></a>速率、波特、带宽</h5><p><strong>速率</strong>也叫数据率，是指数据的传输速率，表示单位时间内传输的数据量。可以用<strong>码元传输速率</strong>和<strong>信息传输速率</strong>表示。</p>
-<ol>
-<li><strong>码元传输速率</strong>：别名码元速率、波形速率、调制速率、符号速率等。他表示单位时间内数字通信系统所传输的码元个数（也可称为<strong>脉冲个数</strong>或<strong>信号变化的次数</strong>），单位试试<strong>波特（Baud）</strong>。1波特表示数字通信系统每秒传输一个码元。这里的码元可以是多进制的，也可以是二进制的，但码元速率与进制数无关。</li>
-<li><strong>信息传输速率</strong>：别名信息速率、比特率等，表示单位时间内数字通信系统传输的<strong>二进制码元数</strong>（即<strong>比特数</strong>），单位是比特/秒（b/s）</li>
-</ol>
-<p>关系：</p>
-<p>​    若一个码元携带n bit的信息量，则M Baud的<strong>码元传输速率</strong>所对应的<strong>信息传输速率</strong>为M*n bit/s。</p>
-<p><strong>带宽</strong>：表示单位时间内从网络中的某一点到另一点所能通过的“<strong>最高数据率</strong>”，常用来表示网络的通信线路所能传输数据的能力。单位b/s。</p>
-<h4 id="2-1-4-奈氏准则和香农定理"><a href="#2-1-4-奈氏准则和香农定理" class="headerlink" title="2.1.4 奈氏准则和香农定理"></a>2.1.4 奈氏准则和香农定理</h4><h5 id="失真："><a href="#失真：" class="headerlink" title="失真："></a>失真：</h5><img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/19.png" class="">
-
-<p>影响失真程度的因素：</p>
-<ol>
-<li>码元传输速率</li>
-<li>信号传输距离</li>
-<li>噪声干扰</li>
-<li>传输媒体质量</li>
-</ol>
-<h5 id="失真的一种现象–码间串扰"><a href="#失真的一种现象–码间串扰" class="headerlink" title="失真的一种现象–码间串扰"></a>失真的一种现象–码间串扰</h5><img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/20.png" class="">
-
-<p>信号带宽是信道能通过的<strong>最高频率</strong>和<strong>最低频率</strong>之差</p>
-<p><strong>码间串扰</strong>：<strong>接收端</strong>收到的信号波形失去了码元之间清晰界限的现象</p>
-<h5 id="奈式准则："><a href="#奈式准则：" class="headerlink" title="奈式准则："></a><strong>奈式准则</strong>：</h5><p>​    在理想低通（无噪声，宽带受限）条件下，为了避免码间串扰，<strong>极限码元传输速率</strong>为2W Baud， W是信道带宽，单位是Hz。</p>
-<p><strong>极限数据传输率</strong> :</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/21.png" class="">
-
-<p>​    传输速率慢：那么我们可以清晰识别每一个码元。</p>
-<p>​    传输速率快：因为码间串扰，所有不能清晰识别。</p>
-<ol>
-<li>信道的频带越宽（即通过的信号高频分量越多），就可以用更高的速率进行码元的有效传输。</li>
-<li>奈式准则给出了马原传输速率的限制，但并没有对信息传输速率给出限制。</li>
-<li>由于码元传输速率受到奈氏准则的制约，所以要提高数据的传输速率，就必须设法使每个码元都能携带更多比特的信息量，这就需要多元制的调制方法。</li>
-</ol>
-<h5 id="香农定理："><a href="#香农定理：" class="headerlink" title="香农定理："></a>香农定理：</h5><p>​    在带宽受限且有噪声的信道中，为了不产生误差，信息的数据传输速率有上限值。</p>
-<p><strong>噪声</strong>：存在于所有的电子设备和通信信道中。由于噪声<strong>随机产生</strong>，它的瞬时值有时会很大，因此噪声会使接收端对码元的判决产生错误。但是噪声的影响是相对的，若信号较强，那么噪声的影响就相对较小。因此，<strong>信噪比</strong>就很重要。</p>
-<p>信噪比=信号的平均功率/噪声的平均功率。常记作S/N，并用分贝（dB）作为度量单位，即：</p>
-<p>​    信噪比（dB）= 10log10（S/N）</p>
-<p>信道的极限数据传输速率：</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/22.png" class="">
-
-<ol>
-<li>信道的带宽或者信道中的信噪比越大，则信息的极限传输速率越高。</li>
-<li>对一定的传输带宽和一定打的信噪比，信息传输速率的上限就确定了。</li>
-<li>只要信息的传输速率低于信道的极限传输速率，就一定能找到某种方法来实现无差错的传输。</li>
-<li>香农定理得出的为极限信息传输速率，实际信道能达到的传输速率要比它低不少。</li>
-<li>从香农定理可以看出，若信道带宽W或信噪比S/N没有上限（不可能），那么信道的极限信息传输速率也就没有上限。</li>
-</ol>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/23.png" class="">
-
-<h4 id="2-1-5-编码与调制"><a href="#2-1-5-编码与调制" class="headerlink" title="2.1.5 编码与调制"></a>2.1.5 编码与调制</h4><h5 id="基带信号与宽带信号"><a href="#基带信号与宽带信号" class="headerlink" title="基带信号与宽带信号"></a>基带信号与宽带信号</h5><p>信道：信号的传输媒介。一般用来表示向某一个方向传送信息的介质，因此一条信道线路往往包含一条发送信道和一条接收信道。</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/24.png" class="">
-
-<p>信道上传输的信号：</p>
-<ul>
-<li><p>基带信号</p>
-<p>将数字信号1和0直接用两种不同的电压表示，再送到数字信道上去传输（基带传输）。<strong>来自信源的信号</strong>，像计算机输出的代表各种文字或图像文件的数据信号都属于基带信号。基带信号就是<strong>发出了直接表达要传输的信息的信号</strong>。</p>
-</li>
-<li><p>宽带信号</p>
-<p>将基带信号进行调制后形成的频分复用模拟信号，再传送到<strong>模拟信道</strong>上去传输（宽带传输）。把基带信号经过<strong>载波调制</strong>后，把信号的频率范围搬移到较高的频段以便于再信道中传播。</p>
-</li>
-</ul>
-<p>传输距离较近时，采用基带传输方式</p>
-<p>传输距离较近时，采用宽带传输方式</p>
-<h5 id="编码与调制"><a href="#编码与调制" class="headerlink" title="编码与调制"></a>编码与调制</h5><img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/25.png" class="">
-
-<h6 id="数字数据编码为数字信号"><a href="#数字数据编码为数字信号" class="headerlink" title="数字数据编码为数字信号"></a>数字数据编码为数字信号</h6><img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/26.png" class="">
-
-<ol>
-<li><p><strong>非归零编码（NRZ）</strong></p>
-<p>高1低0：编码容易实现，但没有检错功能，且无法判断一个码元的开始和结束，以至于收发双方<strong>难以保持同步</strong></p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/27.png" class=""></li>
-<li><p><strong>曼彻斯特编码</strong></p>
-<p>将一个码元分成两个相等的间隔，前一个间隔为低电平后一个间隔为高电平表示码元1；码元0正好相反。也可以采用相反的规定。该编码的特点是在每一个码元的中间出现电平跳变，位中间的跳变<strong>即作时钟信号，又作数据信号</strong>，但它所占的频带宽度是原始基带宽度的两倍。</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/30.png" class="">
-
-<p>​    每一个码元都被调成两个电平，数据传输速率只有<strong>调制速率</strong>（码元传输速率）的1/2。</p>
-</li>
-<li><p><strong>差分曼彻斯特编码</strong></p>
-<p>同1异0</p>
-<p>若码元为1，则前半个码元的电平与上一个码元后半个码元的电平相同。若为0，则相反。特点是：在每个码元的中间，都有一次电平的跳转，可以实现自同步，且抗干扰性强于曼彻斯特编码。</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/31.png" class=""></li>
-<li><p>归零编码（RZ）</p>
-<p>信号电平在一个码元之内都要恢复到零的这种编码方式</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/28.png" class=""></li>
-<li><p>反向不归零编码（NRZI）</p>
-<p>信号电平翻转表示0，信号电平不变表示1</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/29.png" class=""></li>
-<li><p>4B/5B编码</p>
-<p>比特流中插入额外的比特以打破一连串的0或1，就是5个比特来编码4个比特的数据，之后再传给接收方，因此称为4B/5B。编码效率是80%。</p>
-<p>只采用16钟不同的4位码，其他的16种作为控制码或保留。</p>
-</li>
-</ol>
-<h6 id="数字数字调制为模拟信号"><a href="#数字数字调制为模拟信号" class="headerlink" title="数字数字调制为模拟信号"></a>数字数字调制为模拟信号</h6><p>数字数据调制技术在发送端将数字信号转换为模拟信号，而在接收端将模拟信号还原为数字信号，分别对应于调制解调器的调制和解调过程。</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/32.png" class="">
-
-<p>调幅+调相（QAM）</p>
-<h6 id="模拟数据编码为数字信号"><a href="#模拟数据编码为数字信号" class="headerlink" title="模拟数据编码为数字信号"></a>模拟数据编码为数字信号</h6><p>计算机内部处理的是二进制数据，处理的都是数字音频，所有需要将模拟音频通过采样、量化转化成有限个数字表示的离散序列（即实现音频数字化）</p>
-<p>最典型的例子就是对音频信号进行编码的<strong>脉码调制（PCM）</strong>，在计算机应用种，能够达到最高保真水平的就是PCM编码，被广泛用于素材保存及音乐欣赏，CD、DVD以及我们常见的WAV文件中均有应用。它主要包括三步：<strong>抽样、量化、编码</strong></p>
-<ol>
-<li><p>抽样：对模拟信号周期性扫描，把时间上连续的信号变成时间上离散的信号。</p>
-<p>采样定理：<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/33.png" class=""></p>
-</li>
-<li><p>量化：把抽样取得的电平幅值按照一定的分级标度转化为对应的数字值，并取整数，这就把连续的电平幅值转化为离散的数字量。</p>
-</li>
-<li><p>编码：把量化的结果转化为与之对应的二进制编码</p>
-</li>
-</ol>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/34.png" class="">
-
-<h6 id="模拟数据调制为模拟信号"><a href="#模拟数据调制为模拟信号" class="headerlink" title="模拟数据调制为模拟信号"></a>模拟数据调制为模拟信号</h6><p>为了实现传输有效性，可能需要较高的频率。这种调制方式还可以使用频分复用技术，充分利用带宽资源。在电话机和本地交换机所传输的信号是采用模拟信号传输模拟数据的方式：模拟的声音数据是加载到模拟的载波信号中传输的。</p>
-<h5 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h5><img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/35.png" class="">
-
-<h4 id="2-2-物理层传输介质"><a href="#2-2-物理层传输介质" class="headerlink" title="2.2 物理层传输介质"></a>2.2 物理层传输介质</h4><h5 id="传输介质及分类"><a href="#传输介质及分类" class="headerlink" title="传输介质及分类"></a>传输介质及分类</h5><p>​    传输介质也称传输媒体/传输媒介，它就是数据传输系统中在发送设备和接收设备之间的<strong>物理通路</strong>。</p>
-<p>传输媒体并不是物理层：</p>
-<p>传输媒体在物理层的下面，因为物理层是体系结构的第一层，因此有时称传输媒体为0层。在传输媒体中传输的是信号，但传输媒体并不知道所传输的信号代表什么意思。但物理层规定了<strong>电气特性</strong>，因此能够识别所传送的比特流。</p>
-<p>传输介质：</p>
-<ul>
-<li>导向性传输介质-&gt;电磁波被导向固体媒介（铜线/光纤）传播。</li>
-<li>非导向性传输介质-&gt;自由空间，介质可以是空气、真空、海水等。</li>
-</ul>
-<h5 id="导向性传输介质–1-双绞线"><a href="#导向性传输介质–1-双绞线" class="headerlink" title="导向性传输介质–1.双绞线"></a>导向性传输介质–1.双绞线</h5><p>双绞线是古老、又最常用的传输介质，它由<strong>两根</strong>采用一定规则<strong>并排绞合</strong>的、<strong>相互绝缘</strong>的<strong>铜导线</strong>组成。</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/36.png" class="">
-
-<p>绞合可以减少相邻导线的电磁干扰。</p>
-<p>为了进一波提高抗电磁干扰能力，可在双绞线的外面再加上一个由金属丝编织成的屏蔽层，这就是<strong>屏蔽双绞线（SIP）</strong>，无屏蔽层的双绞线就称为<strong>非屏蔽双绞线（UTP）</strong>。</p>
-<p>特点：</p>
-<ul>
-<li>双绞线价格便宜，是最常用的传输介质之一，在局域网和传统电话网中普遍使用。</li>
-<li>模拟传输和数字传输都可以使用双绞线，其通信距离一般为几公里到十公里。</li>
-<li>距离太远时，对于<strong>模拟传输</strong>，要用<strong>放大器</strong>放大衰减的信号；对于<strong>数字传输</strong>，要用<strong>中继器</strong>将失真的信号整形。</li>
-</ul>
-<h5 id="导向性传输介质–2-同轴电缆"><a href="#导向性传输介质–2-同轴电缆" class="headerlink" title="导向性传输介质–2.同轴电缆"></a>导向性传输介质–2.同轴电缆</h5><p>同轴电缆由导体<strong>铜质芯线</strong>、<strong>绝缘层</strong>、<strong>网状编织屏蔽层</strong>和<strong>塑料外层</strong>构成。按特性阻抗数值的不同，通常将同轴电缆分为两类；50Ω同轴电缆和75Ω同轴电缆。其中，50Ω同轴电缆主要用于传送基带数字信号，又称为<strong>基带同轴电缆</strong>，它在局域网中得到广泛应用；75Ω同轴电缆主要用于传送宽带信号，又称为<strong>宽带同轴电缆</strong>，它主要用于有线电视系统。</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/37.png" class="">
-
-<p>由于外导体屏蔽层的作用，同轴电缆<strong>抗干扰特性</strong>比双绞线好，被广泛用于传输较高速率的数据，其传输距离更远，但价格比双绞线贵。</p>
-<h5 id="导向性传输介质–3-光纤"><a href="#导向性传输介质–3-光纤" class="headerlink" title="导向性传输介质–3.光纤"></a>导向性传输介质–3.光纤</h5><p>光纤通信就是利用光导纤维（简称光纤）传递<strong>光脉冲</strong>来进行通信。有光脉冲为1，无光脉冲为0.而可见光的频率大约为<strong>10的8次方MHz</strong>，因此光纤通信系统的<strong>带宽远远大于</strong>目前其他各种传输媒体的带宽。</p>
-<p>光纤主要由<strong>纤芯</strong>（<strong>实心的！</strong>）和<strong>包层</strong>构成，光波通过纤芯进行传导，包层较纤芯有较低的折射率。当光线从高折射率的介质射向低折射率的介质时，其折射角将大于入射角。因此，当入射角够大就会出现<strong>全反射</strong>，即光线碰到包层时候就会折射回纤芯、这个过程不断重复，光也就沿着光纤传输下去。</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/38.png" class="">
-
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/39.png" class="">
-
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/40.png" class="">
-
-<p>光缆：一根光缆少则只有一根光纤，多则包括十到数百根光纤。</p>
-<p>光纤的特点：</p>
-<ol>
-<li>传输<strong>损耗小</strong>，中继距离长，对远距离传输特别经济</li>
-<li><strong>抗雷电和电磁干扰性能好</strong></li>
-<li>无串音干扰，保密性好，也<strong>不易被窃听或截取数据</strong></li>
-<li><strong>体积小，重量轻。</strong></li>
-</ol>
-<h5 id="非导向性传输介质："><a href="#非导向性传输介质：" class="headerlink" title="非导向性传输介质："></a>非导向性传输介质：</h5><ul>
-<li><p>无线单波</p>
-<ul>
-<li>信号向所有方向传播</li>
-<li>较强的穿透能力，可远距离传输，广泛用于通信领域（手机通信）</li>
-</ul>
-</li>
-<li><p>微波</p>
-<ul>
-<li><p>信号固定方向传播</p>
-</li>
-<li><p>微波通信频率较高、频段范围宽，因此数据率很高。</p>
-<ul>
-<li><p>地面微波接力通信</p>
-</li>
-<li><p>卫星通信</p>
-<ul>
-<li>优点：</li>
-</ul>
-<ol>
-<li>通信容量大</li>
-<li>距离远</li>
-<li>覆盖范围广</li>
-<li>广播通信和多址通信</li>
-</ol>
-<ul>
-<li>缺点：</li>
-</ul>
-<ol>
-<li>传播时延长</li>
-<li>受天气影响大</li>
-<li>误码率高</li>
-<li>成本高</li>
-</ol>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p>红外线、激光</p>
-<ul>
-<li>信号固定方向传播</li>
-<li>把要传输的信号转换为各自的信号格式，即红外光信号和激光信号。再在空间中传播。</li>
-</ul>
-</li>
-</ul>
-<h5 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h5><img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/41.png" class="">
-
-<h4 id="2-3-物理层设备"><a href="#2-3-物理层设备" class="headerlink" title="2.3 物理层设备"></a>2.3 物理层设备</h4><h4 id="中继器"><a href="#中继器" class="headerlink" title="中继器"></a>中继器</h4><p><strong>诞生原因：</strong>由于存在损耗，在线路上传输的信号功率会逐渐衰减，衰减到一定程度将造成信号失真，因此会导致接收错误。</p>
-<p><strong>中继器功能：</strong>对信号进行再生和还原，对衰减的信号进行放大，保持与原数据相同，以增加信号传输的距离，延长网络的长度。（再生数字信号）</p>
-<p><strong>中继器的两端：</strong></p>
-<ol>
-<li>两端的网络部分是网段，而不是子网，适用于完全相同的两类网络的互连，且两个网段速率要相同。</li>
-<li>中继器只将任何电缆段上的数据发送到另一段电缆上，它仅作用于信号的电气部分，并不管数据中是否有错误数据或不适用于网段的数据</li>
-<li>两端可连相同媒体，也可连不同媒体</li>
-<li>中继器两端的网段一定要是同一个协议（不会存储转发）</li>
-</ol>
-<p><strong>5-4-3规则：</strong></p>
-<p>网络标准中都对信号的延迟范围作了具体的规定，因而中继器只能在规定的范围内进行，否则会网络故障。</p>
-<p>5个网段，4个物理层网络设备，只有三个网段可以连接计算机。</p>
-<h4 id="集线器（多口中继器）"><a href="#集线器（多口中继器）" class="headerlink" title="集线器（多口中继器）"></a>集线器（多口中继器）</h4><p><strong>功能</strong>：对信号进行<strong>放大转发</strong>，对衰减的信号进行放大，接着转发到其他所有（除输入端口外）处于工作状态的端口上，以增加信号传输的距离，延长网络的长度。不具备信号的定向传送能力，是一个共享式设备。</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/42.png" class="">
-
-<p>集线器不能分割冲突域</p>
-<p>连在集线器上的工作主机平分带宽。</p>
-]]></content>
-      <categories>
-        <category>计算机网络</category>
-      </categories>
-  </entry>
-  <entry>
     <title>数据链路层</title>
     <url>/2021/11/06/%E6%95%B0%E6%8D%AE%E9%93%BE%E8%B7%AF%E5%B1%82/</url>
     <content><![CDATA[<h2 id="第三章"><a href="#第三章" class="headerlink" title="第三章"></a>第三章</h2><h3 id="3-1-数据链路层的基本概念"><a href="#3-1-数据链路层的基本概念" class="headerlink" title="3.1 数据链路层的基本概念"></a>3.1 数据链路层的基本概念</h3><p>结点：主机、路由器</p>
@@ -2063,6 +1035,49 @@ end:    for(i=0;i&lt;n;i++)
       </categories>
   </entry>
   <entry>
+    <title>无线DOS之取消验证洪水攻击</title>
+    <url>/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/</url>
+    <content><![CDATA[<h1 id="攻击原理"><a href="#攻击原理" class="headerlink" title="攻击原理"></a>攻击原理</h1><p>​    取消验证洪水攻击，全程为De-authenticationFloodAttack,简称为Deauth攻击。首先，攻击者通过扫描周围的WIFI网络，获取WIFI站点的SSID。然后扫描连接周围连接网络的设备。最后，对周边网络进行抓包（嗅探），寻找要攻击的WIFI站点和连接该站点的设备，以获取的包头信息重新构造一个取消验证包，发给WIFI站点。WIFI站点会被欺骗，从而取消对设备的连接。我们只要一直发送取消验证帧，形成DOS攻击，占满服务器资源。</p>
+<h1 id="攻击实现"><a href="#攻击实现" class="headerlink" title="攻击实现"></a>攻击实现</h1><p>​    参考已有的张馆长的工程，将其烧录到esp8266模块上。<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/1.jpg" class=""></p>
+<p>简单配置一下</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/2.jpg" class="">
+
+<p>烧录</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/3.jpg" class="">
+
+<p>这时，esp8266会建立一个WIFI，</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/4.jpg" class="">
+
+<p>我们连接这个wifi，进入192.168.4.1，可以看到攻击界面，里面会显示当前的AP站点，我们选取一个作为攻击对象。这里我们设置的是无差别攻击。当我们要定点攻击时，需要扫描连接该WiFi的设备，选择一个攻击。</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/5.jpg" class="">
+
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/6.jpg" class="">
+
+<p>​        选择Deauth攻击，然后我们就可以观察到连接该网的设备断连的现象，手机上方的WiFi图标会不断闪烁。</p>
+<h1 id="代码架构"><a href="#代码架构" class="headerlink" title="代码架构"></a>代码架构</h1><p>首先，WIFI模块有两种工作模式：</p>
+<p>ap是无线发射端，station是接收端，两种模式组建成一个无线局域网。</p>
+<ol>
+<li>ap mode 通常应用在无线局域网成员设备（即客户端）的加入，即<strong>网络下行</strong>。它提供以无线方式组建无线局域网 WLAN，相当际 <strong>WLAN 的中心设备</strong>。AP和AP之间允许相互连接。</li>
+<li></li>
+<li>station mode即工作站模式，可以理解为某个网格中的一个工作站即<strong>客户端</strong>。那当一个 WIFI 芯片提供这个功能时，它就可以连到另外的一个网络当中，如家用路由器。通常用于提供网络的数据上行服务。</li>
+</ol>
+<p>代码的核心是扫描、嗅探和伪造。扫描站点，嗅探（抓包）和通过。</p>
+<p>首先是扫描：</p>
+<p>​    AP模式扫描AP和设备。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line">	<span class="comment">/* AP Scan */</span></span><br><span class="line">    <span class="keyword">if</span> ((mode == SCAN_MODE_APS) || (mode == SCAN_MODE_ALL)) &#123;</span><br><span class="line">        <span class="comment">// remove old results</span></span><br><span class="line">        accesspoints.removeAll();</span><br><span class="line">        stations.removeAll();</span><br><span class="line">        <span class="comment">// start AP scan</span></span><br><span class="line">        prntln(SC_START_AP);</span><br><span class="line">        WiFi.scanNetworks(<span class="literal">true</span>, <span class="literal">true</span>);</span><br><span class="line">        <span class="comment">/*该函数可以扫描到ESP8266开发板所在环境中的可用WIFI网络，并且将WiFi网络信息保存到内存中。通过调用SSID、RSSI等函数，我们还可以得到这些扫描到的WIFI的更多信息。</span></span><br><span class="line"><span class="comment">        此函数在扫描WiFi网络时采用同步扫描模式。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>​    station模式即可以开启混杂模式（混杂模式（英语：promiscuous mode）是电脑网络中的术语。是指一台机器的网卡能够接收所有经过它的数据流，而不论其目的地址是否是它。），从而为嗅探作准备</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line"><span class="comment">/* Station Scan */</span></span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (mode == SCAN_MODE_STATIONS) &#123;</span><br><span class="line">        <span class="comment">// start station scan</span></span><br><span class="line">        <span class="keyword">if</span> (accesspoints.count() &lt; <span class="number">1</span>) &#123;</span><br><span class="line">            start(SCAN_MODE_ALL);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;<span class="comment">//如果当前网络没有AP,返回重新扫描，因为我们需要先确定攻击AP再确定攻击的设备，如果在嗅探前AP已经不存在了，则没有继续的必要</span></span><br><span class="line">        snifferStartTime = currentTime;</span><br><span class="line">        prnt(SC_START_CLIENT);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (sniffTime &gt; <span class="number">0</span>) prnt(String(sniffTime / <span class="number">1000</span>) + S);</span><br><span class="line">        <span class="keyword">else</span> prnt(SC_INFINITELY);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!channelHop) &#123;</span><br><span class="line">            prnt(SC_ON_CHANNEL);</span><br><span class="line">            prnt(wifi_channel);</span><br><span class="line">        &#125;</span><br><span class="line">        prntln();</span><br><span class="line">        wifi::stopAP();</span><br><span class="line">        wifi_promiscuous_enable(<span class="literal">true</span>);<span class="comment">//开启混杂模式</span></span><br><span class="line">    	<span class="comment">/*混杂模式就是接收所有经过网卡的数据包，包括不是发给本机的包。默认情况下网卡只把发给本机的包（包括广播包）传递给上层程序，其它的包一律丢弃。简单的讲,混杂模式就是指网卡能接受所有通过它的数据流，不管是什么格式，什么地址的。事实上，计算机收到数据包后，由网络层进行判断，确定是递交上层（传输层），还是丢弃，还是递交下层（数据链路层、MAC子层）转发。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>进入嗅探模式：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Scan::sniffer</span><span class="params">(<span class="keyword">uint8_t</span>* buf, <span class="keyword">uint16_t</span> len)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!isSniffing()) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    packets++;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">28</span>) <span class="keyword">return</span>;  <span class="comment">// 丢弃掉过短的数据包</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0xc0</span>) || (buf[<span class="number">12</span>] == <span class="number">0xa0</span>)) &#123;</span><br><span class="line">        tmpDeauths++;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 丢弃信标帧、探测请求/响应和解除授权/解除关联帧</span></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0x80</span>) || (buf[<span class="number">12</span>] == <span class="number">0x40</span>) || (buf[<span class="number">12</span>] == <span class="number">0x50</span>) <span class="comment">/* || buf[12] == 0xc0 || buf[12] == 0xa0*/</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 只允许数据帧</span></span><br><span class="line">    <span class="comment">// if(buf[12] != 0x08 &amp;&amp; buf[12] != 0x88) return;数据帧12位为08和88的时候说明是数据帧，如果都不是，可以丢弃，但作者将这句话注释了，不知道原因。。。</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span>* macTo   = &amp;buf[<span class="number">16</span>];<span class="comment">//该数据包要去哪</span></span><br><span class="line">    <span class="keyword">uint8_t</span>* macFrom = &amp;buf[<span class="number">22</span>];<span class="comment">//该数据包从哪来</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (macBroadcast(macTo) || macBroadcast(macFrom) || !macValid(macTo) || !macValid(macFrom) || macMulticast(macTo) ||</span><br><span class="line">        macMulticast(macFrom)) <span class="keyword">return</span>;</span><br><span class="line">	<span class="comment">//Broadcast所谓广播地址指同时向网上所有的主机发送报文，也就是说，不管物理网络特性如何，internet网支持广播传输。如果收发地址为广播地址，丢弃</span></span><br><span class="line">    <span class="comment">//Multicast是一个群组传播模式。。。其他的看不懂了，和上面区别不大。</span></span><br><span class="line">    <span class="comment">//上面两种的特点都是一对多模式，而我们只要截获一对一的，所有只保留了一对一的数据包，并认为该mac为有效mac地址。</span></span><br><span class="line">    <span class="keyword">int</span> accesspointNum = findAccesspoint(macFrom);<span class="comment">//查看该mac地址有几个AP</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        stations.add(macTo, accesspoints.getID(accesspointNum));</span><br><span class="line">        <span class="comment">//macForm为AP了，那么macTo肯定为设备，我们将该设备的mac加入列表。</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;  <span class="comment">//如果AP数量为0，那么macTo是AP，macForm为设备，</span></span><br><span class="line">        accesspointNum = findAccesspoint(macTo);</span><br><span class="line">        <span class="comment">//这两个if判断谁是AP谁是设备，写的很垃圾</span></span><br><span class="line">        <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            stations.add(macFrom, accesspoints.getID(accesspointNum));</span><br><span class="line">            <span class="comment">//我们将该设备的mac加入列表。</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>软件安全</category>
+      </categories>
+  </entry>
+  <entry>
     <title>深入理解计算机系统一</title>
     <url>/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/</url>
     <content><![CDATA[<h4 id="位："><a href="#位：" class="headerlink" title="位："></a>位：</h4><p>​        计算机中数据储存的基本单位，源程序实际上就是由0和1组成的位序列，8位等于一个字节，系统中的所有信息都是由一串比特位来表示的。</p>
@@ -2586,6 +1601,275 @@ end:    for(i=0;i&lt;n;i++)
       </categories>
   </entry>
   <entry>
+    <title>物理层</title>
+    <url>/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/</url>
+    <content><![CDATA[<h2 id="第二章"><a href="#第二章" class="headerlink" title="第二章"></a>第二章</h2><h4 id="2-1-1-物理层的基本概念"><a href="#2-1-1-物理层的基本概念" class="headerlink" title="2.1.1 物理层的基本概念"></a>2.1.1 物理层的基本概念</h4><h5 id="基本概念："><a href="#基本概念：" class="headerlink" title="基本概念："></a>基本概念：</h5><p>​        物理层解决如何在连接各种计算机的传输媒体上<strong>传输数据比特流</strong>，而不是指具体的传输媒体。</p>
+<p>​        物理层的主要任务：确定与传输媒体<strong>接口</strong>有关的一些特性。=》定义标准</p>
+<ol>
+<li><p>机械特性：定义物理连接的特性，规定物理连接时所采用的<strong>规格</strong>、<strong>接口形状</strong>、<strong>引线数目</strong>、<strong>引脚数量</strong>和<strong>排列情况</strong>。</p>
+</li>
+<li><p>电气特性：规定传输二进制位时，线路上的信号的<strong>电压范围</strong>、<strong>阻抗匹配</strong>、<strong>传输速率</strong>、<strong>距离限制</strong>等。</p>
+</li>
+<li><p>功能特性：指明某条线上出现的<strong>某一电平表示何种意义</strong>，接口部件的信号线的用途。</p>
+<p>例如：描述一个物理层接口引脚处于高电平时的含义等。</p>
+</li>
+<li><p>规程特性：（过程特性）定义各条物理线路的工作规程和时序的关系。</p>
+</li>
+</ol>
+<h4 id="2-1-2-数据通信基础知识"><a href="#2-1-2-数据通信基础知识" class="headerlink" title="2.1.2 数据通信基础知识"></a>2.1.2 数据通信基础知识</h4><h5 id="典型的数据通信模型"><a href="#典型的数据通信模型" class="headerlink" title="典型的数据通信模型"></a>典型的数据通信模型</h5><img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/14.png" class="">
+
+<p>源系统：信源，发送器</p>
+<p>传输系统：传输系统</p>
+<p>目的系统：接收器，信宿</p>
+<h5 id="数据通信相关术语"><a href="#数据通信相关术语" class="headerlink" title="数据通信相关术语"></a>数据通信相关术语</h5><p>通信的目的是<strong>传送信息</strong>。</p>
+<p>数据：传送信息的实体，通常是有意义的符号序列</p>
+<p>信号：数据的电气/电磁的表现，是数据在传输过程中的存在形式。</p>
+<p>​    数字信号：代表消息的参数取值是离散的。</p>
+<p>​    模拟信号：代表消息的参数取值是连续的。</p>
+<p>信源：产生和发送数据的源头。</p>
+<p>信宿：接收数据的终点。</p>
+<p>信道：信号的传输媒介。一般用来表示向某一个方向传送信息的介质，因此一条通信线路往往包含一条发送信道和接收信道。</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/15.png" class="">
+
+<h5 id="三种通信方式"><a href="#三种通信方式" class="headerlink" title="三种通信方式"></a>三种通信方式</h5><p>从通信双方信息的交互方式来看，可以有三种基本方式：</p>
+<ol>
+<li>单工通信：只有一个方向的通信而没有反方向的交互，仅需要一条信道</li>
+<li>半双工通信：通信的双方都可以发送或接收消息，但任何一方都不能同时发送和接收，需要两条信道</li>
+<li>全双工通信：通信双方可以同时发送和接受信息，也需要两条信道 </li>
+</ol>
+<h5 id="两种数据传输方式"><a href="#两种数据传输方式" class="headerlink" title="两种数据传输方式"></a>两种数据传输方式</h5><p>传输方式：串行传输，并行传输</p>
+<p>​    串行传输：速度慢，费用低，适合远距离</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/16.png" class="">
+
+<p>​    并行传输：速度快，费用高，适合近距离（常用于计算机内部的数据传输）</p>
+<img src="C:/Users/86189/blog/source/_posts/17.png"  />
+
+<h4 id="2-1-3-码元、波特、速率、带宽"><a href="#2-1-3-码元、波特、速率、带宽" class="headerlink" title="2.1.3 码元、波特、速率、带宽"></a>2.1.3 码元、波特、速率、带宽</h4><h5 id="码元"><a href="#码元" class="headerlink" title="码元"></a>码元</h5><p>​    指用一个固定时长的信号波形（数字脉冲），代表不同离散值的基本波形，是数字通信中数字信号的计量单位，这个时长内的信号称为k进制码元，而该时长称为码元宽度。当码元的离散状态有M个时（M大于2），此时码元为M进制码元。</p>
+<p>​    1码元可以携带多个比特的信息量。</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/18.png" class="">
+
+<p>K进制码元——4进制码元=&gt;码元的离散状态有4个=&gt;4中高低不同的信号波形    00、01、10、11    此时一个码元代表2比特内容</p>
+<h5 id="速率、波特、带宽"><a href="#速率、波特、带宽" class="headerlink" title="速率、波特、带宽"></a>速率、波特、带宽</h5><p><strong>速率</strong>也叫数据率，是指数据的传输速率，表示单位时间内传输的数据量。可以用<strong>码元传输速率</strong>和<strong>信息传输速率</strong>表示。</p>
+<ol>
+<li><strong>码元传输速率</strong>：别名码元速率、波形速率、调制速率、符号速率等。他表示单位时间内数字通信系统所传输的码元个数（也可称为<strong>脉冲个数</strong>或<strong>信号变化的次数</strong>），单位试试<strong>波特（Baud）</strong>。1波特表示数字通信系统每秒传输一个码元。这里的码元可以是多进制的，也可以是二进制的，但码元速率与进制数无关。</li>
+<li><strong>信息传输速率</strong>：别名信息速率、比特率等，表示单位时间内数字通信系统传输的<strong>二进制码元数</strong>（即<strong>比特数</strong>），单位是比特/秒（b/s）</li>
+</ol>
+<p>关系：</p>
+<p>​    若一个码元携带n bit的信息量，则M Baud的<strong>码元传输速率</strong>所对应的<strong>信息传输速率</strong>为M*n bit/s。</p>
+<p><strong>带宽</strong>：表示单位时间内从网络中的某一点到另一点所能通过的“<strong>最高数据率</strong>”，常用来表示网络的通信线路所能传输数据的能力。单位b/s。</p>
+<h4 id="2-1-4-奈氏准则和香农定理"><a href="#2-1-4-奈氏准则和香农定理" class="headerlink" title="2.1.4 奈氏准则和香农定理"></a>2.1.4 奈氏准则和香农定理</h4><h5 id="失真："><a href="#失真：" class="headerlink" title="失真："></a>失真：</h5><img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/19.png" class="">
+
+<p>影响失真程度的因素：</p>
+<ol>
+<li>码元传输速率</li>
+<li>信号传输距离</li>
+<li>噪声干扰</li>
+<li>传输媒体质量</li>
+</ol>
+<h5 id="失真的一种现象–码间串扰"><a href="#失真的一种现象–码间串扰" class="headerlink" title="失真的一种现象–码间串扰"></a>失真的一种现象–码间串扰</h5><img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/20.png" class="">
+
+<p>信号带宽是信道能通过的<strong>最高频率</strong>和<strong>最低频率</strong>之差</p>
+<p><strong>码间串扰</strong>：<strong>接收端</strong>收到的信号波形失去了码元之间清晰界限的现象</p>
+<h5 id="奈式准则："><a href="#奈式准则：" class="headerlink" title="奈式准则："></a><strong>奈式准则</strong>：</h5><p>​    在理想低通（无噪声，宽带受限）条件下，为了避免码间串扰，<strong>极限码元传输速率</strong>为2W Baud， W是信道带宽，单位是Hz。</p>
+<p><strong>极限数据传输率</strong> :</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/21.png" class="">
+
+<p>​    传输速率慢：那么我们可以清晰识别每一个码元。</p>
+<p>​    传输速率快：因为码间串扰，所有不能清晰识别。</p>
+<ol>
+<li>信道的频带越宽（即通过的信号高频分量越多），就可以用更高的速率进行码元的有效传输。</li>
+<li>奈式准则给出了马原传输速率的限制，但并没有对信息传输速率给出限制。</li>
+<li>由于码元传输速率受到奈氏准则的制约，所以要提高数据的传输速率，就必须设法使每个码元都能携带更多比特的信息量，这就需要多元制的调制方法。</li>
+</ol>
+<h5 id="香农定理："><a href="#香农定理：" class="headerlink" title="香农定理："></a>香农定理：</h5><p>​    在带宽受限且有噪声的信道中，为了不产生误差，信息的数据传输速率有上限值。</p>
+<p><strong>噪声</strong>：存在于所有的电子设备和通信信道中。由于噪声<strong>随机产生</strong>，它的瞬时值有时会很大，因此噪声会使接收端对码元的判决产生错误。但是噪声的影响是相对的，若信号较强，那么噪声的影响就相对较小。因此，<strong>信噪比</strong>就很重要。</p>
+<p>信噪比=信号的平均功率/噪声的平均功率。常记作S/N，并用分贝（dB）作为度量单位，即：</p>
+<p>​    信噪比（dB）= 10log10（S/N）</p>
+<p>信道的极限数据传输速率：</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/22.png" class="">
+
+<ol>
+<li>信道的带宽或者信道中的信噪比越大，则信息的极限传输速率越高。</li>
+<li>对一定的传输带宽和一定打的信噪比，信息传输速率的上限就确定了。</li>
+<li>只要信息的传输速率低于信道的极限传输速率，就一定能找到某种方法来实现无差错的传输。</li>
+<li>香农定理得出的为极限信息传输速率，实际信道能达到的传输速率要比它低不少。</li>
+<li>从香农定理可以看出，若信道带宽W或信噪比S/N没有上限（不可能），那么信道的极限信息传输速率也就没有上限。</li>
+</ol>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/23.png" class="">
+
+<h4 id="2-1-5-编码与调制"><a href="#2-1-5-编码与调制" class="headerlink" title="2.1.5 编码与调制"></a>2.1.5 编码与调制</h4><h5 id="基带信号与宽带信号"><a href="#基带信号与宽带信号" class="headerlink" title="基带信号与宽带信号"></a>基带信号与宽带信号</h5><p>信道：信号的传输媒介。一般用来表示向某一个方向传送信息的介质，因此一条信道线路往往包含一条发送信道和一条接收信道。</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/24.png" class="">
+
+<p>信道上传输的信号：</p>
+<ul>
+<li><p>基带信号</p>
+<p>将数字信号1和0直接用两种不同的电压表示，再送到数字信道上去传输（基带传输）。<strong>来自信源的信号</strong>，像计算机输出的代表各种文字或图像文件的数据信号都属于基带信号。基带信号就是<strong>发出了直接表达要传输的信息的信号</strong>。</p>
+</li>
+<li><p>宽带信号</p>
+<p>将基带信号进行调制后形成的频分复用模拟信号，再传送到<strong>模拟信道</strong>上去传输（宽带传输）。把基带信号经过<strong>载波调制</strong>后，把信号的频率范围搬移到较高的频段以便于再信道中传播。</p>
+</li>
+</ul>
+<p>传输距离较近时，采用基带传输方式</p>
+<p>传输距离较近时，采用宽带传输方式</p>
+<h5 id="编码与调制"><a href="#编码与调制" class="headerlink" title="编码与调制"></a>编码与调制</h5><img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/25.png" class="">
+
+<h6 id="数字数据编码为数字信号"><a href="#数字数据编码为数字信号" class="headerlink" title="数字数据编码为数字信号"></a>数字数据编码为数字信号</h6><img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/26.png" class="">
+
+<ol>
+<li><p><strong>非归零编码（NRZ）</strong></p>
+<p>高1低0：编码容易实现，但没有检错功能，且无法判断一个码元的开始和结束，以至于收发双方<strong>难以保持同步</strong></p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/27.png" class=""></li>
+<li><p><strong>曼彻斯特编码</strong></p>
+<p>将一个码元分成两个相等的间隔，前一个间隔为低电平后一个间隔为高电平表示码元1；码元0正好相反。也可以采用相反的规定。该编码的特点是在每一个码元的中间出现电平跳变，位中间的跳变<strong>即作时钟信号，又作数据信号</strong>，但它所占的频带宽度是原始基带宽度的两倍。</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/30.png" class="">
+
+<p>​    每一个码元都被调成两个电平，数据传输速率只有<strong>调制速率</strong>（码元传输速率）的1/2。</p>
+</li>
+<li><p><strong>差分曼彻斯特编码</strong></p>
+<p>同1异0</p>
+<p>若码元为1，则前半个码元的电平与上一个码元后半个码元的电平相同。若为0，则相反。特点是：在每个码元的中间，都有一次电平的跳转，可以实现自同步，且抗干扰性强于曼彻斯特编码。</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/31.png" class=""></li>
+<li><p>归零编码（RZ）</p>
+<p>信号电平在一个码元之内都要恢复到零的这种编码方式</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/28.png" class=""></li>
+<li><p>反向不归零编码（NRZI）</p>
+<p>信号电平翻转表示0，信号电平不变表示1</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/29.png" class=""></li>
+<li><p>4B/5B编码</p>
+<p>比特流中插入额外的比特以打破一连串的0或1，就是5个比特来编码4个比特的数据，之后再传给接收方，因此称为4B/5B。编码效率是80%。</p>
+<p>只采用16钟不同的4位码，其他的16种作为控制码或保留。</p>
+</li>
+</ol>
+<h6 id="数字数字调制为模拟信号"><a href="#数字数字调制为模拟信号" class="headerlink" title="数字数字调制为模拟信号"></a>数字数字调制为模拟信号</h6><p>数字数据调制技术在发送端将数字信号转换为模拟信号，而在接收端将模拟信号还原为数字信号，分别对应于调制解调器的调制和解调过程。</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/32.png" class="">
+
+<p>调幅+调相（QAM）</p>
+<h6 id="模拟数据编码为数字信号"><a href="#模拟数据编码为数字信号" class="headerlink" title="模拟数据编码为数字信号"></a>模拟数据编码为数字信号</h6><p>计算机内部处理的是二进制数据，处理的都是数字音频，所有需要将模拟音频通过采样、量化转化成有限个数字表示的离散序列（即实现音频数字化）</p>
+<p>最典型的例子就是对音频信号进行编码的<strong>脉码调制（PCM）</strong>，在计算机应用种，能够达到最高保真水平的就是PCM编码，被广泛用于素材保存及音乐欣赏，CD、DVD以及我们常见的WAV文件中均有应用。它主要包括三步：<strong>抽样、量化、编码</strong></p>
+<ol>
+<li><p>抽样：对模拟信号周期性扫描，把时间上连续的信号变成时间上离散的信号。</p>
+<p>采样定理：<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/33.png" class=""></p>
+</li>
+<li><p>量化：把抽样取得的电平幅值按照一定的分级标度转化为对应的数字值，并取整数，这就把连续的电平幅值转化为离散的数字量。</p>
+</li>
+<li><p>编码：把量化的结果转化为与之对应的二进制编码</p>
+</li>
+</ol>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/34.png" class="">
+
+<h6 id="模拟数据调制为模拟信号"><a href="#模拟数据调制为模拟信号" class="headerlink" title="模拟数据调制为模拟信号"></a>模拟数据调制为模拟信号</h6><p>为了实现传输有效性，可能需要较高的频率。这种调制方式还可以使用频分复用技术，充分利用带宽资源。在电话机和本地交换机所传输的信号是采用模拟信号传输模拟数据的方式：模拟的声音数据是加载到模拟的载波信号中传输的。</p>
+<h5 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h5><img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/35.png" class="">
+
+<h4 id="2-2-物理层传输介质"><a href="#2-2-物理层传输介质" class="headerlink" title="2.2 物理层传输介质"></a>2.2 物理层传输介质</h4><h5 id="传输介质及分类"><a href="#传输介质及分类" class="headerlink" title="传输介质及分类"></a>传输介质及分类</h5><p>​    传输介质也称传输媒体/传输媒介，它就是数据传输系统中在发送设备和接收设备之间的<strong>物理通路</strong>。</p>
+<p>传输媒体并不是物理层：</p>
+<p>传输媒体在物理层的下面，因为物理层是体系结构的第一层，因此有时称传输媒体为0层。在传输媒体中传输的是信号，但传输媒体并不知道所传输的信号代表什么意思。但物理层规定了<strong>电气特性</strong>，因此能够识别所传送的比特流。</p>
+<p>传输介质：</p>
+<ul>
+<li>导向性传输介质-&gt;电磁波被导向固体媒介（铜线/光纤）传播。</li>
+<li>非导向性传输介质-&gt;自由空间，介质可以是空气、真空、海水等。</li>
+</ul>
+<h5 id="导向性传输介质–1-双绞线"><a href="#导向性传输介质–1-双绞线" class="headerlink" title="导向性传输介质–1.双绞线"></a>导向性传输介质–1.双绞线</h5><p>双绞线是古老、又最常用的传输介质，它由<strong>两根</strong>采用一定规则<strong>并排绞合</strong>的、<strong>相互绝缘</strong>的<strong>铜导线</strong>组成。</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/36.png" class="">
+
+<p>绞合可以减少相邻导线的电磁干扰。</p>
+<p>为了进一波提高抗电磁干扰能力，可在双绞线的外面再加上一个由金属丝编织成的屏蔽层，这就是<strong>屏蔽双绞线（SIP）</strong>，无屏蔽层的双绞线就称为<strong>非屏蔽双绞线（UTP）</strong>。</p>
+<p>特点：</p>
+<ul>
+<li>双绞线价格便宜，是最常用的传输介质之一，在局域网和传统电话网中普遍使用。</li>
+<li>模拟传输和数字传输都可以使用双绞线，其通信距离一般为几公里到十公里。</li>
+<li>距离太远时，对于<strong>模拟传输</strong>，要用<strong>放大器</strong>放大衰减的信号；对于<strong>数字传输</strong>，要用<strong>中继器</strong>将失真的信号整形。</li>
+</ul>
+<h5 id="导向性传输介质–2-同轴电缆"><a href="#导向性传输介质–2-同轴电缆" class="headerlink" title="导向性传输介质–2.同轴电缆"></a>导向性传输介质–2.同轴电缆</h5><p>同轴电缆由导体<strong>铜质芯线</strong>、<strong>绝缘层</strong>、<strong>网状编织屏蔽层</strong>和<strong>塑料外层</strong>构成。按特性阻抗数值的不同，通常将同轴电缆分为两类；50Ω同轴电缆和75Ω同轴电缆。其中，50Ω同轴电缆主要用于传送基带数字信号，又称为<strong>基带同轴电缆</strong>，它在局域网中得到广泛应用；75Ω同轴电缆主要用于传送宽带信号，又称为<strong>宽带同轴电缆</strong>，它主要用于有线电视系统。</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/37.png" class="">
+
+<p>由于外导体屏蔽层的作用，同轴电缆<strong>抗干扰特性</strong>比双绞线好，被广泛用于传输较高速率的数据，其传输距离更远，但价格比双绞线贵。</p>
+<h5 id="导向性传输介质–3-光纤"><a href="#导向性传输介质–3-光纤" class="headerlink" title="导向性传输介质–3.光纤"></a>导向性传输介质–3.光纤</h5><p>光纤通信就是利用光导纤维（简称光纤）传递<strong>光脉冲</strong>来进行通信。有光脉冲为1，无光脉冲为0.而可见光的频率大约为<strong>10的8次方MHz</strong>，因此光纤通信系统的<strong>带宽远远大于</strong>目前其他各种传输媒体的带宽。</p>
+<p>光纤主要由<strong>纤芯</strong>（<strong>实心的！</strong>）和<strong>包层</strong>构成，光波通过纤芯进行传导，包层较纤芯有较低的折射率。当光线从高折射率的介质射向低折射率的介质时，其折射角将大于入射角。因此，当入射角够大就会出现<strong>全反射</strong>，即光线碰到包层时候就会折射回纤芯、这个过程不断重复，光也就沿着光纤传输下去。</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/38.png" class="">
+
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/39.png" class="">
+
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/40.png" class="">
+
+<p>光缆：一根光缆少则只有一根光纤，多则包括十到数百根光纤。</p>
+<p>光纤的特点：</p>
+<ol>
+<li>传输<strong>损耗小</strong>，中继距离长，对远距离传输特别经济</li>
+<li><strong>抗雷电和电磁干扰性能好</strong></li>
+<li>无串音干扰，保密性好，也<strong>不易被窃听或截取数据</strong></li>
+<li><strong>体积小，重量轻。</strong></li>
+</ol>
+<h5 id="非导向性传输介质："><a href="#非导向性传输介质：" class="headerlink" title="非导向性传输介质："></a>非导向性传输介质：</h5><ul>
+<li><p>无线单波</p>
+<ul>
+<li>信号向所有方向传播</li>
+<li>较强的穿透能力，可远距离传输，广泛用于通信领域（手机通信）</li>
+</ul>
+</li>
+<li><p>微波</p>
+<ul>
+<li><p>信号固定方向传播</p>
+</li>
+<li><p>微波通信频率较高、频段范围宽，因此数据率很高。</p>
+<ul>
+<li><p>地面微波接力通信</p>
+</li>
+<li><p>卫星通信</p>
+<ul>
+<li>优点：</li>
+</ul>
+<ol>
+<li>通信容量大</li>
+<li>距离远</li>
+<li>覆盖范围广</li>
+<li>广播通信和多址通信</li>
+</ol>
+<ul>
+<li>缺点：</li>
+</ul>
+<ol>
+<li>传播时延长</li>
+<li>受天气影响大</li>
+<li>误码率高</li>
+<li>成本高</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>红外线、激光</p>
+<ul>
+<li>信号固定方向传播</li>
+<li>把要传输的信号转换为各自的信号格式，即红外光信号和激光信号。再在空间中传播。</li>
+</ul>
+</li>
+</ul>
+<h5 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h5><img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/41.png" class="">
+
+<h4 id="2-3-物理层设备"><a href="#2-3-物理层设备" class="headerlink" title="2.3 物理层设备"></a>2.3 物理层设备</h4><h4 id="中继器"><a href="#中继器" class="headerlink" title="中继器"></a>中继器</h4><p><strong>诞生原因：</strong>由于存在损耗，在线路上传输的信号功率会逐渐衰减，衰减到一定程度将造成信号失真，因此会导致接收错误。</p>
+<p><strong>中继器功能：</strong>对信号进行再生和还原，对衰减的信号进行放大，保持与原数据相同，以增加信号传输的距离，延长网络的长度。（再生数字信号）</p>
+<p><strong>中继器的两端：</strong></p>
+<ol>
+<li>两端的网络部分是网段，而不是子网，适用于完全相同的两类网络的互连，且两个网段速率要相同。</li>
+<li>中继器只将任何电缆段上的数据发送到另一段电缆上，它仅作用于信号的电气部分，并不管数据中是否有错误数据或不适用于网段的数据</li>
+<li>两端可连相同媒体，也可连不同媒体</li>
+<li>中继器两端的网段一定要是同一个协议（不会存储转发）</li>
+</ol>
+<p><strong>5-4-3规则：</strong></p>
+<p>网络标准中都对信号的延迟范围作了具体的规定，因而中继器只能在规定的范围内进行，否则会网络故障。</p>
+<p>5个网段，4个物理层网络设备，只有三个网段可以连接计算机。</p>
+<h4 id="集线器（多口中继器）"><a href="#集线器（多口中继器）" class="headerlink" title="集线器（多口中继器）"></a>集线器（多口中继器）</h4><p><strong>功能</strong>：对信号进行<strong>放大转发</strong>，对衰减的信号进行放大，接着转发到其他所有（除输入端口外）处于工作状态的端口上，以增加信号传输的距离，延长网络的长度。不具备信号的定向传送能力，是一个共享式设备。</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/42.png" class="">
+
+<p>集线器不能分割冲突域</p>
+<p>连在集线器上的工作主机平分带宽。</p>
+]]></content>
+      <categories>
+        <category>计算机网络</category>
+      </categories>
+  </entry>
+  <entry>
     <title>深入理解计算机系统二</title>
     <url>/2021/05/06/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%BA%8C/</url>
     <content><![CDATA[<h2 id="第四章：处理器体系结构"><a href="#第四章：处理器体系结构" class="headerlink" title="第四章：处理器体系结构"></a>第四章：处理器体系结构</h2><h4 id="4-1-1-程序员可见的状态"><a href="#4-1-1-程序员可见的状态" class="headerlink" title="4.1.1 程序员可见的状态"></a>4.1.1 程序员可见的状态</h4><ul>
@@ -3061,46 +2345,762 @@ end:    for(i=0;i&lt;n;i++)
       </categories>
   </entry>
   <entry>
-    <title>无线DOS之取消验证洪水攻击</title>
-    <url>/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/</url>
-    <content><![CDATA[<h1 id="攻击原理"><a href="#攻击原理" class="headerlink" title="攻击原理"></a>攻击原理</h1><p>​    取消验证洪水攻击，全程为De-authenticationFloodAttack,简称为Deauth攻击。首先，攻击者通过扫描周围的WIFI网络，获取WIFI站点的SSID。然后扫描连接周围连接网络的设备。最后，对周边网络进行抓包（嗅探），寻找要攻击的WIFI站点和连接该站点的设备，以获取的包头信息重新构造一个取消验证包，发给WIFI站点。WIFI站点会被欺骗，从而取消对设备的连接。我们只要一直发送取消验证帧，形成DOS攻击，占满服务器资源。</p>
-<h1 id="攻击实现"><a href="#攻击实现" class="headerlink" title="攻击实现"></a>攻击实现</h1><p>​    参考已有的张馆长的工程，将其烧录到esp8266模块上。<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/1.jpg" class=""></p>
-<p>简单配置一下</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/2.jpg" class="">
+    <title>计算机网络绪论</title>
+    <url>/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/</url>
+    <content><![CDATA[<h2 id="第一章"><a href="#第一章" class="headerlink" title="第一章"></a>第一章</h2><h3 id="1-1-1-概念、组成、功能和分类"><a href="#1-1-1-概念、组成、功能和分类" class="headerlink" title="1.1.1 概念、组成、功能和分类"></a>1.1.1 概念、组成、功能和分类</h3><h4 id="计算机网络的概念："><a href="#计算机网络的概念：" class="headerlink" title="计算机网络的概念："></a>计算机网络的概念：</h4><p>​    计算机网络：是一个将分散的、具有独立功能的计算机系统。通过通信设备与线路连接起来，由功能完善的软件实现资源共享和信息传递的系统。</p>
+<p>​    计算机网络是<strong>互联的、自治的</strong>计算机集合。</p>
+<p>​        互联-互联互通 通信链路</p>
+<p>​        自治-无主从关系</p>
+<span id="more"></span>
 
-<p>烧录</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/3.jpg" class="">
+<h4 id="计算机网络的功能："><a href="#计算机网络的功能：" class="headerlink" title="计算机网络的功能："></a>计算机网络的功能：</h4><p>​    1数据通信（连通性）</p>
+<p>​    2资源共享    </p>
+<p>​         硬件    软件    数据</p>
+<p>​    3分布式处理    多台计算机各自承担同一工作任务的不同部分</p>
+<p>​    4提高可靠性(替代机)</p>
+<p>​    5负载均衡    各计算机之间更亲密</p>
+<h4 id="计算机网络的组成："><a href="#计算机网络的组成：" class="headerlink" title="计算机网络的组成："></a>计算机网络的组成：</h4><p>​    1组成部分：硬件、软件、协议</p>
+<p>​    2工作方式:</p>
+<p>​        边缘部分    用户直接使用（C/S方式；P2P方式）</p>
+<p>​        核心部分    为边缘部分服务</p>
+<p>​    3功能组成：</p>
+<img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/1.png" class="">
 
-<p>这时，esp8266会建立一个WIFI，</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/4.jpg" class="">
+<h6 id="资源子网-实现资源共享-数据处理"><a href="#资源子网-实现资源共享-数据处理" class="headerlink" title="资源子网    实现资源共享/数据处理"></a>资源子网    实现资源共享/数据处理</h6><p>​                实现资源共享功能的设备和软件的集合</p>
+<h6 id="通信子网-实现数据通信"><a href="#通信子网-实现数据通信" class="headerlink" title="通信子网    实现数据通信"></a>通信子网    实现数据通信</h6><p>​                各种传输介质、通讯设备、相应的网络协议组成</p>
+<h4 id="计算机网络的分类："><a href="#计算机网络的分类：" class="headerlink" title="计算机网络的分类："></a>计算机网络的分类：</h4><h6 id="1按分布范围分："><a href="#1按分布范围分：" class="headerlink" title="1按分布范围分："></a>1按分布范围分：</h6><p>​    广域网WAN    城域网MAN    局域网WAN    个人区域网PAN</p>
+<h6 id="2按使用者分："><a href="#2按使用者分：" class="headerlink" title="2按使用者分："></a>2按使用者分：</h6><p>​    公用网    专用网</p>
+<h6 id="3按交换技术分："><a href="#3按交换技术分：" class="headerlink" title="3按交换技术分："></a>3按交换技术分：</h6><p>​    电路交换    报文交换    分组交换</p>
+<h6 id="4按拓扑结构分："><a href="#4按拓扑结构分：" class="headerlink" title="4按拓扑结构分："></a>4按拓扑结构分：</h6><p>​    总线型    星型    环型    网状型</p>
+<h6 id="5按传输技术分："><a href="#5按传输技术分：" class="headerlink" title="5按传输技术分："></a>5按传输技术分：</h6><p>​    广播式网络（共享公共通信信道）</p>
+<p>​    点对点网络（使用分组存储转发和路由选择机制）</p>
+<h3 id="1-1-2-标准化工作及相关知识"><a href="#1-1-2-标准化工作及相关知识" class="headerlink" title="1.1.2 标准化工作及相关知识"></a>1.1.2 标准化工作及相关知识</h3><h4 id="标准换工作"><a href="#标准换工作" class="headerlink" title="标准换工作"></a>标准换工作</h4><h5 id="标准的分类："><a href="#标准的分类：" class="headerlink" title="标准的分类："></a>标准的分类：</h5><p>​        法定标准    由权威机构制定的正式的、合法的标准</p>
+<p>​        事实标准    某些公司的产品在竞争中占据了主流，时间长了，这些产品的协议和技术就成了标准</p>
+<h5 id="标准化工作："><a href="#标准化工作：" class="headerlink" title="标准化工作："></a>标准化工作：</h5><p>​        <strong>RFC</strong>    因特网标准的形式</p>
+<p>​        RFC要上升为因特网正式标准的<strong>四个阶段</strong>：</p>
+<p>​            1）因特网草案    这个阶段还不是RFC文档</p>
+<p>​            2）建议标准        这个阶段开始成为RFC文档</p>
+<p>​            3）草案标准        IETF、IAB认证</p>
+<p>​            4）因特网标准</p>
+<h4 id="标准化工作的相关组织"><a href="#标准化工作的相关组织" class="headerlink" title="标准化工作的相关组织"></a>标准化工作的相关组织</h4><p>​    国际标准化组织ISO</p>
+<p>​    国际电信联盟ITU</p>
+<p>​    国际电气电子工程师协会IEEE</p>
+<p>​    Internet工程任务组IETE</p>
+<h3 id="1-1-3-速率相关的性能指标"><a href="#1-1-3-速率相关的性能指标" class="headerlink" title="1.1.3 速率相关的性能指标"></a>1.1.3 速率相关的性能指标</h3><h4 id="速率"><a href="#速率" class="headerlink" title="速率"></a>速率</h4><p>​    速率即数据率或称数据传输率或比特率。</p>
+<p>​    比特    1/0    位</p>
+<p>​    连接在计算机网络上的主机在数字信道上传送熟虑位数的速率。</p>
+<p>​    单位b/s，kb/s，Mb/s，Gb/s，Tb/s</p>
+<img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/2.png" class="">
 
-<p>我们连接这个wifi，进入192.168.4.1，可以看到攻击界面，里面会显示当前的AP站点，我们选取一个作为攻击对象。这里我们设置的是无差别攻击。当我们要定点攻击时，需要扫描连接该WiFi的设备，选择一个攻击。</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/5.jpg" class="">
+<h4 id="带宽"><a href="#带宽" class="headerlink" title="带宽"></a>带宽</h4><p>​    ”带宽”原本指某个信号具有的<strong>频带宽度</strong>，即最高频率与最低速率之差，单位是赫兹（HZ）。</p>
+<p>​    计算机网络中，带宽用来表示网络的通讯线路传送数据的能力，通常是单位时间从网络的某一点到另一点所能通过的“<strong>最高数据率</strong>”。单位是“比特每秒”。网络设备所支持的最高速度。</p>
+<h4 id="吞吐量"><a href="#吞吐量" class="headerlink" title="吞吐量"></a>吞吐量</h4><p>​    表示<strong>单位时间</strong>内通过<strong>某个网络（或信道、接口）</strong>的数据量。单位是比特每秒。    </p>
+<p>​    吞吐量受网络的带宽或网络的额定速率的限制。</p>
+<h3 id="1-1-4-时延、时延带宽积、RTT和利用率"><a href="#1-1-4-时延、时延带宽积、RTT和利用率" class="headerlink" title="1.1.4 时延、时延带宽积、RTT和利用率"></a>1.1.4 时延、时延带宽积、RTT和利用率</h3><h4 id="时延"><a href="#时延" class="headerlink" title="时延"></a>时延</h4><p>​    指数据从<strong>网络（或链路）</strong>的一段传送到另一端所需的时间。也叫<strong>延迟</strong>或<strong>迟延</strong>。单位是s。</p>
+<img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/3.png" class="">
 
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/6.jpg" class="">
+<h4 id="时延带宽积"><a href="#时延带宽积" class="headerlink" title="时延带宽积"></a>时延带宽积</h4><p>​    时延带宽积=<strong>传播时延</strong>X<strong>带宽</strong></p>
+<p>​    又称为以比特为单位的链路长度</p>
+<h4 id="往返时延RTT"><a href="#往返时延RTT" class="headerlink" title="往返时延RTT"></a>往返时延RTT</h4><p>​    从发送方发送数据开始，到发送方收到接受方的确认，总共经历的时延。</p>
+<p>​    RTT越大，在收到确认之前，可以发送的数据越多。</p>
+<p>​    <img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/4.png" class=""></p>
+<h4 id="利用率"><a href="#利用率" class="headerlink" title="利用率"></a>利用率</h4><p>​    利用率分为信道利用率和网络利用率。</p>
+<h5 id="1-信道利用率"><a href="#1-信道利用率" class="headerlink" title="1.信道利用率"></a>1.信道利用率</h5><p>​            =有数据通过时间/（有+无）数据通过时间</p>
+<h5 id="2-网络利用率"><a href="#2-网络利用率" class="headerlink" title="2.网络利用率"></a>2.网络利用率</h5><p>​            =信道利用率加权平均值</p>
+<h4 id="1-2-1-分层结构、协议、接口、服务"><a href="#1-2-1-分层结构、协议、接口、服务" class="headerlink" title="1.2.1 分层结构、协议、接口、服务"></a>1.2.1 分层结构、协议、接口、服务</h4><h5 id="为什么要分层？"><a href="#为什么要分层？" class="headerlink" title="为什么要分层？"></a>为什么要分层？</h5><p>​        发送前要完成的工作：</p>
+<p>​            （1）发起通信的计算机必须将数据通信的通路进行激活。</p>
+<p>​            （2）要告诉网络如何识别目的主机。</p>
+<p>​            （3）发起通信的计算机要查明目的主机是否开机，并且与网络连接正常。</p>
+<p>​            （4）发起通信的计算机要弄清楚，对方计算机中文件管理程序是否已经做好准备工作。</p>
+<p>​            （5）确保差错和意外可以解决</p>
+<h5 id="怎么分层？"><a href="#怎么分层？" class="headerlink" title="怎么分层？"></a>怎么分层？</h5><h6 id="分层的基本原则："><a href="#分层的基本原则：" class="headerlink" title="分层的基本原则："></a>分层的<strong>基本原则</strong>：</h6><p>​        1.各层直接相互独立，每层只实现一种相对独立的功能</p>
+<p>​        2.各层之间界面自然清晰，易于理解，相互交流可能少</p>
+<p>​        3.结构上可分隔开。各层都采用最合适的技术实现</p>
+<p>​        4.保持下层对上层的独立性，上层单向使用下层提供的服务</p>
+<p>​        5.整个分层结构应该促进标准化工作</p>
+<h5 id="正式认识分层结构"><a href="#正式认识分层结构" class="headerlink" title="正式认识分层结构:"></a>正式认识分层结构:</h5><p>​        1.实体：第n层中的活动元素称为n层实体。同一层的实体叫对等实体。</p>
+<p>​        2.协议：为进行网络中的对等实体数据交换而建立的规则、标准或约定成为网络协议。</p>
+<p>​            <img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/5.png" class=""></p>
+<p>​        3.接口（访问服务点SAP）：上层使用下层的服务。</p>
+<p>​        4.服务：下层为相邻上层提供的功能调用。【垂直】</p>
+<h5 id="概念总结"><a href="#概念总结" class="headerlink" title="概念总结:"></a>概念总结:</h5><p>​        网络体系结构是从功能上描述计算机网络结构。</p>
+<p>​        计算机网络体系结构简称网络体系结构是分层结构。</p>
+<p>​        每层遵守某个/些网络协议以完成本层功能。</p>
+<p>​        计算机网络体系结构是计算机网路的各层及其协议的集合。</p>
+<p>​        第n层在向n+1层提供服务时，此服务不仅包含第n层本身的功能，还包含由下层服务提供的功能。</p>
+<p>​        仅仅在在相邻层间有接口，且所提供服务的具体实现细节对上一层完全屏蔽。</p>
+<p>​        体系结构是抽象的，而实现是指能运行的一些软件和硬件。</p>
+<h4 id="1-2-2-OSI参考模型"><a href="#1-2-2-OSI参考模型" class="headerlink" title="1.2.2 OSI参考模型"></a>1.2.2 OSI参考模型</h4><p>​    <img src="C:\Users\86189\blog\source\_posts\6.png" style="zoom:50%;" /></p>
+<h5 id="ISO-OSI参考模型–怎么来的？"><a href="#ISO-OSI参考模型–怎么来的？" class="headerlink" title="ISO/OSI参考模型–怎么来的？"></a>ISO/OSI参考模型–怎么来的？</h5><p>​        为了解决计算机网络复杂的大问题=》分层结构（按功能）</p>
+<p>​        目的：支持异构网络系统的互联互通。</p>
+<p>​        国际标准化组织（ISO）于1984年提出开放系统互连（OSI）参考模型。</p>
+<img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/7.png" class="">
 
-<p>​        选择Deauth攻击，然后我们就可以观察到连接该网的设备断连的现象，手机上方的WiFi图标会不断闪烁。</p>
-<h1 id="代码架构"><a href="#代码架构" class="headerlink" title="代码架构"></a>代码架构</h1><p>首先，WIFI模块有两种工作模式：</p>
-<p>ap是无线发射端，station是接收端，两种模式组建成一个无线局域网。</p>
-<ol>
-<li>ap mode 通常应用在无线局域网成员设备（即客户端）的加入，即<strong>网络下行</strong>。它提供以无线方式组建无线局域网 WLAN，相当际 <strong>WLAN 的中心设备</strong>。AP和AP之间允许相互连接。</li>
-<li></li>
-<li>station mode即工作站模式，可以理解为某个网格中的一个工作站即<strong>客户端</strong>。那当一个 WIFI 芯片提供这个功能时，它就可以连到另外的一个网络当中，如家用路由器。通常用于提供网络的数据上行服务。</li>
-</ol>
-<p>代码的核心是扫描、嗅探和伪造。扫描站点，嗅探（抓包）和通过。</p>
-<p>首先是扫描：</p>
-<p>​    AP模式扫描AP和设备。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line">	<span class="comment">/* AP Scan */</span></span><br><span class="line">    <span class="keyword">if</span> ((mode == SCAN_MODE_APS) || (mode == SCAN_MODE_ALL)) &#123;</span><br><span class="line">        <span class="comment">// remove old results</span></span><br><span class="line">        accesspoints.removeAll();</span><br><span class="line">        stations.removeAll();</span><br><span class="line">        <span class="comment">// start AP scan</span></span><br><span class="line">        prntln(SC_START_AP);</span><br><span class="line">        WiFi.scanNetworks(<span class="literal">true</span>, <span class="literal">true</span>);</span><br><span class="line">        <span class="comment">/*该函数可以扫描到ESP8266开发板所在环境中的可用WIFI网络，并且将WiFi网络信息保存到内存中。通过调用SSID、RSSI等函数，我们还可以得到这些扫描到的WIFI的更多信息。</span></span><br><span class="line"><span class="comment">        此函数在扫描WiFi网络时采用同步扫描模式。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<h5 id="ISO-OSI参考模型"><a href="#ISO-OSI参考模型" class="headerlink" title="ISO/OSI参考模型"></a>ISO/OSI参考模型</h5><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/8.png" class="">
 
-<p>​    station模式即可以开启混杂模式（混杂模式（英语：promiscuous mode）是电脑网络中的术语。是指一台机器的网卡能够接收所有经过它的数据流，而不论其目的地址是否是它。），从而为嗅探作准备</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line"><span class="comment">/* Station Scan */</span></span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (mode == SCAN_MODE_STATIONS) &#123;</span><br><span class="line">        <span class="comment">// start station scan</span></span><br><span class="line">        <span class="keyword">if</span> (accesspoints.count() &lt; <span class="number">1</span>) &#123;</span><br><span class="line">            start(SCAN_MODE_ALL);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;<span class="comment">//如果当前网络没有AP,返回重新扫描，因为我们需要先确定攻击AP再确定攻击的设备，如果在嗅探前AP已经不存在了，则没有继续的必要</span></span><br><span class="line">        snifferStartTime = currentTime;</span><br><span class="line">        prnt(SC_START_CLIENT);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (sniffTime &gt; <span class="number">0</span>) prnt(String(sniffTime / <span class="number">1000</span>) + S);</span><br><span class="line">        <span class="keyword">else</span> prnt(SC_INFINITELY);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!channelHop) &#123;</span><br><span class="line">            prnt(SC_ON_CHANNEL);</span><br><span class="line">            prnt(wifi_channel);</span><br><span class="line">        &#125;</span><br><span class="line">        prntln();</span><br><span class="line">        wifi::stopAP();</span><br><span class="line">        wifi_promiscuous_enable(<span class="literal">true</span>);<span class="comment">//开启混杂模式</span></span><br><span class="line">    	<span class="comment">/*混杂模式就是接收所有经过网卡的数据包，包括不是发给本机的包。默认情况下网卡只把发给本机的包（包括广播包）传递给上层程序，其它的包一律丢弃。简单的讲,混杂模式就是指网卡能接受所有通过它的数据流，不管是什么格式，什么地址的。事实上，计算机收到数据包后，由网络层进行判断，确定是递交上层（传输层），还是丢弃，还是递交下层（数据链路层、MAC子层）转发。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<h4 id="1-2-3-OSI参考模型（2）"><a href="#1-2-3-OSI参考模型（2）" class="headerlink" title="1.2.3 OSI参考模型（2）"></a><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/9.png" class="">1.2.3 OSI参考模型（2）</h4><h5 id="应用层："><a href="#应用层：" class="headerlink" title="应用层："></a>应用层：</h5><p>​            所有能和用户产生网络流量的程序</p>
+<p>​            典型应用层服务：</p>
+<p>​                文件传输（FTP）</p>
+<p>​                电子邮件（SMTP）</p>
+<p>​                万维网（HTTP）</p>
+<p>​                ······</p>
+<h5 id="表示层："><a href="#表示层：" class="headerlink" title="表示层："></a>表示层：</h5><p>​            用于处理两个通信系统中变换消息的表示方式（语法和语义）</p>
+<p>​                功能一：数据格式变换</p>
+<p>​                功能二：数据加密解密</p>
+<p>​                功能三：数据压缩和恢复</p>
+<p>​            主要协议：JPEG，ASCII</p>
+<h5 id="会话层："><a href="#会话层：" class="headerlink" title="会话层："></a>会话层：</h5><p>​            向表示层实体/用户进程提供建立连接并在连接上有序地传输数据。</p>
+<p>​                这是会话，也是<strong>建立同步</strong>（SYN）</p>
+<p>​            功能一：建立、管理、终止会话</p>
+<p>​            功能二：使用校验点可使会话在通信失效时从校验点/同步点继续回复通信，实现数据同步。</p>
+<h5 id="传输层："><a href="#传输层：" class="headerlink" title="传输层："></a>传输层：</h5><p>​            负责主机中两个进程的通信，即端到端的通信。传输单位是<strong>报文段</strong>或<strong>用户数据报</strong>。</p>
+<p>​                功能一：可靠传输、不可靠传输</p>
+<p>​                功能二：差错控制</p>
+<p>​                功能三：流量控制</p>
+<p>​                功能四：复用分用</p>
+<p>​                                <strong>复用</strong>：多个应用层进程可同时使用下面运输层的服务。</p>
+<p>​                                <strong>分用</strong>：运输层把收到的信息分别交付到上面应用层中相应的进程。</p>
+<p>​            </p>
+<h5 id="网络层："><a href="#网络层：" class="headerlink" title="网络层："></a>网络层：</h5><p>​            主要任务是把分组从源端传到目的端，为分组交换网上的不同主机提供通信服务。网络层传输单位是<strong>数据报</strong>。</p>
+<p>​                功能一：路由选择    为了找到数据传输和的<strong>最佳路径</strong></p>
+<p>​                功能二：流量控制</p>
+<p>​                功能三：差错控制</p>
+<p>​                功能四：拥塞控制</p>
+<h5 id="数据链路层："><a href="#数据链路层：" class="headerlink" title="数据链路层："></a>数据链路层：</h5><p>​            主要任务是把网络层传下来的数据报组装成<strong>帧</strong>。数据链路层的传输单位是<strong>帧</strong>。</p>
+<p>​                功能一：成帧（<strong>定义帧的开始和结束</strong>）</p>
+<p>​                功能二：差错控制 <strong>帧错+位错</strong></p>
+<p>​                功能三：流量控制</p>
+<p>​                功能四：访问（接入）控制 <strong>控制对信道的访问</strong></p>
+<h5 id="物理层："><a href="#物理层：" class="headerlink" title="物理层："></a>物理层：</h5><p>​            主要任务是在物理媒体上实现比特流的<strong>透明传输</strong>。物理层传输单位是<strong>比特</strong>。</p>
+<p>​            物理层传输单位是比特。</p>
+<p>​                功能一：定义接口特性</p>
+<p>​                功能二：定义传输模式     <strong>单工</strong>、<strong>半双工</strong>、<strong>双工</strong></p>
+<p>​                功能三：定义传输速率</p>
+<p>​                功能四：比特同步</p>
+<p>​                功能五：比特编码</p>
+<h4 id="1-2-4-TCP、IP参考模型和5层参考模型"><a href="#1-2-4-TCP、IP参考模型和5层参考模型" class="headerlink" title="1.2.4 TCP、IP参考模型和5层参考模型"></a>1.2.4 TCP、IP参考模型和5层参考模型</h4><h5 id="OSI参考模型与TCP-IP参考模型"><a href="#OSI参考模型与TCP-IP参考模型" class="headerlink" title="OSI参考模型与TCP/IP参考模型"></a>OSI参考模型与TCP/IP参考模型</h5><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/10.png" class="">
 
-<p>进入嗅探模式：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Scan::sniffer</span><span class="params">(<span class="keyword">uint8_t</span>* buf, <span class="keyword">uint16_t</span> len)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!isSniffing()) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    packets++;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">28</span>) <span class="keyword">return</span>;  <span class="comment">// 丢弃掉过短的数据包</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0xc0</span>) || (buf[<span class="number">12</span>] == <span class="number">0xa0</span>)) &#123;</span><br><span class="line">        tmpDeauths++;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 丢弃信标帧、探测请求/响应和解除授权/解除关联帧</span></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0x80</span>) || (buf[<span class="number">12</span>] == <span class="number">0x40</span>) || (buf[<span class="number">12</span>] == <span class="number">0x50</span>) <span class="comment">/* || buf[12] == 0xc0 || buf[12] == 0xa0*/</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 只允许数据帧</span></span><br><span class="line">    <span class="comment">// if(buf[12] != 0x08 &amp;&amp; buf[12] != 0x88) return;数据帧12位为08和88的时候说明是数据帧，如果都不是，可以丢弃，但作者将这句话注释了，不知道原因。。。</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span>* macTo   = &amp;buf[<span class="number">16</span>];<span class="comment">//该数据包要去哪</span></span><br><span class="line">    <span class="keyword">uint8_t</span>* macFrom = &amp;buf[<span class="number">22</span>];<span class="comment">//该数据包从哪来</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (macBroadcast(macTo) || macBroadcast(macFrom) || !macValid(macTo) || !macValid(macFrom) || macMulticast(macTo) ||</span><br><span class="line">        macMulticast(macFrom)) <span class="keyword">return</span>;</span><br><span class="line">	<span class="comment">//Broadcast所谓广播地址指同时向网上所有的主机发送报文，也就是说，不管物理网络特性如何，internet网支持广播传输。如果收发地址为广播地址，丢弃</span></span><br><span class="line">    <span class="comment">//Multicast是一个群组传播模式。。。其他的看不懂了，和上面区别不大。</span></span><br><span class="line">    <span class="comment">//上面两种的特点都是一对多模式，而我们只要截获一对一的，所有只保留了一对一的数据包，并认为该mac为有效mac地址。</span></span><br><span class="line">    <span class="keyword">int</span> accesspointNum = findAccesspoint(macFrom);<span class="comment">//查看该mac地址有几个AP</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        stations.add(macTo, accesspoints.getID(accesspointNum));</span><br><span class="line">        <span class="comment">//macForm为AP了，那么macTo肯定为设备，我们将该设备的mac加入列表。</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;  <span class="comment">//如果AP数量为0，那么macTo是AP，macForm为设备，</span></span><br><span class="line">        accesspointNum = findAccesspoint(macTo);</span><br><span class="line">        <span class="comment">//这两个if判断谁是AP谁是设备，写的很垃圾</span></span><br><span class="line">        <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            stations.add(macFrom, accesspoints.getID(accesspointNum));</span><br><span class="line">            <span class="comment">//我们将该设备的mac加入列表。</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+<h6 id="OSI参考模型与TCP-IP参考模型的相同点"><a href="#OSI参考模型与TCP-IP参考模型的相同点" class="headerlink" title="OSI参考模型与TCP/IP参考模型的相同点"></a>OSI参考模型与TCP/IP参考模型的相同点</h6><p>​            1.都分层</p>
+<p>​            2.基于独立的协议栈的概念</p>
+<p>​            3可以实现异构网络互联</p>
+<h6 id="OSI参考模型与TCP-IP参考模型的不同点"><a href="#OSI参考模型与TCP-IP参考模型的不同点" class="headerlink" title="OSI参考模型与TCP/IP参考模型的不同点"></a>OSI参考模型与TCP/IP参考模型的不同点</h6><p>​            1.OSI定义三点：<strong>服务、协议、接口</strong></p>
+<p>​            2.OSI先出现，参考模型先于协议发明，不偏向特定协议</p>
+<p>​            3.TCP/IP设计之初就考虑到互联网异构问题，将IP作为重要层次</p>
+<p>​        <img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/11.png" class=""></p>
+<p>​            <strong>面向连接</strong>：第一是建立连接，发出一个建立连接的请求。第二阶段开始传输数据。最后传输完毕，必须释放连接。</p>
+<p>​            <strong>无连接</strong>：直接进行数据传输。</p>
+<h5 id="五层参考模型"><a href="#五层参考模型" class="headerlink" title="五层参考模型"></a>五层参考模型</h5><h5 id=""><a href="#" class="headerlink" title=""></a><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/12.png" class=""></h5><h4 id="5层参考模型的数据封装与解封装"><a href="#5层参考模型的数据封装与解封装" class="headerlink" title="5层参考模型的数据封装与解封装"></a>5层参考模型的数据封装与解封装</h4><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/13.png" class="">
 ]]></content>
       <categories>
-        <category>软件安全</category>
+        <category>计算机网络</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>进程管理</title>
+    <url>/2021/09/05/%E8%BF%9B%E7%A8%8B%E7%AE%A1%E7%90%86/</url>
+    <content><![CDATA[<h2 id="CPU管理的直观想法"><a href="#CPU管理的直观想法" class="headerlink" title="CPU管理的直观想法"></a>CPU管理的直观想法</h2><h3 id="管理CPU，先使用CPU"><a href="#管理CPU，先使用CPU" class="headerlink" title="管理CPU，先使用CPU"></a>管理CPU，先使用CPU</h3><ul>
+<li>CPU的工作原理<ul>
+<li>CPU上电以后发生了什么？<ul>
+<li>把一个程序存放到一个内存里，设置一个PC指向程序，使得CPU取指令，将指令从内存中取出。</li>
+<li>CPU解释执行这个指令。</li>
+</ul>
+</li>
+<li>CPU怎么工作？<ul>
+<li>不断的取值，执行</li>
+</ul>
+</li>
+<li>CPU怎么管理？<ul>
+<li>设置PC一个初值，PC自加，不断取值执行</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h3><p>IO指令比计算指令慢很多，且IO指令执行时不用CPU。如果线性处理，那么就无法使CPU一直忙碌。CPU的使用效率会很低。</p>
+<p><strong>所以</strong>，我们将在执行IO指令时，将CPU切到其他地方执行其他指令。等IO指令执行结束再返回来。</p>
+<p>这样，使得多个程序在内存中。</p>
+<h3 id="多道程序交替执行"><a href="#多道程序交替执行" class="headerlink" title="多道程序交替执行"></a>多道程序交替执行</h3><p><img src="35.png"></p>
+<p><img src="36.png"></p>
+<p>一个CPU上交替执行多个程序，成为<strong>并发</strong>。</p>
+<h3 id="只要修改PC就可以了吗？"><a href="#只要修改PC就可以了吗？" class="headerlink" title="只要修改PC就可以了吗？"></a>只要修改PC就可以了吗？</h3><ul>
+<li>要记录返回的地址，要记录上一个程序所需要的数据</li>
+<li>每个程序有了一个存放信息的结构：PCB</li>
+<li>运行的程序和静态程序不一样了…</li>
+</ul>
+<h3 id="进程"><a href="#进程" class="headerlink" title="进程"></a>进程</h3><ul>
+<li>运行的程序和静态程序不一样！<ul>
+<li>需要描述这些不一样</li>
+<li>程序+这些不一样的地方=》一个概念</li>
+</ul>
+</li>
+<li>进程是进行（执行）中的程序<ul>
+<li>进程有开始、有结束，程序没有</li>
+<li>进程会走走停停，程序没有</li>
+<li>进程需要记录当前状态，程序不用</li>
+<li>…</li>
+</ul>
+</li>
+</ul>
+<h2 id="多进程图像"><a href="#多进程图像" class="headerlink" title="多进程图像"></a>多进程图像</h2><h3 id="多个进程使用CPU的图像"><a href="#多个进程使用CPU的图像" class="headerlink" title="多个进程使用CPU的图像"></a>多个进程使用CPU的图像</h3><ul>
+<li>如何使用CPU<ul>
+<li>让程序执行起来</li>
+</ul>
+</li>
+<li>如何充分利用CPU<ul>
+<li>启动多个程序，交替执行</li>
+</ul>
+</li>
+<li>启动了的程序就是进程，所以是多个进程推进<ul>
+<li>操作系统只需要把这些进程<strong>记录</strong>好、要按照合理的次序推进（分配资源、进行调度）</li>
+</ul>
+</li>
+</ul>
+<p><img src="27.png"></p>
+<h3 id="多进程图像从启动开始到关机结束"><a href="#多进程图像从启动开始到关机结束" class="headerlink" title="多进程图像从启动开始到关机结束"></a>多进程图像从启动开始到关机结束</h3><ul>
+<li>main中的fork()创建了第一个进程<ul>
+<li>init执行了shell</li>
+</ul>
+</li>
+<li>shell再启动其他进程</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">scanf</span>(<span class="string">&quot;%s&quot;</span>,cmd);</span><br><span class="line">        <span class="keyword">if</span>(!fork())</span><br><span class="line">        &#123;</span><br><span class="line">            exec(cmd);</span><br><span class="line">		&#125;</span><br><span class="line">        wait();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="28.png"></p>
+<h3 id="多进程图像：多进程如何组织？"><a href="#多进程图像：多进程如何组织？" class="headerlink" title="多进程图像：多进程如何组织？"></a>多进程图像：多进程如何组织？</h3><ul>
+<li>有一个进程在执行（运行）<ul>
+<li><img src="29.png"></li>
+</ul>
+</li>
+<li>有一些进程等待执行（就绪）<ul>
+<li><img src="30.png"></li>
+</ul>
+</li>
+<li>有一些进程在等待某事件（阻塞）<ul>
+<li><img src="31.png"></li>
+</ul>
+</li>
+</ul>
+<h3 id="多进程的组织：PCB-状态-队列"><a href="#多进程的组织：PCB-状态-队列" class="headerlink" title="多进程的组织：PCB+状态+队列"></a>多进程的组织：PCB+状态+队列</h3><p>进程状态图：</p>
+<p><img src="32.png"></p>
+<ul>
+<li>它能给出进程生存期的清晰描述</li>
+<li>它是认识操作系统进程管理的一个窗口</li>
+</ul>
+<h3 id="多进程图像：多进程如何交替？"><a href="#多进程图像：多进程如何交替？" class="headerlink" title="多进程图像：多进程如何交替？"></a>多进程图像：多进程如何交替？</h3><ol>
+<li>启动磁盘读写；</li>
+<li>pCur.state=’W’;//阻塞态</li>
+<li>pCur放到DiskWaitQueue；</li>
+<li>schedule()</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">schedule()</span><br><span class="line">&#123;</span><br><span class="line">    pNew=getNext(ReadyQueue);</span><br><span class="line">    <span class="comment">//从就绪队列中找到下一个进程的PCB</span></span><br><span class="line">    switch_to(pCur,pNew);</span><br><span class="line">    <span class="comment">//将当前进程的PCB切换为当前PCB</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="交替的三个部分：队列操作-调度-切换"><a href="#交替的三个部分：队列操作-调度-切换" class="headerlink" title="交替的三个部分：队列操作+调度+切换"></a>交替的三个部分：队列操作+调度+切换</h3><ul>
+<li>进程调度，有很多种算法思想。</li>
+<li>FIFO？先来先调度<ul>
+<li>FIFO显然是公平的策略</li>
+<li>FIFO显然没有考虑进程执行的任务的区别</li>
+</ul>
+</li>
+<li>Priority？<ul>
+<li>优先级怎么设定？还可能使得进程饥饿</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">switch_to(pCur,pNew)&#123;</span><br><span class="line">    pCur.ax	= CPU.ax;</span><br><span class="line">    pCur.bx = CPU.bx;</span><br><span class="line">    ...</span><br><span class="line">    pCur.cs = CPU .cs;</span><br><span class="line">    pCur.retpc = CPU.pc;</span><br><span class="line">    <span class="comment">//将当前进程保存</span></span><br><span class="line">    CPU.ax = pNew.ax;</span><br><span class="line">    CPU.bx = pNew.bx;</span><br><span class="line">    ...</span><br><span class="line">    CPU.cs = pNew.cs;</span><br><span class="line">    CPU.retpc = pNew.pc;</span><br><span class="line">    <span class="comment">//将下一个进程的状态赋给CPU</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="多进程图像：多进程如何影响？"><a href="#多进程图像：多进程如何影响？" class="headerlink" title="多进程图像：多进程如何影响？"></a>多进程图像：多进程如何影响？</h3><ul>
+<li>多个 进程同时存在于内存会出现下面的问题<ul>
+<li><img src="33.png"></li>
+</ul>
+</li>
+<li>解决办法：限制对地址100的读写</li>
+<li>如何限制：多进程的地址空间分离，操作系统的内存管理</li>
+</ul>
+<p><img src="34.png"></p>
+<p>通过映射表将多个进程数据的地址分离开。</p>
+<h3 id="多进程图像：多进程如何合作？"><a href="#多进程图像：多进程如何合作？" class="headerlink" title="多进程图像：多进程如何合作？"></a>多进程图像：多进程如何合作？</h3><ul>
+<li>想象打印工作过程<ul>
+<li>应用程序提交打印任务</li>
+<li>打印任务被放进打印队列</li>
+<li>打印进程从队列中提取任务</li>
+<li>打印进程控制打印机打印</li>
+</ul>
+</li>
+</ul>
+<p>多个进程对同一个内存进行覆盖时，交替执行会乱套。</p>
+<h3 id="核心在于进程同步（合理的推进顺序）"><a href="#核心在于进程同步（合理的推进顺序）" class="headerlink" title="核心在于进程同步（合理的推进顺序）"></a>核心在于进程同步（合理的推进顺序）</h3><p>使得多个进程有一个合理的进程推进顺序，从而实现进程的合作。</p>
+<h2 id="用户级线程"><a href="#用户级线程" class="headerlink" title="用户级线程"></a>用户级线程</h2><p><img src="37.png"></p>
+<img src="38.png" style="zoom: 67%;" />
+
+<h3 id="是否可以资源不动而切换指令序列？"><a href="#是否可以资源不动而切换指令序列？" class="headerlink" title="是否可以资源不动而切换指令序列？"></a>是否可以资源不动而切换指令序列？</h3><ul>
+<li>进程=资源+指令执行序列<ul>
+<li>将资源和指令分开</li>
+<li>一个资源+多个指令执行序列</li>
+<li><img src="39.png"></li>
+</ul>
+</li>
+</ul>
+<p>我们只切换指令，而资源内存不用切换</p>
+<ul>
+<li>线程：保留了并发的优点，避免了进程切换代价</li>
+<li>实质就是映射表不变而PC指针变</li>
+</ul>
+<h3 id="多个执行序列-一个地址空间是否实用？"><a href="#多个执行序列-一个地址空间是否实用？" class="headerlink" title="多个执行序列+一个地址空间是否实用？"></a>多个执行序列+一个地址空间是否实用？</h3><ul>
+<li>一个网页浏览器<ul>
+<li>一个线程用来从服务器接收数据</li>
+<li>一个线程用来显示文本</li>
+<li>一个线程用来处理图片</li>
+<li>一个线程用来显示图片</li>
+</ul>
+</li>
+<li>这些线程需要共享资源吗？<ul>
+<li>接收数据都放在缓冲区里</li>
+<li>所有的文本、图片都显示在一个屏幕上</li>
+</ul>
+</li>
+</ul>
+<h3 id="开始实现这样的浏览器…"><a href="#开始实现这样的浏览器…" class="headerlink" title="开始实现这样的浏览器…"></a>开始实现这样的浏览器…</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">WebExplorer</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> URL[] = <span class="string">&quot;http://cms.hit.edu.cn&quot;</span>;</span><br><span class="line">    <span class="keyword">char</span> buffer[<span class="number">1000</span>];</span><br><span class="line">    <span class="comment">//创建两个线程</span></span><br><span class="line">    pthread_creat(..., Getdata, URL, buffer);</span><br><span class="line">    pthread_creat(..., Show, buffer);</span><br><span class="line">    </span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">GetData</span><span class="params">(<span class="keyword">char</span> *URL, <span class="keyword">char</span> *p)</span></span>&#123;...&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Show</span><span class="params">(<span class="keyword">char</span> *p)</span></span>&#123;...&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="40.png"></p>
+<h3 id="核心是Yield"><a href="#核心是Yield" class="headerlink" title="核心是Yield"></a>核心是Yield</h3><ul>
+<li>需要知道切换时进程的样子</li>
+<li>Create就是制造出第一次切换时的样子</li>
+</ul>
+<p><img src="42.png" alt="42"></p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="number">100</span>:A()</span><br><span class="line">&#123;</span><br><span class="line">    B();</span><br><span class="line">    <span class="number">104</span>:</span><br><span class="line">&#125;</span><br><span class="line"><span class="number">200</span>:B()</span><br><span class="line">&#123;</span><br><span class="line">    Yield();</span><br><span class="line">    <span class="number">204</span>:</span><br><span class="line">&#125;</span><br><span class="line"><span class="number">300</span>:C()</span><br><span class="line">&#123;</span><br><span class="line">    D();</span><br><span class="line">    <span class="number">304</span>:</span><br><span class="line">&#125;</span><br><span class="line"><span class="number">400</span>:D()</span><br><span class="line">&#123;</span><br><span class="line">    Yield();</span><br><span class="line">    <span class="number">404</span>:</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="42.png"></p>
+<h3 id="两个执行序列与一个栈"><a href="#两个执行序列与一个栈" class="headerlink" title="两个执行序列与一个栈"></a>两个执行序列与一个栈</h3><p><img src="41.png"></p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Yield</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    找到<span class="number">300</span>;</span><br><span class="line">    jmp <span class="number">300</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Yield</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    找到<span class="number">204</span>;</span><br><span class="line">    jmp <span class="number">204</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最后B()执行完，需要返回到A()，但目前栈中esp-&gt;404，会ret到D()中，从而出现问题。</p>
+<h3 id="解决方法：每个线程都要有自己的栈"><a href="#解决方法：每个线程都要有自己的栈" class="headerlink" title="解决方法：每个线程都要有自己的栈"></a>解决方法：每个线程都要有自己的栈</h3><p><img src="43.png"></p>
+<ul>
+<li>Yield切换要先切换栈</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Yield</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    TCB2.esp=esp;</span><br><span class="line">    esp=TCB1.esp;</span><br><span class="line">    <span class="comment">//jmp 204;*不需要用jmp，直接用栈中的204ret*</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="两个线程的样子：两个TCB、两个栈、切换的PC在栈中"><a href="#两个线程的样子：两个TCB、两个栈、切换的PC在栈中" class="headerlink" title="两个线程的样子：两个TCB、两个栈、切换的PC在栈中"></a>两个线程的样子：两个TCB、两个栈、切换的PC在栈中</h3><ul>
+<li>ThreadCreate的核心就是用程序做出这三样东西</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">ThreadCreate</span><span class="params">(A)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    TCB *tcb=<span class="built_in">malloc</span>();</span><br><span class="line">    *<span class="built_in">stack</span>=<span class="built_in">malloc</span>();</span><br><span class="line">    *<span class="built_in">stack</span>=A;</span><br><span class="line">    tcb.esp=<span class="built_in">stack</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="44.png"></p>
+<h3 id="用户级线程和内核级线程？"><a href="#用户级线程和内核级线程？" class="headerlink" title="用户级线程和内核级线程？"></a>用户级线程和内核级线程？</h3><p><img src="45.png"></p>
+<p>而如果进程1进入了内核，并且阻塞，则会进入进程2，进程1中的其他线程都会不执行。</p>
+<p><img src="46.png"></p>
+<h2 id="内核级线程"><a href="#内核级线程" class="headerlink" title="内核级线程"></a>内核级线程</h2><h3 id="和用户级相比，核心级线程有什么不同？"><a href="#和用户级相比，核心级线程有什么不同？" class="headerlink" title="和用户级相比，核心级线程有什么不同？"></a>和用户级相比，核心级线程有什么不同？</h3><ul>
+<li> ThreadCreate是系统调用，内核管理TCB，内核负责切换线程</li>
+<li>如何让切换成型？–内核栈，TCB<ul>
+<li>用户栈是否还要用？<ul>
+<li>执行的代码仍在用户态，还要进行函数调用</li>
+</ul>
+</li>
+<li>一个栈到一套栈；两个栈到两套栈</li>
+<li>TCB关联内核栈，那用户栈怎么办？<ul>
+<li>根据TCB切换一套栈</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="47.png"></p>
+<h3 id="用户栈和内核栈之间的关联"><a href="#用户栈和内核栈之间的关联" class="headerlink" title="用户栈和内核栈之间的关联"></a>用户栈和内核栈之间的关联</h3><p><img src="48.png"></p>
+<p>一旦INT中断启动，就启用内核栈。</p>
+<p>当中断结束IRET，回到用户栈。</p>
+<h3 id="看A-B-C-D"><a href="#看A-B-C-D" class="headerlink" title="看A()B()C()D()"></a>看A()B()C()D()</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="number">100</span>:A()&#123;</span><br><span class="line">    B();</span><br><span class="line">    <span class="number">104</span>:</span><br><span class="line">&#125;</span><br><span class="line"><span class="number">200</span>:B()&#123;</span><br><span class="line">    read();</span><br><span class="line">    <span class="number">204</span>:</span><br><span class="line">&#125;</span><br><span class="line"><span class="number">300</span>:read()&#123;</span><br><span class="line">    <span class="keyword">int</span> <span class="number">0x80</span>;</span><br><span class="line">    <span class="number">304</span>:</span><br><span class="line">&#125;</span><br><span class="line">system_call:</span><br><span class="line">	call sys_read;</span><br><span class="line"><span class="number">1000</span>:</span><br><span class="line"><span class="number">2000</span>:sys_read()&#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="49.png"></p>
+<h3 id="开始内核中的切换：switch-to"><a href="#开始内核中的切换：switch-to" class="headerlink" title="开始内核中的切换：switch_to"></a>开始内核中的切换：switch_to</h3><p><img src="50.png"></p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">sys_read()&#123;</span><br><span class="line">	启动磁盘读；</span><br><span class="line">    将自己变成阻塞；</span><br><span class="line">    找到next；</span><br><span class="line">    switch_to(cur,next);    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>switch_to</strong>:仍然是通过<strong>TCB</strong>找到内核栈指针；然后通过<strong>ret</strong>切到某个内核程序；最后再用<strong>CS:PC</strong>切到用户程序。</p>
+<h3 id="上面的？都是什么？"><a href="#上面的？都是什么？" class="headerlink" title="上面的？都是什么？"></a>上面的？都是什么？</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="number">100</span>:A()&#123;<span class="comment">//线程S代码</span></span><br><span class="line">    ...</span><br><span class="line">       <span class="keyword">int</span> <span class="number">0x80</span>;</span><br><span class="line">    ...</span><br><span class="line"><span class="number">2000</span>:sys_read()&#123;...&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>？？？:sys_read函数的函数的某个地方</li>
+<li>？？:中断之前的某个地方</li>
+<li>？？？:sys_xxx函数中的某个地方</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="number">500</span>:C()&#123;<span class="comment">//线程T代码</span></span><br><span class="line">    ...</span><br><span class="line">interrupt:</span><br><span class="line">    call sys_xxx;</span><br><span class="line"><span class="number">3000</span>:</span><br><span class="line"><span class="number">4000</span>:sys_xxx()&#123;...&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当T创建时：</p>
+<ul>
+<li>？？:500，函数C()的开始地址</li>
+<li>？？？？:一段能完成第二级返回的代码，一段包含iret的代码,从中断中返回</li>
+</ul>
+<h3 id="内核线程switch-to的五段论"><a href="#内核线程switch-to的五段论" class="headerlink" title="内核线程switch_to的五段论"></a>内核线程switch_to的五段论</h3><p><img src="51.png"></p>
+<p>第一级切换：</p>
+<p><img src="52.png"></p>
+<p>第二级切换：</p>
+<p><img src="53.png"></p>
+<p>最后，S、T非同一进程，所以还要进行地址切换。首先要切换地址映射表；</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">TCB[cur].ldtr = %ldtr</span><br><span class="line">%ldtr = TCB[next].ldtr</span><br><span class="line">    <span class="comment">//内存管理</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="ThreadCreate"><a href="#ThreadCreate" class="headerlink" title="ThreadCreate!"></a>ThreadCreate!</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">ThreadCreate</span><span class="params">(...)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    TCB tcb=get_free_page();</span><br><span class="line">    *krlstack=...;</span><br><span class="line">    *userstack传入;</span><br><span class="line">    填写两个<span class="built_in">stack</span>;</span><br><span class="line">    tcb.esp=krlstack;</span><br><span class="line">    tcb.状态=就绪;</span><br><span class="line">    tcb入队;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="用户级线程和核心级线程的对比"><a href="#用户级线程和核心级线程的对比" class="headerlink" title="用户级线程和核心级线程的对比"></a>用户级线程和核心级线程的对比</h3><p><img src="54.png"></p>
+<h2 id="内核级线程实现"><a href="#内核级线程实现" class="headerlink" title="内核级线程实现"></a>内核级线程实现</h2><h3 id="核心级线程的两套栈，核心是内核栈"><a href="#核心级线程的两套栈，核心是内核栈" class="headerlink" title="核心级线程的两套栈，核心是内核栈"></a>核心级线程的两套栈，核心是内核栈</h3><p><img src="55.png"></p>
+<h3 id="从进入内核开始，某个中断开始"><a href="#从进入内核开始，某个中断开始" class="headerlink" title="从进入内核开始，某个中断开始"></a>从进入内核开始，某个中断开始</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line">main()&#123;</span><br><span class="line">	A();</span><br><span class="line">    B();</span><br><span class="line">&#125;</span><br><span class="line">A()</span><br><span class="line">&#123;</span><br><span class="line">    fork();<span class="comment">//fork是系统调用，会引起中断</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p> <img src="56.png"></p>
+<p>一旦执行int指令，将找到内核栈，然后通过内核栈找到用户栈。</p>
+<h3 id="切换五段论的中断入口和中断出口"><a href="#切换五段论的中断入口和中断出口" class="headerlink" title="切换五段论的中断入口和中断出口"></a>切换五段论的中断入口和中断出口</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">sched_init</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    set_system_gate(<span class="number">0x80</span>,&amp;system_call);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>初始化时将各种中断处理设置好</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">_system_call:</span><br><span class="line">	push %ds..%fs</span><br><span class="line">	pushl %eax...</span><br><span class="line">	call sys_fork	#执行过程中可能引起切换</span><br><span class="line">	pushl %eax</span><br><span class="line">#将用户态的东西保存起来</span><br><span class="line">	movl _current,%eax	#当前PCB</span><br><span class="line">	cmpl $0,state(%eax)	#当前PCB的状态，0是运行或就绪，非0是阻塞</span><br><span class="line">	jne	reschedule	#阻塞则跳转reschedule，重新调度</span><br><span class="line">	cmpl $0,counter(%eax)	#当前PCB的时间片是否用完</span><br><span class="line">	je rechedule	#时间片用完也要进行调度</span><br><span class="line">ret_from_sys_call:</span><br><span class="line">	popl %eax	#返回值</span><br><span class="line">	popl %ebx	</span><br><span class="line">	...</span><br><span class="line">	pop %fs	</span><br><span class="line">	...</span><br><span class="line">	iret	#切换用户栈</span><br><span class="line">#中断返回函数</span><br><span class="line">reschedule:</span><br><span class="line">	push $ret_form_sys_call</span><br><span class="line">	jmp	_schedule</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">schedule</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    next=...;<span class="comment">//看调度算法给出下一给线程</span></span><br><span class="line">    switch_to(next);<span class="comment">//next是下一个线程的TCB</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> switch_to(n)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> &#123;</span><span class="keyword">long</span> a,b;&#125;</span><br><span class="line">    _asm_(</span><br><span class="line">    	<span class="string">&quot;movw %%dx,%1\n\t&quot;</span></span><br><span class="line">        <span class="string">&quot;ljmp %0\n\t&quot;</span>	<span class="comment">//长跳转指令，段与段之间的跳转</span></span><br><span class="line">        ::<span class="string">&quot;m&quot;</span>(*&amp;__tmp.a),</span><br><span class="line">        <span class="string">&quot;m&quot;</span>(*&amp;__tmp.b),</span><br><span class="line">        <span class="string">&quot;d&quot;</span>(_TSS(n))	<span class="comment">//n就是next，指向新的段</span></span><br><span class="line">    )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="57.png"></p>
+<h3 id="ThreadCreate-1"><a href="#ThreadCreate-1" class="headerlink" title="ThreadCreate"></a>ThreadCreate</h3><ul>
+<li>从_sys_fork开始ThreadCreate</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">_sys_fork:</span><br><span class="line">	push %gs</span><br><span class="line">	pushl %esi</span><br><span class="line">	...</span><br><span class="line">	pushl %eax</span><br><span class="line">	#将当前状态值都入栈</span><br><span class="line">	call _copy_process	#复制父进程的所有参数</span><br><span class="line">	addl $20,%esp</span><br><span class="line">	ret</span><br></pre></td></tr></table></figure>
+
+<h3 id="copy-process的细节：创建栈"><a href="#copy-process的细节：创建栈" class="headerlink" title="copy_process的细节：创建栈"></a>copy_process的细节：创建栈</h3><p><img src="58.png"></p>
+<p>创建TCB，初始化TSS</p>
+<p><img src="59.png"></p>
+<h3 id="copy-process的细节：执行前准备"><a href="#copy-process的细节：执行前准备" class="headerlink" title="copy_process的细节：执行前准备"></a>copy_process的细节：执行前准备</h3><p><img src="60.png"></p>
+<h3 id="如何执行我们想要的代码"><a href="#如何执行我们想要的代码" class="headerlink" title="如何执行我们想要的代码"></a>如何执行我们想要的代码</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc,<span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>)&#123;</span><br><span class="line">        <span class="built_in">scanf</span>(<span class="string">&quot;%s&quot;</span>,cmd);</span><br><span class="line">        <span class="keyword">if</span>(!fork())<span class="comment">//子进程的代码</span></span><br><span class="line">        &#123;</span><br><span class="line">            exec(cmd);</span><br><span class="line">        &#125;</span><br><span class="line">        wait(<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>fork()何时返回0，何时不会？<ul>
+<li><img src="61.png"></li>
+<li><img src="62.png"></li>
+<li>子进程里，eax被置为0，然后通过TSS找到了返回地址</li>
+<li>父进程里eax则非0</li>
+</ul>
+</li>
+</ul>
+<h3 id="结构：子进程进入A-父进程等待…"><a href="#结构：子进程进入A-父进程等待…" class="headerlink" title="结构：子进程进入A,父进程等待…"></a>结构：子进程进入A,父进程等待…</h3><ul>
+<li><p>关于exec这个系统调用</p>
+<ul>
+<li>```c<br>if(fork()){exec(cmd);}<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">```assembly</span><br><span class="line">_system_call:</span><br><span class="line">	push %ds..%fs</span><br><span class="line">	pushl %edx..</span><br><span class="line">	call sys_execve	</span><br><span class="line">_sys_execve:</span><br><span class="line">	lea EIP(%esp),%eax</span><br><span class="line">	pushl %eax	#将ret的地址（cmd指令的位置）压栈，当exec()在内核态iret时，找到这个地址，执行cmd指令</span><br><span class="line">	call _do_execve</span><br><span class="line">EIP = 0x1c</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ul>
+<p><img src="63.png"></p>
+<h3 id="让A执行"><a href="#让A执行" class="headerlink" title="让A执行"></a>让A执行</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">do_exec</span><span class="params">(* eip,...)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    p+=change_ldt(...);</span><br><span class="line">    eip[<span class="number">0</span>]=ex.a_entry;<span class="comment">//ex.a_entry是可执行程序入口地址，产生可执行文件时写入</span></span><br><span class="line">    eip[<span class="number">3</span>]=p;<span class="comment">//修改栈</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">exec</span>&#123;</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> a_magic;</span><br><span class="line">    <span class="keyword">unsigned</span> a_entry;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p><img src="64.png"></p>
+<h2 id="操作系统的那颗“树”"><a href="#操作系统的那颗“树”" class="headerlink" title="操作系统的那颗“树”"></a>操作系统的那颗“树”</h2><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span>	i,to,*fp,sum=<span class="number">0</span>;</span><br><span class="line">    to=atoi(argv[<span class="number">1</span>]);</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;=to;i++)</span><br><span class="line">    &#123;</span><br><span class="line">        sum=sum+i;</span><br><span class="line">        <span class="comment">//CPU工作了10毫秒</span></span><br><span class="line">        <span class="built_in">fprintf</span>(fp,<span class="string">&quot;%d&quot;</span>,sum);</span><br><span class="line">        <span class="comment">//CPU停留了10秒钟</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="得让CPU好好运转"><a href="#得让CPU好好运转" class="headerlink" title="得让CPU好好运转"></a>得让CPU好好运转</h3><p><img src="65.png"></p>
+<p><img src="66.png"></p>
+<h3 id="一个栈-Yield造成的混乱"><a href="#一个栈-Yield造成的混乱" class="headerlink" title="一个栈+Yield造成的混乱"></a>一个栈+Yield造成的混乱</h3><p><img src="67.png"></p>
+<h3 id="使用两个栈-两个用户TCB"><a href="#使用两个栈-两个用户TCB" class="headerlink" title="使用两个栈+两个用户TCB"></a>使用两个栈+两个用户TCB</h3><p><img src="68.png"></p>
+<p>Yield()找到下一个TCB—&gt;找到新的栈—&gt;切到新的栈</p>
+<h3 id="不能一直执行用户态"><a href="#不能一直执行用户态" class="headerlink" title="不能一直执行用户态"></a>不能一直执行用户态</h3><p><img src="69.png"></p>
+<p>如果进程1进入了内核，并且阻塞，则会进入进程2，进程1中的其他线程都会不执行。</p>
+<h3 id="引入内核栈的切换"><a href="#引入内核栈的切换" class="headerlink" title="引入内核栈的切换"></a>引入内核栈的切换</h3><p><img src="70.png"></p>
+<h3 id="目标：交替的打出A和B"><a href="#目标：交替的打出A和B" class="headerlink" title="目标：交替的打出A和B"></a>目标：交替的打出A和B</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line">#AB.<span class="function">c</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(!fork())&#123;<span class="keyword">while</span>(<span class="number">1</span>)<span class="built_in">printf</span>(<span class="string">&quot;A&quot;</span>);&#125;</span><br><span class="line">    <span class="keyword">if</span>(!fork())&#123;<span class="keyword">while</span>(<span class="number">1</span>)<span class="built_in">printf</span>(<span class="string">&quot;B&quot;</span>);&#125;</span><br><span class="line">    wait();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">main()&#123;</span><br><span class="line">	mov __NR_fork,%eax</span><br><span class="line">	int 0x80</span><br><span class="line">100:</span><br><span class="line">	mov %eax,res</span><br><span class="line">	cmpl res,0</span><br><span class="line">	jne 208</span><br><span class="line">200:</span><br><span class="line">	printf(&quot;A&quot;)</span><br><span class="line">208:</span><br><span class="line">	...</span><br><span class="line">304:</span><br><span class="line">	wait()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="INT进入内核"><a href="#INT进入内核" class="headerlink" title="INT进入内核"></a>INT进入内核</h3><p><img src="71.png"></p>
+<p><img src="72.png"></p>
+<h3 id="开始sys-fork"><a href="#开始sys-fork" class="headerlink" title="开始sys_fork"></a>开始sys_fork</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sys_fork:</span><br><span class="line">	push ...</span><br><span class="line">	call copy_process</span><br><span class="line">	ret</span><br></pre></td></tr></table></figure>
+
+<h3 id="开始copy-process"><a href="#开始copy-process" class="headerlink" title="开始copy_process"></a>开始copy_process</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">copy_process</span><span class="params">(...<span class="keyword">long</span> eip=<span class="number">100</span>,)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    p=(PCB *)get_free_page();</span><br><span class="line">    p-&gt;tss.esp0=p+<span class="number">4</span>k;</span><br><span class="line">    p-&gt;tss.esp=esp;</span><br><span class="line">    p-&gt;tss.eax=<span class="number">0</span>;</span><br><span class="line">    p-&gt;tss.eip=eip;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="73.png"></p>
+<h3 id="开始返回"><a href="#开始返回" class="headerlink" title="开始返回"></a>开始返回</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">copy_process()&#123;...&#125;</span><br><span class="line">sys_fork:</span><br><span class="line">	...</span><br><span class="line">	call copy_process</span><br><span class="line">	...</span><br><span class="line">	ret</span><br><span class="line">system_call:</span><br><span class="line">	...</span><br><span class="line">	call sys_call_table(,%eax,4)</span><br><span class="line">	cmpl $0,state(current)</span><br><span class="line">	jne reschedule</span><br><span class="line">	iret</span><br><span class="line">main:</span><br><span class="line">	int 0x80</span><br><span class="line">100:</span><br><span class="line">	mov %eax,res</span><br><span class="line">	cmpl res,0;</span><br></pre></td></tr></table></figure>
+
+<h3 id="main继续执行"><a href="#main继续执行" class="headerlink" title="main继续执行"></a>main继续执行</h3><p>又一次fork()，再一次int 0x80</p>
+<p>在内核中再产生一个PCB和内核栈…</p>
+<p><img src="74.png"></p>
+<p>???：是B()函数的执行地址</p>
+<h3 id="wait（）"><a href="#wait（）" class="headerlink" title="wait（）"></a>wait（）</h3><p>接下来，wait()函数，将父进程变成阻塞态。</p>
+<h3 id="schedule（）"><a href="#schedule（）" class="headerlink" title="schedule（）"></a>schedule（）</h3><p>父进程阻塞，将当前进程变成A或者B</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">schedule</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>((*P)-&gt;satae==TASK_RUNNING&amp;&amp;(*p)-&gt;counter&gt;c)</span><br><span class="line">    &#123;</span><br><span class="line">        c=(*p)-&gt;counter,next=i;</span><br><span class="line">    	...</span><br><span class="line">    &#125;</span><br><span class="line">     switch_to(next);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="swtich-to-切换"><a href="#swtich-to-切换" class="headerlink" title="swtich_to()切换"></a>swtich_to()切换</h3><p><img src="75.png"></p>
+<h3 id="怎么调度：时钟中断"><a href="#怎么调度：时钟中断" class="headerlink" title="怎么调度：时钟中断"></a>怎么调度：时钟中断</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">sched_init</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    set_intr_gate(<span class="number">0x20</span>,&amp;timer_interrupt);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">void _timer_interrupt:</span><br><span class="line">	...</span><br><span class="line">	call do_timer</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">do_timer</span><span class="params">(...)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>((--current)-&gt;counter&gt;<span class="number">0</span>)<span class="keyword">return</span>;</span><br><span class="line">    current-&gt;counter=<span class="number">0</span>;</span><br><span class="line">    schedule();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="CPU调度策略"><a href="#CPU调度策略" class="headerlink" title="CPU调度策略"></a>CPU调度策略</h2><h3 id="多进程图像与CPU调度"><a href="#多进程图像与CPU调度" class="headerlink" title="多进程图像与CPU调度"></a>多进程图像与CPU调度</h3><p><img src="76.png"></p>
+<h3 id="CPU调度（进程调度）的直观想法"><a href="#CPU调度（进程调度）的直观想法" class="headerlink" title="CPU调度（进程调度）的直观想法"></a>CPU调度（进程调度）的直观想法</h3><ol>
+<li>FIFO<ul>
+<li>先进先调度</li>
+<li>如果一个简单的任务也要等很久，就不太合理</li>
+</ul>
+</li>
+<li>Priority<ul>
+<li>任务短可以适当优先</li>
+<li>如果都是短任务，那么长任务就得不到处理</li>
+</ul>
+</li>
+</ol>
+<h3 id="如何设计调度算法使得进程满意"><a href="#如何设计调度算法使得进程满意" class="headerlink" title="如何设计调度算法使得进程满意"></a>如何设计调度算法使得进程满意</h3><ul>
+<li>尽快结束任务：周转时间短</li>
+<li>用户操作尽快响应：响应时间短</li>
+<li>系统内耗时间少：吞吐量大</li>
+</ul>
+<h3 id="需要折中处理"><a href="#需要折中处理" class="headerlink" title="需要折中处理"></a>需要折中处理</h3><ul>
+<li>吞吐量和响应时间之间有矛盾<ul>
+<li>响应时间小=》切换次数多=》系统内耗大=》吞吐量小</li>
+</ul>
+</li>
+<li>前台任务和后台任务的关注点不同<ul>
+<li>前台任务关注响应时间、后台任务关注周转时间</li>
+</ul>
+</li>
+<li>IO约束型任务和CPU约束型任务各有各的特点</li>
+</ul>
+<h3 id="各种基本调度算法"><a href="#各种基本调度算法" class="headerlink" title="各种基本调度算法"></a>各种基本调度算法</h3><h4 id="First-Come，First-Service（FCFS）"><a href="#First-Come，First-Service（FCFS）" class="headerlink" title="First Come，First Service（FCFS）"></a>First Come，First Service（FCFS）</h4><ul>
+<li>先来先服务</li>
+<li><img src="77.png"></li>
+<li>缺点：平均周转时间大。</li>
+</ul>
+<p>因为短的作业越前平均周转时间越短，长的作业越后平均周转时间越长。</p>
+<h4 id="SJF：短作业优先"><a href="#SJF：短作业优先" class="headerlink" title="SJF：短作业优先"></a>SJF：短作业优先</h4><ul>
+<li>平均周转时间最小</li>
+<li>响应时间无法控制，长作业要等好久才能执行</li>
+<li><img src="78.png"></li>
+</ul>
+<h4 id="RR：按时间片来轮转调度"><a href="#RR：按时间片来轮转调度" class="headerlink" title="RR：按时间片来轮转调度"></a>RR：按时间片来轮转调度</h4><p><img src="79.png"></p>
+<ul>
+<li>时间片大：响应时间太长；时间片小：吞吐量小</li>
+<li>折中：时间片10~100ms，切换时间0.1-1ms</li>
+</ul>
+<h4 id="一个调度算法怎样让多种类型任务同时满意"><a href="#一个调度算法怎样让多种类型任务同时满意" class="headerlink" title="一个调度算法怎样让多种类型任务同时满意"></a>一个调度算法怎样让多种类型任务同时满意</h4><p>直观想法：定义前台任务和后台任务两队列，前台RR，后台SJF。只有当没有前台任务，才调度后台任务。</p>
+<p><img src="80.png"></p>
+<p>如果一直有前台任务，那么怎么办？</p>
+<h3 id="饥饿"><a href="#饥饿" class="headerlink" title="饥饿"></a>饥饿</h3><ul>
+<li>如果后台任务长时间没有运行，就会饥饿，提高其优先级。</li>
+</ul>
+<p>让后台任务优先级动态升高，但后台任务（用SJF调度）一旦执行，前台任务就不能很快的响应。</p>
+<p>前后台任务都用时间片，后台任务的SJF如何体现？</p>
+<h3 id="其他问题"><a href="#其他问题" class="headerlink" title="其他问题"></a>其他问题</h3><p>如何知道哪些是前台任务，哪些是后台任务，fork时能告诉我们吗？</p>
+<p>gcc就一点不需要交互吗？word就不会执行一段批处理吗？</p>
+<p>SJF中的短作业优先如何体现？如何判断作业的长度？</p>
+<h2 id="一个实际的schedule函数"><a href="#一个实际的schedule函数" class="headerlink" title="一个实际的schedule函数"></a>一个实际的schedule函数</h2><p>void schedule（）：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">	c = <span class="number">-1</span>;</span><br><span class="line">	next = <span class="number">0</span>;</span><br><span class="line">	i = NR_TASKS;</span><br><span class="line">       </span><br><span class="line">	p = &amp;task[NR_TASKS];<span class="comment">//讲从任务列表末尾开始</span></span><br><span class="line">	<span class="keyword">while</span> (--i) &#123;		<span class="comment">//向前移动</span></span><br><span class="line">		<span class="keyword">if</span> (!*--p)</span><br><span class="line">			<span class="keyword">continue</span>;</span><br><span class="line">		<span class="keyword">if</span> ((*p)-&gt;state == TASK_RUNNING &amp;&amp; (*p)-&gt;counter &gt; c)</span><br><span class="line">			c = (*p)-&gt;counter, next = i;</span><br><span class="line">	&#125;<span class="comment">//求大的counter（优先级）（时间片）</span></span><br><span class="line">	<span class="keyword">if</span> (c) <span class="keyword">break</span>;</span><br><span class="line">       <span class="comment">//如果c==0，重置一下counter</span></span><br><span class="line">       <span class="comment">/*</span></span><br><span class="line"><span class="comment">       1.当不存在就绪态进程后，c=-1，执行for循环</span></span><br><span class="line"><span class="comment">       2.for循环使就绪态进程（counter=0）=priority，而使得阻塞态进程counter&gt;priority。这样使得等待时间越长的进程优先级越高</span></span><br><span class="line"><span class="comment">       3.当阻塞态就绪后，会立即获得高优先级</span></span><br><span class="line"><span class="comment">       */</span></span><br><span class="line">	<span class="keyword">for</span>(p = &amp;LAST_TASK ; p &gt; &amp;FIRST_TASK ; --p)</span><br><span class="line">		<span class="keyword">if</span> (*p)</span><br><span class="line">			(*p)-&gt;counter = ((*p)-&gt;counter &gt;&gt; <span class="number">1</span>) +</span><br><span class="line">					(*p)-&gt;priority;</span><br><span class="line">&#125;</span><br><span class="line">switch_to(next); </span><br></pre></td></tr></table></figure>
+
+<h3 id="counter的作用：时间片"><a href="#counter的作用：时间片" class="headerlink" title="counter的作用：时间片"></a>counter的作用：时间片</h3><p>void do_timer(…)</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> ((--current-&gt;counter)&gt;<span class="number">0</span>) <span class="keyword">return</span>;</span><br><span class="line">	current-&gt;counter=<span class="number">0</span>;</span><br><span class="line">	schedule();</span><br></pre></td></tr></table></figure>
+
+<p>每次都让counter–，直到等于0时切换任务</p>
+<h3 id="counter的作用：优先级"><a href="#counter的作用：优先级" class="headerlink" title="counter的作用：优先级"></a>counter的作用：优先级</h3><p>每次找counter最大的调度，counter表现了优先级。</p>
+<p>这个优先级可以不断的动态调整。I/O操作具有前台进程的特征，具有高优先级。</p>
+<h3 id="counter作用的整理"><a href="#counter作用的整理" class="headerlink" title="counter作用的整理"></a>counter作用的整理</h3><ul>
+<li>counter保证了响应时间的界限</li>
+<li>经过I/O以后，counter就会变大；I/O时间越长，counter越大。从而照顾了前台进程。</li>
+<li>后台进程一直按照counter轮转，近似SJF调度</li>
+<li>每个进程只维护一个counter变量，简单高效</li>
+</ul>
+<h2 id="进程同步与信号量"><a href="#进程同步与信号量" class="headerlink" title="进程同步与信号量"></a>进程同步与信号量</h2><h3 id="进程合作：多进程共同完成一个任务"><a href="#进程合作：多进程共同完成一个任务" class="headerlink" title="进程合作：多进程共同完成一个任务"></a>进程合作：多进程共同完成一个任务</h3><p><img src="81.png"></p>
+<h3 id="生产者-消费者实例"><a href="#生产者-消费者实例" class="headerlink" title="生产者-消费者实例"></a>生产者-消费者实例</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//共享数据</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> BUFFER_SIZE 10</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span>&#123;</span>...&#125;item;</span><br><span class="line">item buffer[BUFFER_SIZE];</span><br><span class="line"><span class="keyword">int</span> in=out=counter=<span class="number">0</span>;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//生产者进程</span></span><br><span class="line"><span class="keyword">while</span>(<span class="literal">true</span>)&#123;</span><br><span class="line">    <span class="keyword">while</span>(counter==BUFFER_SIZE)</span><br><span class="line">        ;<span class="comment">//缓存区满，生产者要停</span></span><br><span class="line">    buffer[in]=item;</span><br><span class="line">    in=(in+<span class="number">1</span>)%BUFFER_SIZE;</span><br><span class="line">    counter++;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//消费者进程</span></span><br><span class="line"><span class="keyword">while</span>(<span class="literal">true</span>)&#123;</span><br><span class="line">    <span class="keyword">while</span>(counter==<span class="number">0</span>)</span><br><span class="line">        ;<span class="comment">//缓存区空，消费者要停</span></span><br><span class="line">    item=buffer[out];</span><br><span class="line">    out=(out+<span class="number">1</span>)%BUFFER_SIZE;</span><br><span class="line">    counter--;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过进程同步来保证多进程合作的合理有序。</p>
+<h3 id="只发信号还不够"><a href="#只发信号还不够" class="headerlink" title="只发信号还不够"></a>只发信号还不够</h3><p><img src="82.png"></p>
+<ol>
+<li>缓冲区满以后生产者P1生产一个item放入，会sleep</li>
+<li>又一个生产者P2生产一个item放入，会sleep</li>
+<li>消费者C执行1次循环，counter=BUFFER_SIZE-1，发信号给P1，P1wakeup</li>
+<li>消费者C再执行1次循环，counter=BUFFER_SIZE-2 ,P2不能被唤醒</li>
+</ol>
+<ul>
+<li>问题的关键在于消费者仅仅是在缓冲区满的时候知道有生产者在等待</li>
+<li>也就是sleep了两个进程，而wakeup的时候只能唤醒一个进程，p2永远不会唤醒</li>
+</ul>
+<h3 id="从信号到信号量"><a href="#从信号到信号量" class="headerlink" title="从信号到信号量"></a>从信号到信号量</h3><p>不只是等待信号和发信号？对应睡眠和唤醒</p>
+<p>还应该记录一些其他信息</p>
+<ul>
+<li>能记录有几个进程在睡眠中需要被唤醒<ol>
+<li>缓冲区满，P1执行，P1sleep，记录下1个进程等待</li>
+<li>P2执行，P2sleep，记录下2个进程等待</li>
+<li>C执行一次循环，发现2个进程等待，wakeup1个</li>
+<li>C再执行1次循环，发现1个进程等待，wakeup1个</li>
+</ol>
+</li>
+</ul>
+<h3 id="信号量开始工作。。。"><a href="#信号量开始工作。。。" class="headerlink" title="信号量开始工作。。。"></a>信号量开始工作。。。</h3><ol>
+<li>缓冲区满，P1执行，P1sleep，sem=-1</li>
+<li>P2执行，P2sleep，sem=-2</li>
+<li>C执行1次循环，wakeup P1，sem=-1</li>
+<li>C再执行一次循环，wakeup P2，sem=0</li>
+<li>C再执行一次循环，sem=1</li>
+<li>P3执行，sem=0</li>
+</ol>
+<p><img src="83.png"></p>
+<p><img src="84.png"></p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">V(semaphore s)</span><br><span class="line">&#123;</span><br><span class="line">    s.value++;</span><br><span class="line">    <span class="keyword">if</span>(s.value &lt;= <span class="number">0</span>)</span><br><span class="line">        wakeup(s.<span class="built_in">queue</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="用信号量解生产者-消费者问题"><a href="#用信号量解生产者-消费者问题" class="headerlink" title="用信号量解生产者-消费者问题"></a>用信号量解生产者-消费者问题</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//用文件定义共享缓冲区</span></span><br><span class="line"><span class="keyword">int</span> fd = open(<span class="string">&quot;buffer.txt&quot;</span>);</span><br><span class="line">write(fd, <span class="number">0</span>, <span class="keyword">sizeof</span>(<span class="keyword">int</span>));</span><br><span class="line">write(fd, <span class="number">0</span>, <span class="keyword">sizeof</span>(<span class="keyword">int</span>));</span><br><span class="line"><span class="comment">//信号量的定义和初始化</span></span><br><span class="line">semaphore full=<span class="number">0</span>;</span><br><span class="line">semaphore empty=BUFFER_SIZE;</span><br><span class="line">semaphore mutex=<span class="number">1</span>;</span><br><span class="line"><span class="comment">/*实现互斥，P(mutex)将mutex置为0，其他进程就没法进入缓冲区，V(mutex)再置为1，其他进程就可以进入缓冲区。*/</span></span><br><span class="line"></span><br><span class="line">Producer(item)&#123;</span><br><span class="line">    P(empty);<span class="comment">//缓冲区是否满了,满了停止写入</span></span><br><span class="line">    P(mutex);</span><br><span class="line">    读入in;</span><br><span class="line">    将item写入到in的位置上;</span><br><span class="line">    V(mutex);</span><br><span class="line">    V(full);<span class="comment">//生产者增加内容full++</span></span><br><span class="line">&#125;</span><br><span class="line">Consumer()&#123;</span><br><span class="line">    P(full);<span class="comment">//生产的内容为0，就阻塞，否则full--</span></span><br><span class="line">    P(mutex);</span><br><span class="line">    读入out;</span><br><span class="line">    从文件中的out位置读出到item;</span><br><span class="line">    打印item;</span><br><span class="line">	V(mutex);</span><br><span class="line">    V(empty);<span class="comment">//缓冲区是否为空，空了停止读出</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="信号量临界区保护"><a href="#信号量临界区保护" class="headerlink" title="信号量临界区保护"></a>信号量临界区保护</h2><p>上述方案，在进程切换的过程中，可能会发生信号还没修改就进入了另一个进程从而导致语义错误。</p>
+<h3 id="竞争条件（RaceCondition）"><a href="#竞争条件（RaceCondition）" class="headerlink" title="竞争条件（RaceCondition）"></a>竞争条件（RaceCondition）</h3><p>竞争条件：和调度有关的共享数据语义错误。</p>
+<ul>
+<li>错误由多个进程并发操作共享数据引起</li>
+<li>错误和调度顺序有关，难于发现和调试</li>
+</ul>
+<h3 id="解决竞争条件的直观想法"><a href="#解决竞争条件的直观想法" class="headerlink" title="解决竞争条件的直观想法"></a>解决竞争条件的直观想法</h3><ul>
+<li><p>在写共享变量empty时阻止其他进程访问empty</p>
+<ul>
+<li>生产者P1：检查并给empty上锁</li>
+<li>生产者P2：检查empty的锁</li>
+<li>生产者P1：给empty开锁</li>
+<li>生产者P2：检查并给empty上锁</li>
+<li>生产者P2：给empty开锁</li>
+</ul>
+</li>
+<li><p>临界区：一次只允许一个进程进入的该进程的那一段代码</p>
+<ul>
+<li><img src="85.png"></li>
+<li>一个非常重要的工作：找出进程中的临界区代码（读写信号量的代码必须是临界区）</li>
+</ul>
+</li>
+</ul>
+<p><img src="86.png"></p>
+<h3 id="临界区代码的保护原则"><a href="#临界区代码的保护原则" class="headerlink" title="临界区代码的保护原则"></a>临界区代码的保护原则</h3><ul>
+<li>基本原则：<strong>互斥进入</strong>：如果一个进程在临界区中执行，则其他进程不允许进入<ul>
+<li>这些进程间的约束条件称为互斥</li>
+<li>这保证了是临界区</li>
+</ul>
+</li>
+<li>好的临界区保护原则：<ul>
+<li><strong>有空让进</strong></li>
+<li><strong>有限等待</strong></li>
+</ul>
+</li>
+</ul>
+<h3 id="进入临界区的第一个尝试-轮换法"><a href="#进入临界区的第一个尝试-轮换法" class="headerlink" title="进入临界区的第一个尝试-轮换法"></a>进入临界区的第一个尝试-轮换法</h3><p><img src="87.png"></p>
+<ul>
+<li> 满足互斥进入要求</li>
+<li> 轮换的时候，如果有进程在进入前阻塞，那么现在临界区有空，但另一个进程想进也进不去。</li>
+</ul>
+<h3 id="又一个尝试-标记法"><a href="#又一个尝试-标记法" class="headerlink" title="又一个尝试-标记法"></a>又一个尝试-标记法</h3><p><img src="88.png"></p>
+<ul>
+<li> 满足互斥进入要求</li>
+<li> 但是，当进程调度过程中会导致两个flag都为1，P0和P1无限等待。</li>
+</ul>
+<h3 id="非对称标记Peterson算法"><a href="#非对称标记Peterson算法" class="headerlink" title="非对称标记Peterson算法"></a>非对称标记Peterson算法</h3><ul>
+<li>带名字的便条+让一个进程更加优先</li>
+</ul>
+<p><img src="89.png"></p>
+<ul>
+<li>满足有空让进：如果进程P1不在临界区，则flag[1]=false或turn=0，P0都能进入。</li>
+<li>满足有限等待：P0要求进入，flag[0]=true;后面的P1不可能一直进入，因为P1执行一次就会让turn=0。</li>
+</ul>
+<h3 id="多进程怎么办？面包店算法"><a href="#多进程怎么办？面包店算法" class="headerlink" title="多进程怎么办？面包店算法"></a>多进程怎么办？面包店算法</h3><ul>
+<li>如何轮转：每个进程都获得一个序号，序号最小的进入</li>
+<li>如何标记：进程离开时序号为0，不为0的序号即标记</li>
+</ul>
+<p><img src="90.png"></p>
+<p>面包店算法：每个进入商店的客户都获得一个号码，号码最小的先得到服务；号码相同时，名字靠前的先服务。</p>
+<ul>
+<li>互斥进入：总是号最小的进入</li>
+<li>有空让进：如果没有进程在临界区，最小序号的进程一定能进入</li>
+<li>有限等待：离开临界区的进程再次区号一定排在最后。所有有一个FIFO的思想</li>
+</ul>
+<h3 id="临界区保护的另一类解法"><a href="#临界区保护的另一类解法" class="headerlink" title="临界区保护的另一类解法"></a>临界区保护的另一类解法</h3><ul>
+<li><p>再想一下临界区：只允许一个进程进入，进入另一个进程意味着什么？</p>
+<ul>
+<li><p>被调度：另一个进程只有被调度才能执行，才可能进入临界区，如何阻止调度？</p>
+<ul>
+<li><p>关闭中断</p>
+</li>
+<li><p>```C<br>cli();</p>
+<pre><code>临界区
+</code></pre>
+<p>sti();</p>
+<pre><code>剩余区    
+</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">    - 多核CPU就不能这样操作</span><br><span class="line"></span><br><span class="line">      - 只能关闭一个CPU的终端，另一个CPU还能正常操作</span><br><span class="line"></span><br><span class="line">- 硬件原子指令法</span><br><span class="line"></span><br><span class="line">  - ```c</span><br><span class="line">    boolean TestAndSet(boolean &amp;x)</span><br><span class="line">    //只能有一个进程调用这个函数</span><br><span class="line">    &#123;</span><br><span class="line">        boolean rv=x;</span><br><span class="line">        x=true;//在进入临界区的瞬间，将lock锁上</span><br><span class="line">        return rv</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p>```c<br>while(TestAndSet(&amp;lock));<br>//临界区<br>lock=false;<br>//剩余区</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">    </span><br><span class="line"></span><br><span class="line">## 信号量的代码实现</span><br><span class="line"></span><br><span class="line">```c</span><br><span class="line">//producer.c</span><br><span class="line">sd=sem_open(&quot;empty&quot;);</span><br><span class="line">for(i=1 to 5)&#123;</span><br><span class="line">    sem_wait(sd);</span><br><span class="line">    write(fd,&amp;i,4);</span><br><span class="line">&#125;</span><br><span class="line">//sem.c</span><br><span class="line">typedef struct&#123;</span><br><span class="line">    char name[20];</span><br><span class="line">    int value;</span><br><span class="line">    task_struct *queue;</span><br><span class="line">&#125;semtable[20];</span><br><span class="line">sys_sem_open(char *name)&#123;</span><br><span class="line">    在semtable中寻找name对应的；</span><br><span class="line">    没有则创建；</span><br><span class="line">    返回对应的下标</span><br><span class="line">&#125;</span><br><span class="line">sys_sem_wait(int sd)&#123;</span><br><span class="line">    cli();</span><br><span class="line">    if(semtable[sd].value-- &lt; 0)&#123;</span><br><span class="line">        设置自己为阻塞;</span><br><span class="line">        将自己加入semtable[sd].queue中;</span><br><span class="line">        schedule();</span><br><span class="line">    &#125;</span><br><span class="line">    sti();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ul>
+<h3 id="从Linux0-11中学点东西"><a href="#从Linux0-11中学点东西" class="headerlink" title="从Linux0.11中学点东西"></a>从Linux0.11中学点东西</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//读磁盘块</span></span><br><span class="line">bread(<span class="keyword">int</span> dev , <span class="keyword">int</span> block)&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">buffer_head</span> *<span class="title">bh</span>;</span>	<span class="comment">//申请一个空闲缓冲区</span></span><br><span class="line">    ll_rw_block(READ,bh);	<span class="comment">//读</span></span><br><span class="line">    wait_on_buffer(bh);		<span class="comment">//阻塞</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//启动磁盘读以后睡眠。等待磁盘读完由磁盘中断将其唤醒。也是一种同步</span></span><br><span class="line">lock_buffer(buffer_head* bh)&#123;</span><br><span class="line">    cli();</span><br><span class="line">    <span class="keyword">while</span>(bh-&gt;b_lock)<span class="comment">//在阻塞队列全部进程唤醒后，按schedule()找一个进程进入磁盘并上锁，其他进程再次阻塞。</span></span><br><span class="line">        sleep_on(&amp;bh-&gt;b_wait）;</span><br><span class="line">    bh-&gt;b_lock = <span class="number">1</span>;<span class="comment">//上锁</span></span><br><span class="line">    sti();</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">void</span> sleep_on(struct task_struct **p)&#123;<span class="comment">//传入等待队列队首的指针</span></span><br><span class="line">    struct task_struct *tmp;</span><br><span class="line">    <span class="comment">//世界上最隐蔽的队列</span></span><br><span class="line">    tmp = *p;		<span class="comment">//在下面进程切换的过程中会切换栈，而tmp在栈中，作为局部变量，可以通过tmp找到下一个PCB，构成一个隐蔽的队列</span></span><br><span class="line">    *p = current;</span><br><span class="line">    <span class="comment">//将自己放入阻塞队列</span></span><br><span class="line">    current-&gt;state = TASK_UNINTERRUPTIBLE;</span><br><span class="line">    schedule();</span><br><span class="line">    <span class="keyword">if</span>(tmp)			<span class="comment">//链式唤醒，一次性全部唤醒，然后由schedule来决定唤醒哪一个进程，</span></span><br><span class="line">        tmp-&gt;state=<span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="94.png"></p>
+<h3 id="如何从Linux0-11的这个队列中唤醒？"><a href="#如何从Linux0-11的这个队列中唤醒？" class="headerlink" title="如何从Linux0.11的这个队列中唤醒？"></a>如何从Linux0.11的这个队列中唤醒？</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">read_intr</span><span class="params">(<span class="keyword">void</span>)</span></span>&#123;	<span class="comment">//磁盘中断</span></span><br><span class="line">  	...</span><br><span class="line">    end_request(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line">end_request(<span class="keyword">int</span> uptodate)&#123;</span><br><span class="line">    ...</span><br><span class="line">    unlock_buffer(current-&gt;bh)</span><br><span class="line">&#125;</span><br><span class="line">unlock_buffer(struct buffer_head * bh)&#123;</span><br><span class="line">    bh-&gt;b_lock=<span class="number">0</span>;</span><br><span class="line">    wake_up(&amp;bh-&gt;b_wait);</span><br><span class="line">&#125;</span><br><span class="line">wake_up(struct task_struct **p)&#123;	<span class="comment">//传入阻塞队列队首</span></span><br><span class="line">    <span class="keyword">if</span>(p &amp;&amp; *p)&#123;</span><br><span class="line">        (**p).state=<span class="number">0</span>;				<span class="comment">//队首指向的进程唤醒</span></span><br><span class="line">        *p=<span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="死锁处理"><a href="#死锁处理" class="headerlink" title="死锁处理"></a>死锁处理</h2><h3 id="如果信号量这样使用"><a href="#如果信号量这样使用" class="headerlink" title="如果信号量这样使用"></a>如果信号量这样使用</h3><p><img src="91.png"></p>
+<p>将进入区代码，先mutex再empty，先mutex再full</p>
+<p>生产者在P（empty）时，需要等待消费者V（empty）,而消费者却在P(mutex)，导致互相等待对方。</p>
+<p>死锁：多个进程由于等待对方持有的资源而造成的谁都无法执行的情况。</p>
+<p><img src="92.png"></p>
+<h3 id="造成死锁的原因"><a href="#造成死锁的原因" class="headerlink" title="造成死锁的原因"></a>造成死锁的原因</h3><ul>
+<li>资源互斥使用，一旦占有别人无法使用（互斥使用）</li>
+<li>进程占有了一些资源，又不释放，还要再去申请其他资源（不可抢占）</li>
+<li>进程必须占有资源，再去申请（请求和保持）</li>
+<li>循环等待（资源分配图中存在一个环路）<ul>
+<li>各自占有的资源和互相申请的资源形成了环路等待</li>
+</ul>
+</li>
+</ul>
+<h3 id="死锁预防"><a href="#死锁预防" class="headerlink" title="死锁预防"></a>死锁预防</h3><ul>
+<li>在进程执行前，一次性申请所有需要的资源，不会占有资源再去申请。<ul>
+<li>需要预知未来，编程困难</li>
+<li>许多资源分配后很长时间才使用， 资源利用率低</li>
+</ul>
+</li>
+<li>对资源类型进行排序，资源申请必须按序进行，不会出现环路<ul>
+<li>仍然造成资源的浪费</li>
+</ul>
+</li>
+</ul>
+<h3 id="死锁避免"><a href="#死锁避免" class="headerlink" title="死锁避免"></a>死锁避免</h3><ul>
+<li><p>如果系统中的所有进程存在一个可完成的执行序列P1….Pn，则称系统处于安全状态。</p>
+</li>
+<li><p>安全序列：上面的执行序列</p>
+<ul>
+<li><img src="93.png"></li>
+<li>P1、P3、P2、P4、P0</li>
+</ul>
+</li>
+<li><p>银行家算法</p>
+<ul>
+<li><pre><code class="c">int Available[1..m];
+int Allocation[1..n,1..m];
+int Need[1..n,1..m];
+int Work[1..n,1..m];
+bool Finish[1..n];
+
+Work = Available;Finish[1..n] = false;
+while(true)&#123;
+    for(int i=0;i&lt;n;i++)&#123;
+        if(Finish[i]==false &amp;&amp; Need[i]&lt;=Work)&#123;
+            Work = Work + Allocation[i];
+            Finish[i] = true;
+            break;
+        &#125;
+        else &#123; goto end;&#125;
+    &#125;
+&#125;
+end:    for(i=0;i&lt;n;i++)
+            if(Finish[i]==false)
+                return deadlock;
+</code></pre>
+<p>T(n)=O(m*n^2)</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="死锁检测-恢复"><a href="#死锁检测-恢复" class="headerlink" title="死锁检测+恢复"></a>死锁检测+恢复</h3><ul>
+<li>恢复很不容易，进程的改变很难恢复</li>
+</ul>
+<h3 id="死锁忽略"><a href="#死锁忽略" class="headerlink" title="死锁忽略"></a>死锁忽略</h3><ul>
+<li>死锁出现不是确定的，又可以用重启动来处理死锁</li>
+</ul>
+]]></content>
+      <categories>
+        <category>操作系统</category>
       </categories>
   </entry>
 </search>
