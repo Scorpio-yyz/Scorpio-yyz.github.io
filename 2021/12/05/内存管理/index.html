@@ -96,7 +96,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">1.5k</span>
+            <span class="post-count">1.6k</span>
         </span>
     </span>
 
@@ -256,11 +256,19 @@
 <li>段内存请求来到后，算一下需要几页的内存，然后将内存一页一页地分配给这个段。</li>
 <li>这样一来有页内部碎片，但没有页外部碎片</li>
 </ul>
-<h3 id="页已经载入了内存，那么"><a href="#页已经载入了内存，那么" class="headerlink" title="页已经载入了内存，那么"></a>页已经载入了内存，那么</h3><p>程序调用内存，需要通过偏移地址，找到对应的页框，而页内的地址需要重定位。</p>
+<h3 id="页已经载入了内存，那么"><a href="#页已经载入了内存，那么" class="headerlink" title="页已经载入了内存，那么"></a>页已经载入了内存，那么</h3><p>程序调用内存，需要通过偏移地址，找到对应的页号（页框），而页内的地址需要重定位。</p>
 <img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/113.png" class="">
 
 <p>每个进程都有自己的页表：</p>
 <img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/114.png" class="">
+
+<p>若有一指令：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mov [0x2240],	%eax</span><br></pre></td></tr></table></figure>
+
+<p>则需要将0x2240除以4K（假设的页大小），然后得到页号（商）和页内偏移地址（余数）</p>
+<p>计算机内的除4K即右移12位，所有地址后12位是偏移地址，前4位是页号。</p>
+<p>逻辑地址：0x2240，0x2是页号找到页框号（0x3），0x240是页内偏移地址</p>
+<p>得到物理地址：0x3240</p>
  
       <!-- reward -->
       
