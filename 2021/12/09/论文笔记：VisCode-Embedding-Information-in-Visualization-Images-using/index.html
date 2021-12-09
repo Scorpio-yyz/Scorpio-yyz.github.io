@@ -11,7 +11,7 @@
         name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1"
       />
-      <title>VisCode: Embedding Information in Visualization Images using |  Scorpio-yyz</title>
+      <title>VisCode: Embedding Information in Visualization Images using 论文笔记 |  Scorpio-yyz</title>
   <meta name="generator" content="hexo-theme-ayer">
       
       <link rel="shortcut icon" href="/favicon.ico" />
@@ -76,7 +76,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  VisCode: Embedding Information in Visualization Images using
+  VisCode: Embedding Information in Visualization Images using 论文笔记
 </h1>
  
 
@@ -96,7 +96,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">887</span>
+            <span class="post-count">911</span>
         </span>
     </span>
 
@@ -137,7 +137,10 @@
 <h3 id="如何得到一个数据集？"><a href="#如何得到一个数据集？" class="headerlink" title="如何得到一个数据集？"></a>如何得到一个数据集？</h3><p>​        Bylinskii等人的启发，我们利用基于带有<strong>眼动注释</strong>（<strong>人看一张图是眼球的聚焦点</strong>）的MASSVIS数据集建立了一个预测模型。</p>
 <p>​        因此，为了获得更准确的高层次语义上下文信息和更低层次的细节信息，我们使用混合训练，又人工对每个像素点进行注释，标注了其重要性。</p>
 <p>​        在上述两种预测模型的混合训练下，我们得到结果：</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/5.png" class="">a是输入的两个图像，b是用Bylinskii预测模型建的结果，c是人工注释后的结果，d是我们混合两种模型得到的重要性地图。
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/5.png" class="">
+
+<p>​        a是输入的两个图像，b是用Bylinskii预测模型建的结果，c是人工注释后的结果，d是我们混合两种模型得到的重要性地图。</p>
+<p>​        这样我们就训练出了一个能输出视觉重要性地图的模型。</p>
  
       <!-- reward -->
       
