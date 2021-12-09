@@ -96,7 +96,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">911</span>
+            <span class="post-count">1.4k</span>
         </span>
     </span>
 
@@ -105,7 +105,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">3 min</span>
+            <span class="post-count">4 min</span>
         </span>
     </span>
 </div>
@@ -121,7 +121,7 @@
     <div class="article-entry" itemprop="articleBody">
        
   <h1 id="VisCode-使用编码器-解码器网络在可视化图像中嵌入信息"><a href="#VisCode-使用编码器-解码器网络在可视化图像中嵌入信息" class="headerlink" title="VisCode:使用编码器-解码器网络在可视化图像中嵌入信息"></a>VisCode:使用编码器-解码器网络在可视化图像中嵌入信息</h1><h2 id="Overiew"><a href="#Overiew" class="headerlink" title="Overiew"></a>Overiew</h2><p>​        数据可视化的一个基本目标是提高对数据的认知和感知能力。与传输大量的原始数据相比，图像是更能被接受的载体。但是，在将原始信息转化为像素值后，很难从得到的图像中重建原始信息。而VisCode，就是一个在可视化图像中使用编码器和解码器网络嵌入和恢复隐藏信息的框架。</p>
-<h2 id="三个组件（Visual-Importance-Network、Encoder-Network、Decoder-Network）"><a href="#三个组件（Visual-Importance-Network、Encoder-Network、Decoder-Network）" class="headerlink" title="三个组件（Visual Importance Network、Encoder Network、Decoder Network）"></a>三个组件（Visual Importance Network、Encoder Network、Decoder Network）</h2><h3 id="Visual-Importance-Network"><a href="#Visual-Importance-Network" class="headerlink" title="Visual Importance Network"></a>Visual Importance Network</h3><p>​        由于数据可视化的语义特征与自然图像有很大的不同，我们使用网络来建模，得到一个<strong>视觉重要性图</strong>来用于下一个组件(Encode Network)的约束。虑到错误校正，我们将普通信息转换为嵌入一系列<strong>QR码</strong>，而不是二进制数据。</p>
+<h2 id="三个组件（Visual-Importance-Network、Encoder-Network、Decoder-Network）"><a href="#三个组件（Visual-Importance-Network、Encoder-Network、Decoder-Network）" class="headerlink" title="三个组件（Visual Importance Network、Encoder Network、Decoder Network）"></a>三个组件（Visual Importance Network、Encoder Network、Decoder Network）</h2><h3 id="Visual-Importance-Network"><a href="#Visual-Importance-Network" class="headerlink" title="Visual Importance Network"></a>Visual Importance Network</h3><p>​        由于数据可视化的语义特征与自然图像有很大的不同，文章使用网络来建模，得到一个<strong>视觉重要性图</strong>来用于下一个组件(Encode Network)的约束。虑到错误校正，文章将普通信息转换为嵌入一系列<strong>QR码</strong>，而不是二进制数据。</p>
 <p>​        <img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/1.png" class=""></p>
 <h3 id="Encoder-Network"><a href="#Encoder-Network" class="headerlink" title="Encoder Network"></a>Encoder Network</h3><p>​        在该网络组件中，通过特征提取过程将<strong>载体图像和二维码图像</strong>嵌入到向量中。</p>
 <img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/2.png" class="">、
@@ -134,13 +134,32 @@
 
 <h2 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h2><h3 id="视觉重要性地图Visual-Importance-Map"><a href="#视觉重要性地图Visual-Importance-Map" class="headerlink" title="视觉重要性地图Visual Importance Map"></a>视觉重要性地图Visual Importance Map</h3><p>​        编码器网络的目标是将大量信息嵌入到图形图表中，同时使编码的图像在感知上与原始图像相同。一个简单的解决办法是训练一个模型使原始图表和编码后的图表之间像素差的平均平方误差最小。</p>
 <p>​        视觉重要性图为图像的不同区域分配不同的分数（将信息嵌入到分数高的区域），这有助于在编码阶段保持重要内容的视觉质量。</p>
-<h3 id="如何得到一个数据集？"><a href="#如何得到一个数据集？" class="headerlink" title="如何得到一个数据集？"></a>如何得到一个数据集？</h3><p>​        Bylinskii等人的启发，我们利用基于带有<strong>眼动注释</strong>（<strong>人看一张图是眼球的聚焦点</strong>）的MASSVIS数据集建立了一个预测模型。</p>
-<p>​        因此，为了获得更准确的高层次语义上下文信息和更低层次的细节信息，我们使用混合训练，又人工对每个像素点进行注释，标注了其重要性。</p>
-<p>​        在上述两种预测模型的混合训练下，我们得到结果：</p>
+<h3 id="如何得到一个数据集？"><a href="#如何得到一个数据集？" class="headerlink" title="如何得到一个数据集？"></a>如何得到一个数据集？</h3><p>​        Bylinskii等人的启发，文章利用基于带有<strong>眼动注释</strong>（<strong>人看一张图是眼球的聚焦点</strong>）的MASSVIS数据集建立了一个预测模型。</p>
+<p>​        因此，为了获得更准确的高层次语义上下文信息和更低层次的细节信息，文章使用混合训练，又人工对每个像素点进行注释，标注了其重要性。</p>
+<p>​        在上述两种预测模型的混合训练下，文章得到结果：</p>
 <img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/5.png" class="">
 
-<p>​        a是输入的两个图像，b是用Bylinskii预测模型建的结果，c是人工注释后的结果，d是我们混合两种模型得到的重要性地图。</p>
-<p>​        这样我们就训练出了一个能输出视觉重要性地图的模型。</p>
+<p>​        a是输入的两个图像，b是用Bylinskii预测模型建的结果，c是人工注释后的结果，d是混合两种模型得到的重要性地图。</p>
+<p>​        这样就训练出了一个能输出视觉重要性地图的模型。</p>
+<h3 id="编码器网络和解码器网络"><a href="#编码器网络和解码器网络" class="headerlink" title="编码器网络和解码器网络"></a>编码器网络和解码器网络</h3><p>​        编码器网络设计用于将信息嵌入到载波图图像中，同时<strong>最小化编码图像中的扰动</strong>（尽量往视觉重要性高的地方嵌入-个人理解）。解码器网络从已编码的图像中恢复嵌入的秘密信息。</p>
+<p>​        关于损失函数：</p>
+<p>​            损失函数是用来估量<strong>模型的输出</strong>与<strong>真实值</strong>之间的差距，给模型的优化指引方向。</p>
+<p>​        编码器的损失函数：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/6.png" class="">
+
+<p>​        Vp是预测的<strong>视觉重要性图</strong>，可以看作是一个<strong>权重矩阵</strong>。视觉重要性得分越高的区域权重越大。Icp是输入的载波图图像，Icp’是输出的编码图像。N是像素的个数。</p>
+<p>​        解码器的联合损失函数：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/7.png" class="">
+
+<p>​        其中，Is为原始输入二维码图像，Is’为解码器网络重构结果。α是解码器损耗的权重，表示编码图像的视觉质量和解码精度之间的权衡。</p>
+<p>​        α值越高，解码精度越高，感知质量越低（图像失真越严重，越像嵌入了东西）。α在实现中被设置为0.25。</p>
+<p>​        在训练过程中，同时训练编码器网络和解码器网络。也就是说，联合损失函数同时考虑了编码图像的视觉质量和重建误差。</p>
+<h4 id="训练结果"><a href="#训练结果" class="headerlink" title="训练结果"></a>训练结果</h4><img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/8.png" class="">
+
+<p>可以看出，（a）与（b）肉眼已经看不出差别，将差别放大10倍后的（c）仍不明显。</p>
+<p>​        结果表明，VisCode模型可以在保持原始图表图像感知质量的同时嵌入信息。</p>
+<h2 id="大规模数据嵌入"><a href="#大规模数据嵌入" class="headerlink" title="大规模数据嵌入"></a>大规模数据嵌入</h2><p>​        在图像中嵌入大量的信息是一个具有挑战性的问题，因为它容易产生明显的噪声或导致颜色或纹理的偏差。</p>
+<p>​        文章提出了一种新的方法，在人类视觉系统不敏感的区域大规模嵌入信息。</p>
  
       <!-- reward -->
       
