@@ -92,7 +92,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">754</span>
+            <span class="post-count">1.4k</span>
         </span>
     </span>
 
@@ -101,7 +101,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">2 min</span>
+            <span class="post-count">5 min</span>
         </span>
     </span>
 </div>
@@ -123,11 +123,31 @@
 <h2 id="幽灵与熔断"><a href="#幽灵与熔断" class="headerlink" title="幽灵与熔断"></a>幽灵与熔断</h2><p>​        如果分支预测被恶意利用，收到恶意程序欺骗，那么就会在关键时候预测失败，从而执行一些本不该执行的指令。虽然只将数据存储在缓存中，但通过访问内存时间的不同（放入缓存的数据访问时间会明显较短），就可以知道哪一块地址被缓存了。    </p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (x &lt; array1_size)</span><br><span class="line">&#123;</span><br><span class="line">   temp &amp;= array2[array1[x] * <span class="number">512</span>];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>一开始的x都小于array1_size，欺骗CPU不断提前进行分支预测。但当真正的恶意x（某个地址单元）（大于array1_size）到来时，CPU还是把if里面的执行结果放入了缓存。只是在指令真正开始执行时，虽然缓存不被输出，但访问的时间会明显较短，数一下缓存的内存到数组开头的偏移距离，可以推出这个地址单元的值。</p>
-<h2 id="缓解机制"><a href="#缓解机制" class="headerlink" title="缓解机制"></a>缓解机制</h2><p>Meltdown攻击最有效的方式就是KAISER/KPTI。KAISER/KPTI方案中要求操作系统维护两个页表，一个页表给用户程序使用，一个给kernel自己使用。并且确保程序所使用的页表不会映射高优先级的页面，即不会映射kernel的页面。</p>
-<p>两个页表的切换，会导致CR3（控制寄存器：用于控制和确定处理器的操作模式以及当前执行任务的特性）的重新加载，从而引起TLB刷新，进而降低内存的访问速度。如果某些应用场景需要大量的内核和用户空间切换（两个页表之间的切换），会造成较高的性能开销。</p>
+<p>​        一开始的x都小于array1_size，欺骗CPU不断提前进行分支预测（投机执行）。但当真正的恶意x（某个地址单元）（大于array1_size）到来时，CPU还是把if里面的执行结果放入了缓存。只是在指令真正开始执行时，虽然缓存不被输出，但访问的时间会明显较短，数一下缓存的内存到数组开头的偏移距离，可以推出这个地址单元的值。</p>
+<h2 id="缓解机制"><a href="#缓解机制" class="headerlink" title="缓解机制"></a>缓解机制</h2><p>​        Meltdown攻击最有效的方式就是KAISER/KPTI。KAISER/KPTI方案中要求操作系统维护两个页表，一个页表给用户程序使用，一个给kernel自己使用。并且确保程序所使用的页表不会映射高优先级的页面，即不会映射kernel的页面。</p>
+<p>​        两个页表的切换，会导致CR3（控制寄存器：用于控制和确定处理器的操作模式以及当前执行任务的特性）的重新加载，从而引起TLB刷新，进而降低内存的访问速度。如果某些应用场景需要大量的内核和用户空间切换（两个页表之间的切换），会造成较高的性能开销。</p>
 <h1 id="最新的漏洞"><a href="#最新的漏洞" class="headerlink" title="最新的漏洞"></a>最新的漏洞</h1><p>​        硬件修复后，上述缓解机制被禁用，该文章说明了最新的抗熔断处理器仍是具有数据泄漏的潜在风险，仍易受到熔断攻击。</p>
-<p>​        待更新</p>
+<ol>
+<li>一个写瞬态转发（WTF）的漏洞，它允许我们读取最近写入的数据</li>
+<li>展示WTF的安全影响：<ol>
+<li>恢复系统内核写入的值</li>
+<li>恢复TSX事务（粗粒度的锁，防止数据冲突）写入的数据</li>
+<li>泄漏密钥</li>
+</ol>
+</li>
+<li>定义了一个新的TLB侧信道（store-to-leak）：Inter的存储转发单元在一个不可访问的虚拟地址映射到一个相应的物理存储地址的过程中，可以利用一个丢失的权限检查，得到一个新的侧信道。</li>
+<li>文章演示如何利用Store-to-Leak破解KASLR（上述的一种缓解机制）和ASLR（地址随机化），以及将这些攻击方式写成了一个小工具</li>
+<li>定义了一个新的瞬态执行原因：它是当处理器遇到特定的边缘情况时执行的微型代码例程。（命名为assists）</li>
+<li>实现了一次熔断攻击，利用由Supervisor Mode Access<br>Prevention (SMAP)导致的页异常.</li>
+</ol>
+<h1 id="写瞬态转发（WTF）漏洞"><a href="#写瞬态转发（WTF）漏洞" class="headerlink" title="写瞬态转发（WTF）漏洞"></a>写瞬态转发（WTF）漏洞</h1><p>​        文章发现WTF会错误地将值从内存写入传递到随后的错误加载指令。        </p>
+<p>​        当程序试图从一个地址读取数据时，CPU必须首先检查存储缓冲区是否写入了相同的地址，如果地址匹配，则执行store-to-load转发。</p>
+<p>​        Inter的专利中表明，上述操作确实会发生错误。</p>
+<p>“if there is a hit at operation 302 [lower address match]and the physical address of the load or store operations is not valid, the physical address check at operation 310 [full physical address match] may be considered as a hit and the method 300 [store-to-load forwarding] may continue at operation 308 [block load/forward data from store].”</p>
+<h2 id="简单的例子"><a href="#简单的例子" class="headerlink" title="简单的例子"></a>简单的例子</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">char</span>* victim_page = mmap(...,PAGE_SIZE,PROT_READ|PROT_WRITE,MAP_POPULATE, ...);</span><br><span class="line"><span class="keyword">char</span>* attacker_address = <span class="number">0x9876543214321000</span>ull;<span class="comment">//unsigned long long</span></span><br><span class="line"></span><br><span class="line">intoffset = <span class="number">7</span>;</span><br><span class="line">victim_page[offset] = <span class="number">42</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>(tsx_begin() == <span class="number">0</span>) &#123;</span><br><span class="line">memory_access(lut + <span class="number">4096</span> * attacker_address[offset]);</span><br><span class="line">tsx_end();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; <span class="number">256</span>; i++) &#123;</span><br><span class="line">	<span class="keyword">if</span>(flush_reload(lut + i * <span class="number">4096</span>)) &#123;</span><br><span class="line">	report(i);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>​        上述的victim_page是一个普通的页面，用户可以在其中读写数据。attacker_address是构造的一个非规范的地址，其中的47到63位既不全是’ 0 ‘也不全是’ 1 ‘来导致错误。然后在用户空间 victim_page的指定偏移量7中存储机密值42。</p>
+<p>​        注意到，上述代码并没有直接访问victim_page来读取数据。相反，攻击者通过解引用毫无关联的attacker_address来读取存储缓冲区条目。而且上述代码第八行，利用TSX事务来抑制投机执行造成的异常。</p>
  
       <!-- reward -->
       
