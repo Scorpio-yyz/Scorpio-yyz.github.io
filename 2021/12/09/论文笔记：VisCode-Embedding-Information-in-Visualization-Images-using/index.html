@@ -96,7 +96,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">2.5k</span>
+            <span class="post-count">2.7k</span>
         </span>
     </span>
 
@@ -105,7 +105,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">8 min</span>
+            <span class="post-count">9 min</span>
         </span>
     </span>
 </div>
@@ -178,11 +178,23 @@
 
 <h3 id="个人关于此算法的看法"><a href="#个人关于此算法的看法" class="headerlink" title="个人关于此算法的看法"></a>个人关于此算法的看法</h3><p>​        嵌入算法本身没有问题，但是算法结果都要保存在最左上角的区域框中。假设载体图片最左上角的视觉重要性很大呢，就对原图像造成了很大的可发现的扰动。</p>
 <p>​        可改进的方法：未知</p>
-<h2 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h2><h2 id="可视化设计的元数据嵌入"><a href="#可视化设计的元数据嵌入" class="headerlink" title="可视化设计的元数据嵌入"></a>可视化设计的元数据嵌入</h2><p>如下图</p>
+<h2 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h2><h3 id="可视化设计的元数据嵌入"><a href="#可视化设计的元数据嵌入" class="headerlink" title="可视化设计的元数据嵌入"></a>可视化设计的元数据嵌入</h3><p>如下图</p>
 <img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/11.png" class="">
 
 <p>将url，版权信息，版本信息等嵌入到可视化图表当中</p>
-<h3 id="源代码嵌入可视化"><a href="#源代码嵌入可视化" class="headerlink" title="源代码嵌入可视化"></a>源代码嵌入可视化</h3> 
+<h3 id="源代码嵌入可视化"><a href="#源代码嵌入可视化" class="headerlink" title="源代码嵌入可视化"></a>源代码嵌入可视化</h3><p>​        这里的源代码指代的网页前端代码，系统可以从图像中解码源代码，并以<strong>网页的形式</strong>动态生成和显示可视化文件。</p>
+<p>​        具体流程，使用VisCode系统的美工和开发人员之间的协作通道：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/12.png" class="">
+
+<h3 id="可视化重新定位目标"><a href="#可视化重新定位目标" class="headerlink" title="可视化重新定位目标"></a>可视化重新定位目标</h3><h4 id="形式重定位"><a href="#形式重定位" class="headerlink" title="形式重定位"></a>形式重定位</h4><p>​        重新定位信息表示形式。输入的可视化可以转换为其他可视化形式。</p>
+<p>流程：提取源数据，按照嵌入的源代码重构输出图像。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/13.png" class="">
+
+<h4 id="主题重定位"><a href="#主题重定位" class="headerlink" title="主题重定位"></a>主题重定位</h4><p>​        通过提取源数据，重新构建色彩主题，VisCode的这个应用程序可以提供丰富的视觉风格和颜色主题。</p>
+<p>流程：提取源数据，按照嵌入的源代码重构输出的色彩主题。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/14.png" class="">
+
+<h2 id="评价"><a href="#评价" class="headerlink" title="评价"></a>评价</h2> 
       <!-- reward -->
       
     </div>
