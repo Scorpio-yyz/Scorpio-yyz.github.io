@@ -96,7 +96,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">2.8k</span>
+            <span class="post-count">3.2k</span>
         </span>
     </span>
 
@@ -105,7 +105,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">9 min</span>
+            <span class="post-count">11 min</span>
         </span>
     </span>
 </div>
@@ -195,6 +195,25 @@
 <img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/14.png" class="">
 
 <h2 id="评价"><a href="#评价" class="headerlink" title="评价"></a>评价</h2><p>​        我们从三个方面评估我们的VisCode模型：隐写指标，不同信息位数下的编码图像质量，隐写防御，通过数字传输的各种破坏场景下的解码精度，嵌入信息和恢复时间在不同设置下的时间性能。</p>
+<h3 id="隐写指标"><a href="#隐写指标" class="headerlink" title="隐写指标"></a>隐写指标</h3><p>关于PSNR：</p>
+<p>​        峰值信噪比，给定一个干净图像和噪声图像（这里的噪声图像就是经过VisCode处理后的图像），评价画质好坏的标准。(通常越大效果越好)</p>
+<p>关于SSIM：</p>
+<p>​        结构相似性，基于样本x（原图像）和y（VisCode处理后的图像）之间的三个比较衡量：亮度、对比度、结构。每次计算的时候都从图片上取一个N X N的窗口，然后不断滑动窗口进行计算，最后取平均值作为全局的SSIM。（0~1，越大表示效果越好）</p>
+<p>关于LPIPS：</p>
+<p>​        一种深度深度特征作为感知度量的无理由的有效性。（通常效果越小越好）</p>
+<p>供参考：</p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/50757421">https://zhuanlan.zhihu.com/p/50757421</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/206470186">https://zhuanlan.zhihu.com/p/206470186</a></p>
+<p>见表格：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/15.png" class="">
+
+<h3 id="隐写抗性"><a href="#隐写抗性" class="headerlink" title="隐写抗性"></a>隐写抗性</h3><p>​        文章给出了隐写抗性评估的比较结果。LSB是一种传统的使用固定原理的隐写方法，无法抵抗任何干扰。我们发现VisCode在调整亮度、应用旋转和JPEG压缩方面的性能接近于DeepSteg，因为这三种操作应用于所有像素的变化。而水印将局部变化应用于图像，这可能会破坏图像的重要特征。在这种情况下，VisCode通过在不敏感区域中嵌入信息而胜过DeepSteg。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/16.png" class="">
+
+<h3 id="时间性能"><a href="#时间性能" class="headerlink" title="时间性能"></a>时间性能</h3><p>我们评估了不同尺度的输入下VisCode系统的时间性能。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/17.png" class="">
+
+<p>x轴表示输入<strong>文本的位数</strong>，Y轴表示编码阶段或解码阶段的<strong>平均时间(秒)<strong>。不同颜色的线条代表输入图表图像的</strong>不同分辨率</strong>。</p>
  
       <!-- reward -->
       
