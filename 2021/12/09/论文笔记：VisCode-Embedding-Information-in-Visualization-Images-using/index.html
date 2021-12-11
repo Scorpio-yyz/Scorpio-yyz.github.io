@@ -96,7 +96,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">1.4k</span>
+            <span class="post-count">1.8k</span>
         </span>
     </span>
 
@@ -105,7 +105,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">4 min</span>
+            <span class="post-count">6 min</span>
         </span>
     </span>
 </div>
@@ -132,8 +132,8 @@
 <h2 id="VisCode系统运行过程"><a href="#VisCode系统运行过程" class="headerlink" title="VisCode系统运行过程"></a>VisCode系统运行过程</h2><p>​        VisCode系统的主要组件。首先，视觉重要性网络(b)对输入图形图(a)进行处理，便于检测可视化的显著特征，输出<strong>视觉重要性图</strong>。接下来，编码器网络(c)将<strong>秘密信息</strong>嵌入到图形图(a)中，通过特征提取将<strong>载体图像和二维码图像</strong>嵌入到向量中。然后，将这两个向量连接起来(如黄色矩形所示)，并进入<strong>自编码阶段</strong>。编码后的图像(d)被发送给用户(e)，用户可以通过数字传输将其发送给其他人。当用户希望获取图表中隐藏的详细信息时，可以将编码后的图像上传到解码器网络(f)。经过数据恢复和纠错后，用户接收到解码后的信息(g)。</p>
 <img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/4.png" class="">
 
-<h2 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h2><h3 id="视觉重要性地图Visual-Importance-Map"><a href="#视觉重要性地图Visual-Importance-Map" class="headerlink" title="视觉重要性地图Visual Importance Map"></a>视觉重要性地图Visual Importance Map</h3><p>​        编码器网络的目标是将大量信息嵌入到图形图表中，同时使编码的图像在感知上与原始图像相同。一个简单的解决办法是训练一个模型使原始图表和编码后的图表之间像素差的平均平方误差最小。</p>
-<p>​        视觉重要性图为图像的不同区域分配不同的分数（将信息嵌入到分数高的区域），这有助于在编码阶段保持重要内容的视觉质量。</p>
+<h2 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h2><h3 id="视觉重要性地图Visual-Importance-Map"><a href="#视觉重要性地图Visual-Importance-Map" class="headerlink" title="视觉重要性地图Visual Importance Map"></a>视觉重要性地图Visual Importance Map</h3><p>​        编码器网络的目标是将大量信息嵌入到图形图表中，同时使编码的图像在感知上与原始图像相同。一个简单的解决办法是训练一个模型使原始图表和编码后的图表之间像素差的平均平方误差最小。然而，这里的每个像素之间的权重是相同的，当编码到了重要区域，就可能产生可见噪声。所以我们需要一个视觉重要性地图来表明重要区域，方便在编码时绕过这些重要区域。</p>
+<p>​        视觉重要性图为图像的不同区域分配不同的分数（分数越高的区域越重要），这有助于在编码阶段保持重要内容的视觉质量。</p>
 <h3 id="如何得到一个数据集？"><a href="#如何得到一个数据集？" class="headerlink" title="如何得到一个数据集？"></a>如何得到一个数据集？</h3><p>​        Bylinskii等人的启发，文章利用基于带有<strong>眼动注释</strong>（<strong>人看一张图是眼球的聚焦点</strong>）的MASSVIS数据集建立了一个预测模型。</p>
 <p>​        因此，为了获得更准确的高层次语义上下文信息和更低层次的细节信息，文章使用混合训练，又人工对每个像素点进行注释，标注了其重要性。</p>
 <p>​        在上述两种预测模型的混合训练下，文章得到结果：</p>
@@ -160,6 +160,15 @@
 <p>​        结果表明，VisCode模型可以在保持原始图表图像感知质量的同时嵌入信息。</p>
 <h2 id="大规模数据嵌入"><a href="#大规模数据嵌入" class="headerlink" title="大规模数据嵌入"></a>大规模数据嵌入</h2><p>​        在图像中嵌入大量的信息是一个具有挑战性的问题，因为它容易产生明显的噪声或导致颜色或纹理的偏差。</p>
 <p>​        文章提出了一种新的方法，在人类视觉系统不敏感的区域大规模嵌入信息。</p>
+<p>​        假设我们将输入一个大规模的文本信息，那么第一步就是将文本分块：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/9.png" class="">
+
+<p>​        LenT是总文本长度，n是设定的每块的文本长度，NumB是块数量，LenB是实际上每块的文本长度。这里很严谨，LenB在最后一块上可能不等于n。</p>
+<p>​        考虑到QR码有多种模块配置，这可能会影响编解码网络的效果，我们使用不同的文本长度与QR码模块配置的映射关系进行测试。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/10.png" class="">
+
+<p>​        在实际操作中，文章并没有使用动态配置QR码。而是依据上表进行配置。n越大说明QR码存储的信息越多，但是ECC level（容错级别）就比较低。文章使用的n=800</p>
+<h3 id="大规模数据的嵌入位置"><a href="#大规模数据的嵌入位置" class="headerlink" title="大规模数据的嵌入位置"></a>大规模数据的嵌入位置</h3><p>​        之前说了要找视觉最不敏感的区域嵌入信息，但找到了以后该怎么做呢？一种方案是随机取一些不敏感的区域嵌入信息，但这样修改与未修改的地方边界之间会很不和谐。另一种是蛮力搜索所有可能区域，用编解码器网络评估影响。但这样时间成本会很高。</p>
  
       <!-- reward -->
       
