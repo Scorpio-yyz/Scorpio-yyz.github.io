@@ -11,7 +11,7 @@
         name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1"
       />
-      <title>数据驱动的数字水印 |  Scorpio-yyz</title>
+      <title>论文笔记：Screen-Shooting Resilient Watermarking |  Scorpio-yyz</title>
   <meta name="generator" content="hexo-theme-ayer">
       
       <link rel="shortcut icon" href="/favicon.ico" />
@@ -64,85 +64,188 @@
       
     <main class="content on">
       <section class="outer">
-  
-  
-  <article class="articles">
+  <article
+  id="post-论文笔记：Screen-Shooting-Resilient-Watermarking"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
     
-    
-    <h1 class="page-type-title">数据驱动的数字水印</h1>
-    
-    
-  
-  
-  
-  
-  
-  
-  <div class="archives-wrap">
-    <div class="archive-year-wrap">
-      <a href="/archives/2021" class="archive-year">2021</a>
-    </div>
-    <div class="archives">
-      
-      <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/" class="archive-article-date">
-  <time datetime="2021-12-15T12:27:49.000Z" itemprop="datePublished">12/15</time>
-</a>
+    <header class="article-header">
        
-<h2 itemprop="name">
-  <a class="archive-article-title" href="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/"
-    >论文笔记：Screen-Shooting Resilient Watermarking</a> 
-</h2>
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  论文笔记：Screen-Shooting Resilient Watermarking
+</h1>
  
 
-    </header>
-    
       
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/" class="article-date">
+  <time datetime="2021-12-15T12:27:49.000Z" itemprop="datePublished">2021-12-15</time>
+</a> 
   <div class="article-category">
     <a class="article-category-link" href="/categories/%E6%95%B0%E6%8D%AE%E9%A9%B1%E5%8A%A8%E7%9A%84%E6%95%B0%E5%AD%97%E6%B0%B4%E5%8D%B0/">数据驱动的数字水印</a>
   </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> Word count:</span>
+            <span class="post-count">832</span>
+        </span>
+    </span>
 
-    
-    
-  </div>
-</article>
-      
-  
-  
-      <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/" class="archive-article-date">
-  <time datetime="2021-12-09T14:32:44.000Z" itemprop="datePublished">12/09</time>
-</a>
-       
-<h2 itemprop="name">
-  <a class="archive-article-title" href="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/"
-    >VisCode: Embedding Information in Visualization Images using 论文笔记</a> 
-</h2>
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> Reading time≈</span>
+            <span class="post-count">2 min</span>
+        </span>
+    </span>
+</div>
  
-
-    </header>
-    
+    </div>
       
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E6%95%B0%E6%8D%AE%E9%A9%B1%E5%8A%A8%E7%9A%84%E6%95%B0%E5%AD%97%E6%B0%B4%E5%8D%B0/">数据驱动的数字水印</a>
-  </div>
+    <div class="tocbot"></div>
 
-    
-    
-  </div>
-</article>
-      
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="基于屏幕摄像的弹性水印"><a href="#基于屏幕摄像的弹性水印" class="headerlink" title="基于屏幕摄像的弹性水印"></a>基于屏幕摄像的弹性水印</h1><h2 id="综述"><a href="#综述" class="headerlink" title="综述"></a>综述</h2><p>文章提出了一个新型的屏幕摄像的弹性水印，即当水印图像显示在屏幕上时，摄像头拍摄屏幕信息，仍然可以捕获照片中的水印信息。</p>
+<h3 id="遇到的困难和解决方案"><a href="#遇到的困难和解决方案" class="headerlink" title="遇到的困难和解决方案"></a>遇到的困难和解决方案</h3><ul>
+<li><p>由于拍摄角度，拍摄场景等的限制，屏幕拍摄过程中可能出现<strong>畸变</strong></p>
+<ul>
+<li><p>透镜畸变</p>
+<ul>
+<li>解决办法：为了抵抗透镜畸变引起的几何变换，我们提出了一种<strong>基于强度的尺度不变特征变换（I-SIFT）算法</strong>，能够有效定位嵌入区域</li>
+</ul>
+</li>
+<li><p>光源畸变和Moire畸变</p>
+<ul>
+<li>没办法解决，但可以通过一种<strong>小尺寸模板算法</strong>，将水印反复嵌入到不同区域，试至少一个完整的信息区域不受失真影响。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>提取方面，如何提高水印提取的精度</p>
+<ul>
+<li>我们设计了一种基于<strong>交叉验证</strong>的提取算法来处理重复嵌入。</li>
+</ul>
+</li>
+<li><p>速度方面，如何加快提取水印的速度</p>
+<ul>
+<li>我们提出了一种<strong>SIFT特征编辑算法</strong>来增强关键点的强度，在此基础上提高提取精度和提取速度。</li>
+</ul>
+</li>
+</ul>
+<h3 id="成果"><a href="#成果" class="headerlink" title="成果"></a>成果</h3><ol>
+<li>提出了一种基于强度的尺度不变特征变换(I-SIFT)算法，该算法可以在不含原始图像信息的情况下准确<strong>定位嵌入</strong>区域。</li>
+<li>我们提出了一种<strong>小尺寸模板算法</strong>，将水印反复嵌入到不同的区域，使至少一个完整的信息区域能够在<strong>光源失真</strong>和<strong>Moire失真</strong>的情况下存活下来。</li>
+<li>设计了一种基于<strong>交叉验证</strong>的<strong>盲提取算法</strong>，并将其与重复嵌入相结合，有效地保证了提取的准确性。</li>
+<li>我们提出了一种<strong>SIFT特征编辑算法</strong>来增强关键点的强度，应用该算法可以大大提高关键点的鲁棒性和提取过程的速度。</li>
+</ol>
+<h2 id="屏幕摄像的形变分析"><a href="#屏幕摄像的形变分析" class="headerlink" title="屏幕摄像的形变分析"></a>屏幕摄像的形变分析</h2><h3 id="透镜畸变"><a href="#透镜畸变" class="headerlink" title="透镜畸变"></a>透镜畸变</h3><p>由于拍摄角度的多样性，在透视变换中会出现旋转、缩放和平移失真RST（rotation,  scaling  and  translation distortions）。而在图像的透视较正中，图像的一些细节也会失真。</p>
+<p>另外我们进行盲提取，即不通过原始图像的信息或其他先验信息。所以我们需要一个不需要任何先验信息的定位算法来定位畸变图像中的嵌入区域。</p>
+<h3 id="光源畸变"><a href="#光源畸变" class="headerlink" title="光源畸变"></a>光源畸变</h3><p>屏幕光源的不均匀性会产生很多亮度失真，因此不能采用全图嵌入的方法，否则会因为光源不均丢失大量信息。为了解决这一问题，我们需要将信息反复嵌入多个区域，以保证至少有一个完整的水印序列能够在失真中存活下来。</p>
+<h3 id="Moire畸变"><a href="#Moire畸变" class="headerlink" title="Moire畸变"></a>Moire畸变</h3><p>当摄像机传感器中的像素的空间频率接近于屏幕中的像素的空间频率时会生成摩尔纹。摩尔纹是不规律的，并且会扩散到全图，对细节信息造成很大的扭曲。所以我们需要将信息嵌入到某一个收到摩尔纹影响最小的域。</p>
+ 
+      <!-- reward -->
       
     </div>
-  </div>
-  
-  
+    
 
-  
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>Copyright： </strong>
+          
+          Copyright is owned by the author. For commercial reprints, please contact the author for authorization. For non-commercial reprints, please indicate the source.
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+    
+      <a href="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">VisCode: Embedding Information in Visualization Images using 论文笔记</div>
+      </a>
+    
+  </nav>
+
+   
+ 
+   
+     
+</article>
+
 </section>
       <footer class="footer">
   <div class="outer">
@@ -269,6 +372,22 @@
 <script src="/js/lazyload.min.js"></script>
 
 <!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
 <link
