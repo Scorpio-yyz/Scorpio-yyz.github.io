@@ -121,7 +121,7 @@
     <div class="article-entry" itemprop="articleBody">
        
   <h1 id="VisCode-使用编码器-解码器网络在可视化图像中嵌入信息"><a href="#VisCode-使用编码器-解码器网络在可视化图像中嵌入信息" class="headerlink" title="VisCode:使用编码器-解码器网络在可视化图像中嵌入信息"></a>VisCode:使用编码器-解码器网络在可视化图像中嵌入信息</h1><h2 id="Overiew"><a href="#Overiew" class="headerlink" title="Overiew"></a>Overiew</h2><p>​        数据可视化的一个基本目标是提高对数据的认知和感知能力。与传输大量的原始数据相比，图像是更能被接受的载体。但是，在将原始信息转化为像素值后，很难从得到的图像中重建原始信息。而VisCode，就是一个在可视化图像中使用编码器和解码器网络嵌入和恢复隐藏信息的框架。</p>
-<h2 id="三个组件（Visual-Importance-Network、Encoder-Network、Decoder-Network）"><a href="#三个组件（Visual-Importance-Network、Encoder-Network、Decoder-Network）" class="headerlink" title="三个组件（Visual Importance Network、Encoder Network、Decoder Network）"></a>三个组件（Visual Importance Network、Encoder Network、Decoder Network）</h2><h3 id="Visual-Importance-Network"><a href="#Visual-Importance-Network" class="headerlink" title="Visual Importance Network"></a>Visual Importance Network</h3><p>​        由于数据可视化的语义特征与自然图像有很大的不同，文章使用网络来建模，得到一个<strong>视觉重要性图</strong>来用于下一个组件(Encode Network)的约束。虑到错误校正，文章将普通信息转换为嵌入一系列<strong>QR码</strong>，而不是二进制数据。</p>
+<h2 id="三个组件（Visual-Importance-Network、Encoder-Network、Decoder-Network）"><a href="#三个组件（Visual-Importance-Network、Encoder-Network、Decoder-Network）" class="headerlink" title="三个组件（Visual Importance Network、Encoder Network、Decoder Network）"></a>三个组件（Visual Importance Network、Encoder Network、Decoder Network）</h2><h3 id="Visual-Importance-Network"><a href="#Visual-Importance-Network" class="headerlink" title="Visual Importance Network"></a>Visual Importance Network</h3><p>​        由于数据可视化的语义特征与自然图像有很大的不同，文章使用网络来建模，得到一个<strong>视觉重要性图</strong>来用于下一个组件(Encode Network)的约束。考虑到错误校正，文章将普通信息转换为嵌入一系列<strong>QR码</strong>，而不是二进制数据。</p>
 <p>​        <img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/1.png" class=""></p>
 <h3 id="Encoder-Network"><a href="#Encoder-Network" class="headerlink" title="Encoder Network"></a>Encoder Network</h3><p>​        在该网络组件中，通过特征提取过程将<strong>载体图像和二维码图像</strong>嵌入到向量中。</p>
 <img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/2.png" class="">、
@@ -293,7 +293,7 @@
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            论文笔记：Screen-Shooting Resilient Watermarking
+            Screen-Shooting Resilient Watermarking 论文笔记
           
         </div>
       </a>

@@ -11,7 +11,7 @@
         name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1"
       />
-      <title>论文笔记：Screen-Shooting Resilient Watermarking |  Scorpio-yyz</title>
+      <title>Screen-Shooting Resilient Watermarking 论文笔记 |  Scorpio-yyz</title>
   <meta name="generator" content="hexo-theme-ayer">
       
       <link rel="shortcut icon" href="/favicon.ico" />
@@ -76,7 +76,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  论文笔记：Screen-Shooting Resilient Watermarking
+  Screen-Shooting Resilient Watermarking 论文笔记
 </h1>
  
 
@@ -96,7 +96,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">832</span>
+            <span class="post-count">2.1k</span>
         </span>
     </span>
 
@@ -105,7 +105,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">2 min</span>
+            <span class="post-count">7 min</span>
         </span>
     </span>
 </div>
@@ -153,11 +153,56 @@
 <li>设计了一种基于<strong>交叉验证</strong>的<strong>盲提取算法</strong>，并将其与重复嵌入相结合，有效地保证了提取的准确性。</li>
 <li>我们提出了一种<strong>SIFT特征编辑算法</strong>来增强关键点的强度，应用该算法可以大大提高关键点的鲁棒性和提取过程的速度。</li>
 </ol>
-<h2 id="屏幕摄像的形变分析"><a href="#屏幕摄像的形变分析" class="headerlink" title="屏幕摄像的形变分析"></a>屏幕摄像的形变分析</h2><h3 id="透镜畸变"><a href="#透镜畸变" class="headerlink" title="透镜畸变"></a>透镜畸变</h3><p>由于拍摄角度的多样性，在透视变换中会出现旋转、缩放和平移失真RST（rotation,  scaling  and  translation distortions）。而在图像的透视较正中，图像的一些细节也会失真。</p>
-<p>另外我们进行盲提取，即不通过原始图像的信息或其他先验信息。所以我们需要一个不需要任何先验信息的定位算法来定位畸变图像中的嵌入区域。</p>
+<h2 id="屏幕摄像的形变分析"><a href="#屏幕摄像的形变分析" class="headerlink" title="屏幕摄像的形变分析"></a>屏幕摄像的形变分析</h2><h3 id="透镜畸变"><a href="#透镜畸变" class="headerlink" title="透镜畸变"></a>透镜畸变</h3><p>由于拍摄<strong>角度的多样性</strong>，在透视变换中会出现旋转、缩放和平移失真RST（rotation,  scaling  and  translation distortions）。而在图像的<strong>透视较正</strong>（可以了解一下照相机成像过程）中，图像的一些细节也会失真。</p>
+<p>另外我们进行<strong>盲提取</strong>，即不通过原始图像的信息或其他先验信息。所以我们需要一个不需要<strong>任何先验信息</strong>的定位算法来定位畸变图像中的嵌入区域。</p>
 <h3 id="光源畸变"><a href="#光源畸变" class="headerlink" title="光源畸变"></a>光源畸变</h3><p>屏幕光源的不均匀性会产生很多亮度失真，因此不能采用全图嵌入的方法，否则会因为光源不均丢失大量信息。为了解决这一问题，我们需要将信息反复嵌入多个区域，以保证至少有一个完整的水印序列能够在失真中存活下来。</p>
 <h3 id="Moire畸变"><a href="#Moire畸变" class="headerlink" title="Moire畸变"></a>Moire畸变</h3><p>当摄像机传感器中的像素的空间频率接近于屏幕中的像素的空间频率时会生成摩尔纹。摩尔纹是不规律的，并且会扩散到全图，对细节信息造成很大的扭曲。所以我们需要将信息嵌入到某一个收到摩尔纹影响最小的域。</p>
- 
+<h2 id="SIFT（尺度不变特征匹配算法）"><a href="#SIFT（尺度不变特征匹配算法）" class="headerlink" title="SIFT（尺度不变特征匹配算法）"></a>SIFT（尺度不变特征匹配算法）</h2><p>SIFT是一种计算机视觉的算法用来侦测与描述图像的<strong>局部性特征</strong>（这些局部特征对畸变引起的几何变换具有一定程度的抗性），它在<strong>空间尺度</strong>中寻找<strong>极值点</strong>，并提取出其位置、尺度、旋转不变量。这些关键点（极值点）具有<strong>特征不变性</strong>，因此我们可以使用SIFT来定位嵌入位置。使得这些位置的特征在<strong>透镜畸变</strong>中具有鲁棒性。</p>
+<p>关于特征不变性：</p>
+<p>有些图像的特征即使发生了旋转（<strong>旋转不变性</strong>）、距离或远或近（<strong>尺度不变性</strong>），依然可以描述一张图像。就像对一个人的照片<strong>旋转</strong>或<strong>拉远（降低分辨率）</strong>以后，但依旧可以辨识出这个人是谁。</p>
+<p>关于空间尺度：<a target="_blank" rel="noopener" href="https://blog.csdn.net/samkieth/article/details/50407655">https://blog.csdn.net/samkieth/article/details/50407655</a></p>
+<p>当用一个机器视觉系统分析未知场景时，计算机没有办法预先知识图像中物体尺度，因此，我们需要同时考虑图像在多尺度下的描述，获知感兴趣物体的<strong>最佳尺度</strong>（就像一张照片，太近了看不清楚，太远也看不清楚，所以需要一个合适的尺度去观察）。</p>
+<h3 id="存在的问题"><a href="#存在的问题" class="headerlink" title="存在的问题"></a>存在的问题</h3><ol>
+<li>在定位过程中需要提供关键点描述符，不满足盲提取的要求</li>
+<li>对于每一个关键点，拥有三个信息：位置、尺度以及方向。接下来就是为每个关键点建立一个描述符，用一组向量将这个关键点描述出来。但需要计算每个关键点的描述性信息，大大增加了定位时间</li>
+</ol>
+<h2 id="嵌入位置"><a href="#嵌入位置" class="headerlink" title="嵌入位置"></a>嵌入位置</h2><p>对于彩色图像，我们需要将其转化为YCbCr的色彩空间。</p>
+<p>摄影机感光元件产生的RGB信号中，每个色彩通道都含有<strong>色彩信息</strong>和<strong>灰度</strong>（<strong>明度</strong>）信息，后者是冗余信息。因此，大部分录像系统将色度信息提炼成了<strong>彩色差异</strong>（<strong>饱和度</strong>）信号。</p>
+<p>关于YCbCr：</p>
+<p>这是和RGB一样，是一种色彩空间。也具有三个通道：</p>
+<ul>
+<li><strong>明度</strong>以Y表示。</li>
+<li>其中一个色彩通道用<strong>蓝色元素减去明度</strong>：B-Y</li>
+<li>另外一个色彩通道用<strong>红色元素减去明度</strong>：R-Y</li>
+</ul>
+<p>这里的<strong>明度Y</strong>不是简单的亮度，而是有一个计算公式： Y = 0.2126R + 0.7152G + 0.0722B</p>
+<p>这样我们有：</p>
+<ul>
+<li>Y = Y</li>
+<li>B = Pb + Y</li>
+<li>R = Pr + Y</li>
+<li>G = (Y - 0.2126 R - 0.0722 B) / 0.7152</li>
+</ul>
+<p>如果不是彩色图像，就直接用灰度图像。</p>
+<h2 id="基于强度的SIFT（I-SIFT）"><a href="#基于强度的SIFT（I-SIFT）" class="headerlink" title="基于强度的SIFT（I-SIFT）"></a>基于强度的SIFT（I-SIFT）</h2><h3 id="关于高斯模糊："><a href="#关于高斯模糊：" class="headerlink" title="关于高斯模糊："></a>关于高斯模糊：</h3><p>参考上述的尺度空间，我们需要找到一个观察图像最好的尺度空间。而变换图像尺度的方法，用的就是<strong>高斯模糊</strong>。高斯模糊用一个高斯核卷积图像，</p>
+<p>关于图像卷积：<a target="_blank" rel="noopener" href="https://blog.csdn.net/naruhina/article/details/104729037/">https://blog.csdn.net/naruhina/article/details/104729037/</a></p>
+<p>图像卷积就是<strong>卷积核</strong>（中间3*3的矩阵）在图像上按行滑动遍历像素时不断的相乘求和的过程。（<strong>降维</strong>，图像由7*7变成了5*5；<strong>提取特征</strong>，将一整个3*3的框内的所有特征归纳成了一个值）</p>
+<p>如图中所示，目前卷积核滑动到了图像左上角，我们把图像上的9个值与卷积核的9个数值按照对应位置相乘再相加得到一个和，这个和就是我们得到的卷积值。然后把卷积核向右移动一个像素，再执行对应位置相乘再相加的过程得到第二个卷积值，当把所有像素遍历完成之后我们得到的结果就构成了一幅图像。这就是卷积得到的图像。</p>
+<img src="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/1.png" class="">
+
+<p>高斯模糊，用一个高斯核席卷图像，保留图像的轮廓信息（低频信息），去除细节。</p>
+<img src="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/2.png" class="">
+
+<p>这里的高斯核，可以看到，中间权重高，四周低，这样卷积出来的图像，细节全部丢失，但灰度梯度大的地方反而保留了下来。</p>
+<h3 id="传统SIFT"><a href="#传统SIFT" class="headerlink" title="传统SIFT"></a>传统SIFT</h3><ol>
+<li><p>寻找极值点：</p>
+<p>使用高斯模糊，生成各个尺度下的图像，寻找各个尺度下都存在的极值点（极大值或极小值），这些点都是具有一定的特征不变性。然后去除低对比度的和不稳定的边缘点。</p>
+</li>
+<li><p>生成关键点描述符</p>
+<p>每个关键点拥有三个信息：位置、尺度以及方向（灰度图像中该像素点的梯度）。接下来就是为每个关键点建立一个描述符，用一组向量将这个关键点描述出来。</p>
+</li>
+</ol>
+<h3 id="基于强度的SIFT"><a href="#基于强度的SIFT" class="headerlink" title="基于强度的SIFT"></a>基于强度的SIFT</h3> 
       <!-- reward -->
       
     </div>
