@@ -96,7 +96,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">2.3k</span>
+            <span class="post-count">3k</span>
         </span>
     </span>
 
@@ -105,7 +105,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">7 min</span>
+            <span class="post-count">10 min</span>
         </span>
     </span>
 </div>
@@ -124,9 +124,9 @@
 <h3 id="遇到的困难和解决方案"><a href="#遇到的困难和解决方案" class="headerlink" title="遇到的困难和解决方案"></a>遇到的困难和解决方案</h3><ul>
 <li><p>由于拍摄角度，拍摄场景等的限制，屏幕拍摄过程中可能出现<strong>畸变</strong></p>
 <ul>
-<li><p>透镜畸变</p>
+<li><p>透视变形</p>
 <ul>
-<li>解决办法：为了抵抗透镜畸变引起的几何变换，我们提出了一种<strong>基于强度的尺度不变特征变换（I-SIFT）算法</strong>，能够有效定位嵌入区域</li>
+<li>解决办法：为了抵抗透视变形引起的几何变换，我们提出了一种<strong>基于强度的尺度不变特征变换（I-SIFT）算法</strong>，能够有效定位嵌入区域</li>
 </ul>
 </li>
 <li><p>光源畸变和Moire畸变</p>
@@ -153,11 +153,11 @@
 <li>设计了一种基于<strong>交叉验证</strong>的<strong>盲提取算法</strong>，并将其与重复嵌入相结合，有效地保证了提取的准确性。</li>
 <li>我们提出了一种<strong>SIFT特征编辑算法</strong>来增强关键点的强度，应用该算法可以大大提高关键点的鲁棒性和提取过程的速度。</li>
 </ol>
-<h2 id="屏幕摄像的形变分析"><a href="#屏幕摄像的形变分析" class="headerlink" title="屏幕摄像的形变分析"></a>屏幕摄像的形变分析</h2><h3 id="透镜畸变"><a href="#透镜畸变" class="headerlink" title="透镜畸变"></a>透镜畸变</h3><p>由于拍摄<strong>角度的多样性</strong>，在透视变换中会出现旋转、缩放和平移失真RST（rotation,  scaling  and  translation distortions）。而在图像的<strong>透视较正</strong>（可以了解一下照相机成像过程）中，图像的一些细节也会失真。</p>
+<h2 id="屏幕摄像的形变分析"><a href="#屏幕摄像的形变分析" class="headerlink" title="屏幕摄像的形变分析"></a>屏幕摄像的形变分析</h2><h3 id="透视变形"><a href="#透视变形" class="headerlink" title="透视变形"></a>透视变形</h3><p>由于拍摄<strong>角度的多样性</strong>，在透视变换中会出现旋转、缩放和平移失真RST（rotation,  scaling  and  translation distortions）。而在图像的<strong>透视较正</strong>（可以了解一下照相机成像过程）中，图像的一些细节也会失真。</p>
 <p>另外我们进行<strong>盲提取</strong>，即不通过原始图像的信息或其他先验信息。所以我们需要一个不需要<strong>任何先验信息</strong>的定位算法来定位畸变图像中的嵌入区域。</p>
 <h3 id="光源畸变"><a href="#光源畸变" class="headerlink" title="光源畸变"></a>光源畸变</h3><p>屏幕光源的不均匀性会产生很多亮度失真，因此不能采用全图嵌入的方法，否则会因为光源不均丢失大量信息。为了解决这一问题，我们需要将信息反复嵌入多个区域，以保证至少有一个完整的水印序列能够在失真中存活下来。</p>
 <h3 id="Moire畸变"><a href="#Moire畸变" class="headerlink" title="Moire畸变"></a>Moire畸变</h3><p>当摄像机传感器中的像素的空间频率接近于屏幕中的像素的空间频率时会生成摩尔纹。摩尔纹是不规律的，并且会扩散到全图，对细节信息造成很大的扭曲。所以我们需要将信息嵌入到某一个收到摩尔纹影响最小的域。</p>
-<h2 id="SIFT（尺度不变特征匹配算法）"><a href="#SIFT（尺度不变特征匹配算法）" class="headerlink" title="SIFT（尺度不变特征匹配算法）"></a>SIFT（尺度不变特征匹配算法）</h2><p>SIFT是一种计算机视觉的算法用来侦测与描述图像的<strong>局部性特征</strong>（这些局部特征对畸变引起的几何变换具有一定程度的抗性），它在<strong>空间尺度</strong>中寻找<strong>极值点</strong>，并提取出其位置、尺度、旋转不变量。这些关键点（极值点）具有<strong>特征不变性</strong>，因此我们可以使用SIFT来定位嵌入位置。使得这些位置的特征在<strong>透镜畸变</strong>中具有鲁棒性。</p>
+<h2 id="SIFT（尺度不变特征匹配算法）"><a href="#SIFT（尺度不变特征匹配算法）" class="headerlink" title="SIFT（尺度不变特征匹配算法）"></a>SIFT（尺度不变特征匹配算法）</h2><p>SIFT是一种计算机视觉的算法用来侦测与描述图像的<strong>局部性特征</strong>（这些局部特征对畸变引起的几何变换具有一定程度的抗性），它在<strong>空间尺度</strong>中寻找<strong>极值点</strong>，并提取出其位置、尺度、旋转不变量。这些关键点（极值点）具有<strong>特征不变性</strong>，因此我们可以使用SIFT来定位嵌入位置。使得这些位置的特征在<strong>透视变形</strong>中具有鲁棒性。</p>
 <p>关于特征不变性：</p>
 <p>有些图像的特征即使发生了旋转（<strong>旋转不变性</strong>）、距离或远或近（<strong>尺度不变性</strong>），依然可以描述一张图像。就像对一个人的照片<strong>旋转</strong>或<strong>拉远（降低分辨率）</strong>以后，但依旧可以辨识出这个人是谁。</p>
 <p>关于空间尺度：<a target="_blank" rel="noopener" href="https://blog.csdn.net/samkieth/article/details/50407655">https://blog.csdn.net/samkieth/article/details/50407655</a></p>
@@ -213,8 +213,40 @@
 <h3 id="挑选特征区域（嵌入区域）"><a href="#挑选特征区域（嵌入区域）" class="headerlink" title="挑选特征区域（嵌入区域）"></a>挑选特征区域（嵌入区域）</h3><p>对于一个长度为I的二进制水印序列，将其嵌入到a*b的矩阵中。如图</p>
 <img src="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/4.png" class="">
 
-<p>为了防止每个特征区域之间互不重合，需要将重合的关键点筛出，取强度高的留下，其余的筛掉。这样留下的区域，我们还要比较替换前后的结构相似性指数（SSIM），选取SSIM最高的k个区域为嵌入区域，其余的不变。</p>
- 
+<p>为了防止每个特征区域之间互不重合，需要将重合的关键点筛出，取强度高的留下，其余的筛掉。这样留下的区域，我们还要比较替换前后的结构相似性指数（SSIM），选取SSIM最高的<strong>k个区域</strong>为嵌入区域，其余的不变。</p>
+<h3 id="信息嵌入"><a href="#信息嵌入" class="headerlink" title="信息嵌入"></a>信息嵌入</h3><p>关于DCT矩阵：</p>
+<p>DCT，即离散余弦变换，步骤如下：</p>
+<ol>
+<li>分割，首先将图像分割成8x8或16x16的小块；</li>
+<li>DCT变换，对每个小块进行DCT变换；</li>
+<li>舍弃高频系数（AC系数），保留低频信息（DC系数）。高频系数一般保存的是图像的边界、纹理信息，低频信息主要是保存的图像中平坦区域信息。</li>
+</ol>
+<p>对于一串二进制01串，我们将每一个0或1嵌入到DCT矩阵（8x8）中，然后我们观察发现，再屏幕摄像过程中，虽然对于的矩阵系数发生了改变（图中每个方块的亮度），但是R1（（7，7）+（7，8））和R2（（8，7）+（8，8））的相对大小没有改变。我们将R1&gt;R2当作信息0，将R1&lt;R2当作信息1。这样一来，就算就能抵抗在拍摄过程中的失真。</p>
+<p>见特征区域的图可以看出：</p>
+<p>每一个8x8块可以嵌入一个信息0或1，axb个块即可嵌入长度为I的二进制串。</p>
+<p>下图：</p>
+<p>b，c是嵌入时的0和1。</p>
+<p>c，d是提取时的0和1。</p>
+<img src="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/5.png" class="">
+
+<h3 id="提取过程"><a href="#提取过程" class="headerlink" title="提取过程"></a>提取过程</h3><h4 id="矫正失真"><a href="#矫正失真" class="headerlink" title="矫正失真"></a>矫正失真</h4><p>通过透视变换来矫正透视变形，然后进行裁剪和缩放操作。但对于获得的一个图像，我们很难直接得到<strong>4个图像的顶点</strong>，因为该矫正算法需要4个顶点时才有效。所以我们需要人为的在图像四周<strong>添加边框</strong>。</p>
+<img src="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/6.png" class="">
+
+<h4 id="特征区域定位"><a href="#特征区域定位" class="headerlink" title="特征区域定位"></a>特征区域定位</h4><p>我们采用的是盲提取，所以如何找到嵌入的特征区域十分重要。我们对图像的Y通道运用I-SIFT后，还需要做一些额外的操作来避免提取过程中关键点定位的错误，如：</p>
+<ul>
+<li>关键点强度的变化<ul>
+<li>由于关键点的强度顺序可能会发生变化，因此需要增加提取次数来确保提取的<strong>k个关键点</strong>都在其中。但关键点我们将提取范围从k翻倍，变成<strong>2k个</strong>。</li>
+</ul>
+</li>
+<li>点位置的偏移<ul>
+<li>由于矫正失真过程，同一关键点的精确位置会有一些轻微的偏移，我们需要做一个邻域遍历来补偿偏移。</li>
+<li>我们对这个点执行3 × 3像素的遍历。将以该关键点为中心的9个邻域点作为提取点组。</li>
+</ul>
+</li>
+<li>这样我们一共需要2xkx9个水印序列。</li>
+</ul>
+<h4 id="信息提取"><a href="#信息提取" class="headerlink" title="信息提取"></a>信息提取</h4><p>提取过程总的来说就算嵌入过程的逆过程。只不过我们嵌入了k个特征区域，但提取过程是2xkx9。这样我们会有2xkx9个水印序列。我们设置了一个th，如果水印对的差值不大于th，那么提取准确。</p>
+<h2 id="关键算法（伪代码）"><a href="#关键算法（伪代码）" class="headerlink" title="关键算法（伪代码）"></a>关键算法（伪代码）</h2> 
       <!-- reward -->
       
     </div>
