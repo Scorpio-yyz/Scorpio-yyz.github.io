@@ -96,7 +96,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">3k</span>
+            <span class="post-count">3.2k</span>
         </span>
     </span>
 
@@ -105,7 +105,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">10 min</span>
+            <span class="post-count">11 min</span>
         </span>
     </span>
 </div>
@@ -245,8 +245,14 @@
 </li>
 <li>这样我们一共需要2xkx9个水印序列。</li>
 </ul>
-<h4 id="信息提取"><a href="#信息提取" class="headerlink" title="信息提取"></a>信息提取</h4><p>提取过程总的来说就算嵌入过程的逆过程。只不过我们嵌入了k个特征区域，但提取过程是2xkx9。这样我们会有2xkx9个水印序列。我们设置了一个th，如果水印对的差值不大于th，那么提取准确。</p>
-<h2 id="关键算法（伪代码）"><a href="#关键算法（伪代码）" class="headerlink" title="关键算法（伪代码）"></a>关键算法（伪代码）</h2> 
+<h4 id="信息提取"><a href="#信息提取" class="headerlink" title="信息提取"></a>信息提取</h4><p>提取过程总的来说就算嵌入过程的逆过程。只不过我们嵌入了k个特征区域，但提取过程是<strong>2*k*9</strong>。这样我们会有<strong>2*k*9</strong>个水印序列。我们设置了一个th，如果水印对的差值不大于th，那么提取准确。</p>
+<p>但这样<strong>耗时较大</strong>，因为我们需要检索足够多的区域保证嵌入的特征区域在这些区域中。如果我们能适当<strong>减少</strong>提取区域的<strong>数量</strong>，我们就能减少<strong>提取时间</strong>。</p>
+<p>所以我们提出了<strong>SIFT特征编辑算法</strong></p>
+<h4 id="SIFT特征编辑算法"><a href="#SIFT特征编辑算法" class="headerlink" title="SIFT特征编辑算法"></a>SIFT特征编辑算法</h4><p>核心问题是，在提取过程中，有些关键点不足以抵御屏幕拍摄的扭曲，从而导致前k个强度的关键点发生了变化。</p>
+<p>如果在嵌入过程中，将提取到的关键点的强度提高，再减弱未嵌入区域关键点的强度。使前k个关键点能抵御失真。就可以减少提取过程时提取区域的数量。从而提高提取速度。这是一种减缓了嵌入速度但加快了提取速度的做法。</p>
+<p>同时因为对关键点的特征编辑，画面可能会有所失真，如图。</p>
+<img src="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/7.png" class="">
+ 
       <!-- reward -->
       
     </div>
