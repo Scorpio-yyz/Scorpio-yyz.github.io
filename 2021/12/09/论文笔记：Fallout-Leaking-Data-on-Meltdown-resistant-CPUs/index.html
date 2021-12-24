@@ -96,7 +96,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">1.8k</span>
+            <span class="post-count">2.2k</span>
         </span>
     </span>
 
@@ -105,7 +105,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">6 min</span>
+            <span class="post-count">7 min</span>
         </span>
     </span>
 </div>
@@ -145,23 +145,37 @@
 <li>实现了一次熔断攻击，利用由Supervisor Mode Access<br>Prevention (SMAP)导致的页异常.</li>
 </ol>
 <h1 id="Write-Transient-Forwarding（WTF）漏洞"><a href="#Write-Transient-Forwarding（WTF）漏洞" class="headerlink" title="Write Transient Forwarding（WTF）漏洞"></a>Write Transient Forwarding（WTF）漏洞</h1><p>​        文章发现WTF会错误地将值从写入的内存传递到随后的错误加载指令中。</p>
-<p>​        当程序试图从一个地址读取数据时，CPU必须首先检查存储缓冲区是否写入了相同的地址，如果地址匹配，则执行store-to-load forwarding（以上一个存储的值进行加载操作）。但是如果地址匹配但地址无效，则会产生WTF漏洞。</p>
+<p>​        当程序试图从一个地址读取数据时，CPU必须首先检查存储缓冲区是否写入了相同的地址，如果地址匹配，则执行store-to-load forwarding。但是如果地址匹配但地址无效，则会产生WTF漏洞。</p>
 <p>​        Inter的专利中表明，上述操作确实会发生错误。</p>
 <p>“if there is a hit at operation 302 [lower address match]and the physical address of the load or store operations is not valid, the physical address check at operation 310 [full physical address match] may be considered as a hit and the method 300 [store-to-load forwarding] may continue at operation 308 [block load/forward data from store].”</p>
 <p>​        如果构造了一个地址，通过了302操作（低地址匹配）但地址无效，就会触发检测方法310（全物理地址匹配），导致错误。（300操作（store-to-load forwarding）和308操作（block load/forward data from store））</p>
 <h2 id="简单的例子"><a href="#简单的例子" class="headerlink" title="简单的例子"></a>简单的例子</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span><span class="keyword">char</span>* victim_page = mmap(...,PAGE_SIZE,PROT_READ|PROT_WRITE,MAP_POPULATE, ...);</span><br><span class="line"><span class="number">2</span><span class="keyword">char</span>* attacker_address = <span class="number">0x9876543214321000</span>ull;<span class="comment">//unsigned long long</span></span><br><span class="line"><span class="number">3</span></span><br><span class="line"><span class="number">4</span><span class="keyword">int</span> offset = <span class="number">7</span>;</span><br><span class="line"><span class="number">5</span>victim_page[offset] = <span class="number">42</span>;</span><br><span class="line"><span class="number">6</span><span class="keyword">if</span>(tsx_begin() == <span class="number">0</span>) &#123;</span><br><span class="line"><span class="number">7</span>memory_access(lut + <span class="number">4096</span> * attacker_address[offset]);</span><br><span class="line"><span class="number">8</span>tsx_end();</span><br><span class="line"><span class="number">9</span>&#125;</span><br><span class="line"><span class="number">10</span></span><br><span class="line"><span class="number">11f</span><span class="keyword">or</span>(i = <span class="number">0</span>; i &lt; <span class="number">256</span>; i++) &#123;</span><br><span class="line"><span class="number">12</span>	<span class="keyword">if</span>(flush_reload(lut + i * <span class="number">4096</span>)) &#123;</span><br><span class="line"><span class="number">13</span>	report(i);</span><br><span class="line"><span class="number">14</span>	&#125;</span><br><span class="line"><span class="number">15</span>&#125;</span><br></pre></td></tr></table></figure>
 
 <p>​        上述的victim_page是一个普通的页面，用户可以在其中读写数据。attacker_address是构造的一个非规范的地址，其中的47到63位既不全是’ 0 ‘也不全是’ 1 ‘来导致错误。（行1-2）</p>
-<p>​        对这样的指针进行解引用会导致一般保护故障，然后在用户空间 victim_page的指定偏移量7中存储机密值42。（行4-5）</p>
+<p>​        然后在用户空间 victim_page的指定偏移量7中存储机密值42。（行4-5）</p>
 <p>​        注意到，上述代码并没有直接访问victim_page来读取数据。相反，攻击者通过解引用毫无关联的attacker_address来读取存储缓冲区条目。而且上述代码还利用TSX事务来抑制该操作造成的其他异常。（行6-9）</p>
 <p>​        但由于WTF漏洞，CPU会以前一个存储的值作为页面偏移量来加载一个值。而前一个值就是我们存储的秘密值42。然后我们加载该页面的所有值，计算加载时间。会得到一个加载时间远小于其他值的内存地址，算一算偏移地址，就可以算出秘密值。</p>
 <img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AFallout-Leaking-Data-on-Meltdown-resistant-CPUs/1.png" class="">
 
 <p>​        这样的一个漏洞给可以让我们随意阅读上下文存储的数据。</p>
-<h1 id="数据弹出"><a href="#数据弹出" class="headerlink" title="数据弹出"></a>数据弹出</h1><h2 id="基本思想："><a href="#基本思想：" class="headerlink" title="基本思想："></a>基本思想：</h2><p>我们想尝试，一个非法的数据写入是否能作为地址偏移量，去加载一个内存地址。如果可以，那么我们可以将需要获取的某一个秘密值作为输入，构造成地址，去访问内存。通过查看内存的访问速度，来判断哪一个内存访问速度明显较快，然后计算偏移量来恢复那个秘密值。</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mov (0) -&gt; $dummy</span><br><span class="line">mov $x	-&gt; $(p)</span><br><span class="line">mov (p) —&gt; $value</span><br><span class="line">mov ($mem + $value * 4096) -&gt; $dummy</span><br></pre></td></tr></table></figure>
+<h1 id="数据弹出（-Data-Bounce）"><a href="#数据弹出（-Data-Bounce）" class="headerlink" title="数据弹出（ Data Bounce）"></a>数据弹出（ Data Bounce）</h1><h2 id="基本思想："><a href="#基本思想：" class="headerlink" title="基本思想："></a>基本思想：</h2><p>我们想尝试，一个非法的数据写入是否能作为地址偏移量，去加载一个内存地址。如果可以，那么我们可以将需要获取的某一个秘密值作为输入，构造成地址，去访问内存。通过查看内存的访问速度，来判断哪一个内存访问速度明显较快，然后计算偏移量来恢复那个秘密值。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">mov (0) -&gt; $dummy</span><br><span class="line">#生成一个异常并捕获他来启动瞬态执行</span><br><span class="line">mov $x	-&gt; $(p)</span><br><span class="line">#存储一个秘密值x在地址p上</span><br><span class="line">mov (p) —&gt; $value</span><br><span class="line">#我们读取存储在地址p上的值</span><br><span class="line">mov ($mem + $value * 4096) -&gt; $dummy</span><br><span class="line">#通过WTF，恢复存储的值</span><br></pre></td></tr></table></figure>
 
- 
+<p>这里有两种情况：</p>
+<ol>
+<li>如果从p读取的值是x，mem的第x页被缓存了，即Store-to-Load Forwarding的情况.</li>
+<li>No Store-to-Load Forwarding的情况出现，那么该数据弹出就失败了。这种失败可能是暂时的也可能是永久的。<strong>如果一个物理地址页面不支持虚拟地址</strong>，那么永远也不可能成功。如果来自硬件的错误（如中断），那么可能该错误是暂时的。</li>
+</ol>
+<p>这种数据弹出是可以攻破ASLR的。因为上述x的物理地址在哪并不重要，无论如何随机化，我都可以构造成一个页面偏移地址来进行数据弹出。</p>
+<h1 id="Fetch-Bounce"><a href="#Fetch-Bounce" class="headerlink" title="Fetch+Bounce"></a>Fetch+Bounce</h1><p>使用数据反弹很容易区分有效地址和无效地址。然而，它的成功率(<strong>即数据反弹需要重复的频率</strong>)直接取决于在TLB中存储了哪些地址。</p>
+<p>通过分析数据反弹的成功率，我们进一步利用了与TLB相关的侧通道信息。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">for retry = 0...2</span><br><span class="line">	mov $x→ (p)</span><br><span class="line">	mov (p)→ $value</span><br><span class="line">	mov ($mem + $value * 4096)→ $dummy</span><br><span class="line">if flush_reload($mem + $x * 4096) then break</span><br></pre></td></tr></table></figure>
+
+<p>如果上述代码第一次就能命中，说明该地址本身就在TLB中。吐过第二次可以名字，说明该地址不在TLB中，但是该地址是有效的。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AFallout-Leaking-Data-on-Meltdown-resistant-CPUs/2.png" class="">
+
+<p>可以看到页面0-7是无效的，页面17是在TLB中，其他地址有效但不在TLB中。</p>
+<h1 id="Speculative（投机的）Fetch-Bounce"><a href="#Speculative（投机的）Fetch-Bounce" class="headerlink" title="Speculative（投机的）Fetch+Bounce"></a>Speculative（投机的）Fetch+Bounce</h1> 
       <!-- reward -->
       
     </div>
