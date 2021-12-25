@@ -11,7 +11,7 @@
         name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1"
       />
-      <title>Fallout: Leaking Data on Meltdown-resistant CPUs论文笔记 |  Scorpio-yyz</title>
+      <title>Fallout: Leaking Data on Meltdown-resistant CPUs 论文笔记 |  Scorpio-yyz</title>
   <meta name="generator" content="hexo-theme-ayer">
       
       <link rel="shortcut icon" href="/favicon.ico" />
@@ -76,7 +76,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  Fallout: Leaking Data on Meltdown-resistant CPUs论文笔记
+  Fallout: Leaking Data on Meltdown-resistant CPUs 论文笔记
 </h1>
  
 
@@ -96,7 +96,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">2.2k</span>
+            <span class="post-count">2.4k</span>
         </span>
     </span>
 
@@ -105,7 +105,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">7 min</span>
+            <span class="post-count">8 min</span>
         </span>
     </span>
 </div>
@@ -158,7 +158,7 @@
 <img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AFallout-Leaking-Data-on-Meltdown-resistant-CPUs/1.png" class="">
 
 <p>​        这样的一个漏洞给可以让我们随意阅读上下文存储的数据。</p>
-<h1 id="数据弹出（-Data-Bounce）"><a href="#数据弹出（-Data-Bounce）" class="headerlink" title="数据弹出（ Data Bounce）"></a>数据弹出（ Data Bounce）</h1><h2 id="基本思想："><a href="#基本思想：" class="headerlink" title="基本思想："></a>基本思想：</h2><p>我们想尝试，一个非法的数据写入是否能作为地址偏移量，去加载一个内存地址。如果可以，那么我们可以将需要获取的某一个秘密值作为输入，构造成地址，去访问内存。通过查看内存的访问速度，来判断哪一个内存访问速度明显较快，然后计算偏移量来恢复那个秘密值。</p>
+<h1 id="数据弹出（-Data-Bounce）"><a href="#数据弹出（-Data-Bounce）" class="headerlink" title="数据弹出（ Data Bounce）"></a>数据弹出（ Data Bounce）</h1><p>我们想尝试，一个非法的数据写入是否能作为地址偏移量，去加载一个内存地址。如果可以，那么我们可以将需要获取的某一个秘密值作为输入，构造成地址，去访问内存。通过查看内存的访问速度，来判断哪一个内存访问速度明显较快，然后计算偏移量来恢复那个秘密值。</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">mov (0) -&gt; $dummy</span><br><span class="line">#生成一个异常并捕获他来启动瞬态执行</span><br><span class="line">mov $x	-&gt; $(p)</span><br><span class="line">#存储一个秘密值x在地址p上</span><br><span class="line">mov (p) —&gt; $value</span><br><span class="line">#我们读取存储在地址p上的值</span><br><span class="line">mov ($mem + $value * 4096) -&gt; $dummy</span><br><span class="line">#通过WTF，恢复存储的值</span><br></pre></td></tr></table></figure>
 
 <p>这里有两种情况：</p>
@@ -166,16 +166,35 @@
 <li>如果从p读取的值是x，mem的第x页被缓存了，即Store-to-Load Forwarding的情况.</li>
 <li>No Store-to-Load Forwarding的情况出现，那么该数据弹出就失败了。这种失败可能是暂时的也可能是永久的。<strong>如果一个物理地址页面不支持虚拟地址</strong>，那么永远也不可能成功。如果来自硬件的错误（如中断），那么可能该错误是暂时的。</li>
 </ol>
-<p>这种数据弹出是可以攻破ASLR的。因为上述x的物理地址在哪并不重要，无论如何随机化，我都可以构造成一个页面偏移地址来进行数据弹出。</p>
 <h1 id="Fetch-Bounce"><a href="#Fetch-Bounce" class="headerlink" title="Fetch+Bounce"></a>Fetch+Bounce</h1><p>使用数据反弹很容易区分有效地址和无效地址。然而，它的成功率(<strong>即数据反弹需要重复的频率</strong>)直接取决于在TLB中存储了哪些地址。</p>
 <p>通过分析数据反弹的成功率，我们进一步利用了与TLB相关的侧通道信息。</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">for retry = 0...2</span><br><span class="line">	mov $x→ (p)</span><br><span class="line">	mov (p)→ $value</span><br><span class="line">	mov ($mem + $value * 4096)→ $dummy</span><br><span class="line">if flush_reload($mem + $x * 4096) then break</span><br></pre></td></tr></table></figure>
 
-<p>如果上述代码第一次就能命中，说明该地址本身就在TLB中。吐过第二次可以名字，说明该地址不在TLB中，但是该地址是有效的。</p>
+<p>如果上述代码第一次就能命中，说明该地址本身就在TLB中。如果第二次可以命中，说明该地址不在TLB中，但是该地址是有效的。</p>
 <img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AFallout-Leaking-Data-on-Meltdown-resistant-CPUs/2.png" class="">
 
 <p>可以看到页面0-7是无效的，页面17是在TLB中，其他地址有效但不在TLB中。</p>
-<h1 id="Speculative（投机的）Fetch-Bounce"><a href="#Speculative（投机的）Fetch-Bounce" class="headerlink" title="Speculative（投机的）Fetch+Bounce"></a>Speculative（投机的）Fetch+Bounce</h1> 
+<h1 id="Speculative（投机的）-Fetch-Bounce"><a href="#Speculative（投机的）-Fetch-Bounce" class="headerlink" title="Speculative（投机的） Fetch+Bounce"></a>Speculative（投机的） Fetch+Bounce</h1><p>如图：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AFallout-Leaking-Data-on-Meltdown-resistant-CPUs/3.png" class="">
+
+<p>攻击者需要控制数组索引就可以从内核中泄漏任意内存内容。根据要泄漏的字节值，我们将访问256个页面中的一个。然后，Fetch +Bounce用于检测哪些页面在TLB中缓存了有效的地址。缓存的TLB条目直接显示了泄漏的字节。</p>
+<h1 id="打破内核隔离"><a href="#打破内核隔离" class="headerlink" title="打破内核隔离"></a>打破内核隔离</h1><p>我们需要人为设置两个模块：</p>
+<ul>
+<li><p>内核模块</p>
+<ul>
+<li>我们设置的内核设置了一系列写入操作，每个操作都指向不同内核页面的不同页面偏移量。这些内核页面用户是无法直接访问的。</li>
+</ul>
+</li>
+<li><p>攻击程序</p>
+<ul>
+<li>攻击者应用程序调用内核模块来执行内核写操作，然后尝试恢复内核写的值。</li>
+</ul>
+<p>攻击结果：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AFallout-Leaking-Data-on-Meltdown-resistant-CPUs/4.png" class=""></li>
+</ul>
+<p>可以看到，内核存储数据数量越多，读取成功率越高。</p>
+<p>在易受熔断的机器上，禁用KAISER补丁会使机器暴露在熔断攻击下。这意味着，与旧CPU相比，英特尔新一代CPU更容易受到攻击出现内核消息泄漏。</p>
+ 
       <!-- reward -->
       
     </div>

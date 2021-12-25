@@ -11,7 +11,7 @@
         name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1"
       />
-      <title>论文笔记：A Novel Two-stage Separable Deep Learning Framework for |  Scorpio-yyz</title>
+      <title>A Novel Two-stage Separable Deep Learning Framework for 论文笔记 |  Scorpio-yyz</title>
   <meta name="generator" content="hexo-theme-ayer">
       
       <link rel="shortcut icon" href="/favicon.ico" />
@@ -76,7 +76,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  论文笔记：A Novel Two-stage Separable Deep Learning Framework for
+  A Novel Two-stage Separable Deep Learning Framework for 论文笔记
 </h1>
  
 
@@ -92,7 +92,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">1.5k</span>
+            <span class="post-count">1.6k</span>
         </span>
     </span>
 
@@ -166,7 +166,7 @@
 <p>将上述三维张量连接到每一层的输出特征上R^(64*H*W)，然后新的张量R^（（64+L）*H*W）被输入到下一层。最后，我们使用1∗1卷积层将多通道图片转换为3通道图片。</p>
 <img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/3.png" class="">
 
-<p>用M生成Im的水印掩码。Ien=Ico+S*Im。其中S是强度因子，使得Ien和Ico看起来尽可能一样。</p>
+<p>用M生成Im的水印掩码。Ien=Ico+S*Im。其中S是强度因子。</p>
 <p>损失函数（目标找到参数θE使得Ico和Ien差距最小）：</p>
 <img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/4.png" class="">
 
@@ -201,6 +201,11 @@
 <h3 id="黑盒噪声攻击"><a href="#黑盒噪声攻击" class="headerlink" title="黑盒噪声攻击"></a>黑盒噪声攻击</h3><p>日常生活中常见的图像处理软件引起的噪声攻击，我们称之为黑盒噪声。这种图像处理算法封装在软件中，总是集成了各种改变整个图像像素的传统噪声，</p>
 <h3 id="指定训练和组合训练"><a href="#指定训练和组合训练" class="headerlink" title="指定训练和组合训练"></a>指定训练和组合训练</h3><p>指定训练：在单个噪声下进行ADOT训练</p>
 <p>组合训练：在各种噪声下进行ADOT训练</p>
+<h2 id="评估"><a href="#评估" class="headerlink" title="评估"></a>评估</h2><img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/9.png" class="">
+
+<p>Pretrained 表示第一阶段无噪声下，解码器的准确率</p>
+<p>Specified 表示指定噪声训练下，指定解码器的准确率</p>
+<p>Combined 表示在该噪声下，组合解码器的准确率</p>
  
       <!-- reward -->
       
@@ -277,6 +282,15 @@
 
    
   <nav class="article-nav">
+    
+      <a href="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            Deep_Template-Based_Watermarking 论文笔记
+          
+        </div>
+      </a>
     
     
       <a href="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/" class="article-nav-link">

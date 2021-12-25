@@ -1163,6 +1163,58 @@
       </categories>
   </entry>
   <entry>
+    <title>无线DOS之取消验证洪水攻击</title>
+    <url>/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/</url>
+    <content><![CDATA[<h1 id="攻击原理"><a href="#攻击原理" class="headerlink" title="攻击原理"></a>攻击原理</h1><p>​    取消验证洪水攻击，全程为De-authenticationFloodAttack,简称为Deauth攻击。首先，攻击者通过扫描周围的WIFI网络，获取WIFI站点的SSID。然后扫描连接周围连接该网络的设备。最后，对周边网络进行抓包（嗅探），寻找要攻击的WIFI站点和连接该站点的设备，以获取的包头信息重新构造一个取消验证包，发给连接设备。设备会被欺骗，从而取消对AP的连接。</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/0.png" class="">
+
+<h1 id="攻击实现"><a href="#攻击实现" class="headerlink" title="攻击实现"></a>攻击实现</h1><p>​    参考已有的张馆长的工程，将其烧录到esp8266模块上。<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/1.jpg" class=""></p>
+<p>简单配置一下</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/2.jpg" class="">
+
+<p>烧录</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/3.jpg" class="">
+
+<p>这时，esp8266会建立一个WIFI，</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/4.jpg" class="">
+
+<p>我们连接这个wifi，进入192.168.4.1，可以看到攻击界面，里面会显示当前的AP，我们选取一个作为攻击对象。这里我们设置的是无差别攻击。当我们要定点攻击时，需要扫描连接该WiFi的设备，选择一个攻击。</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/5.jpg" class="">
+
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/6.jpg" class="">
+
+<p>​        选择Deauth攻击，然后我们就可以观察到连接该网的设备断连的现象，手机上方的WiFi图标会不断闪烁。</p>
+<h1 id="代码架构"><a href="#代码架构" class="headerlink" title="代码架构"></a>代码架构</h1><p>首先，WIFI模块有两种工作模式：</p>
+<p>ap是无线发射端，station是接收端，两种模式组建成一个无线局域网。</p>
+<ol>
+<li>ap mode 通常应用在无线局域网成员设备（即客户端）的加入，即<strong>网络下行</strong>。它提供以无线方式组建无线局域网 WLAN，相当际 <strong>WLAN 的中心设备</strong>。AP和AP之间允许相互连接。</li>
+<li>station mode即工作站模式，可以理解为某个网格中的一个工作站即<strong>客户端</strong>，<strong>网络上行</strong>。那当一个 WIFI 芯片提供这个功能时，它就可以连到另外的一个网络当中，如家用路由器。通常用于提供网络的数据上行服务。</li>
+</ol>
+<p>代码的核心是扫描、嗅探和伪造。扫描站点，嗅探（抓包）和通过。</p>
+<p>首先是扫描：</p>
+<p>​    AP模式扫描周围的AP。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line">	<span class="comment">/* AP Scan */</span></span><br><span class="line">    <span class="keyword">if</span> ((mode == SCAN_MODE_APS) || (mode == SCAN_MODE_ALL)) &#123;</span><br><span class="line">        <span class="comment">// remove old results</span></span><br><span class="line">        accesspoints.removeAll();</span><br><span class="line">        stations.removeAll();</span><br><span class="line">        <span class="comment">// start AP scan</span></span><br><span class="line">        prntln(SC_START_AP);</span><br><span class="line">        WiFi.scanNetworks(<span class="literal">true</span>, <span class="literal">true</span>);</span><br><span class="line">        <span class="comment">/*该函数可以扫描到ESP8266开发板所在环境中的可用WIFI网络，并且将WiFi网络信息保存到内存中。通过调用SSID、RSSI等函数，我们还可以得到这些扫描到的WIFI的更多信息。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>​    station模式开启后可以开启混杂模式（混杂模式（英语：promiscuous mode）是电脑网络中的术语。是指一台机器的网卡能够接收所有经过它的数据流，而不论其目的地址是否是它。），从而为嗅探作准备</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line"><span class="comment">/* Station Scan */</span></span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (mode == SCAN_MODE_STATIONS) &#123;</span><br><span class="line">        <span class="comment">// start station scan</span></span><br><span class="line">        <span class="keyword">if</span> (accesspoints.count() &lt; <span class="number">1</span>) &#123;</span><br><span class="line">            start(SCAN_MODE_ALL);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;<span class="comment">//如果当前网络没有AP,返回重新扫描，因为我们需要先确定攻击的AP再确定攻击的设备，如果在嗅探前AP已经不存在了，则没有继续的必要</span></span><br><span class="line">        snifferStartTime = currentTime;</span><br><span class="line">        prnt(SC_START_CLIENT);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (sniffTime &gt; <span class="number">0</span>) prnt(String(sniffTime / <span class="number">1000</span>) + S);</span><br><span class="line">        <span class="keyword">else</span> prnt(SC_INFINITELY);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!channelHop) &#123;</span><br><span class="line">            prnt(SC_ON_CHANNEL);</span><br><span class="line">            prnt(wifi_channel);</span><br><span class="line">        &#125;</span><br><span class="line">        prntln();</span><br><span class="line">        wifi::stopAP();</span><br><span class="line">        wifi_promiscuous_enable(<span class="literal">true</span>);<span class="comment">//开启混杂模式</span></span><br><span class="line">    	<span class="comment">/*混杂模式就是接收所有经过网卡的数据包，包括不是发给本机的包。默认情况下网卡只把发给本机的包（包括广播包）传递给上层程序，其它的包一律丢弃。但是混杂模式就是指网卡能接受所有通过它的数据流，不管是什么格式，什么地址的。事实上，计算机收到数据包后，由网络层进行判断（这里是802.11系协议），确定是递交上层（传输层），还是丢弃，还是递交下层（数据链路层、MAC子层）转发。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>进入嗅探模式：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Scan::sniffer</span><span class="params">(<span class="keyword">uint8_t</span>* buf, <span class="keyword">uint16_t</span> len)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!isSniffing()) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    packets++;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">28</span>) <span class="keyword">return</span>;  <span class="comment">// 丢弃掉过短的数据包</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0xc0</span>) || (buf[<span class="number">12</span>] == <span class="number">0xa0</span>)) &#123;</span><br><span class="line">        tmpDeauths++;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 丢弃信标帧、探测请求/响应和解除授权/解除关联帧</span></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0x80</span>) || (buf[<span class="number">12</span>] == <span class="number">0x40</span>) || (buf[<span class="number">12</span>] == <span class="number">0x50</span>) <span class="comment">/* || buf[12] == 0xc0 || buf[12] == 0xa0*/</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 只允许数据帧</span></span><br><span class="line">    <span class="comment">// if(buf[12] != 0x08 &amp;&amp; buf[12] != 0x88) return;数据帧12位为08和88的时候说明是数据帧，如果都不是，可以丢弃，但作者将这句话注释了，不知道原因。。。</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span>* macTo   = &amp;buf[<span class="number">16</span>];<span class="comment">//该数据包要去哪</span></span><br><span class="line">    <span class="keyword">uint8_t</span>* macFrom = &amp;buf[<span class="number">22</span>];<span class="comment">//该数据包从哪来</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (macBroadcast(macTo) || macBroadcast(macFrom) || !macValid(macTo) || !macValid(macFrom) || macMulticast(macTo) ||</span><br><span class="line">        macMulticast(macFrom)) <span class="keyword">return</span>;</span><br><span class="line">	<span class="comment">//Broadcast所谓广播地址指同时向网上所有的主机发送报文，也就是说，不管物理网络特性如何，internet网都支持广播传输。这里表示如果收发地址为广播地址，则丢弃。</span></span><br><span class="line">    <span class="comment">//Multicast是一个群组传播模式。。。其他的看不懂了，和上面区别不大。也丢弃。</span></span><br><span class="line">    <span class="comment">//上面两种的特点都是一对多模式，而我们只需要要截获一对一的数据包，并认为该mac为有效mac地址。</span></span><br><span class="line">    <span class="keyword">int</span> accesspointNum = findAccesspoint(macFrom);<span class="comment">//查看该mac地址有几个AP。这个如果小于0说明该mac地址是连接AP的设备</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        stations.add(macTo, accesspoints.getID(accesspointNum));</span><br><span class="line">        <span class="comment">//macForm为AP了，那么macTo肯定为设备，我们将该设备的mac加入列表。</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;  <span class="comment">//如果AP数量为0，那么macTo是AP，macForm为设备，</span></span><br><span class="line">        accesspointNum = findAccesspoint(macTo);</span><br><span class="line">        <span class="comment">//这两个if判断谁是AP谁是设备，写的很垃圾</span></span><br><span class="line">        <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            stations.add(macFrom, accesspoints.getID(accesspointNum));</span><br><span class="line">            <span class="comment">//我们将该设备的mac加入列表。</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="802-11协议"><a href="#802-11协议" class="headerlink" title="802.11协议"></a>802.11协议</h2><img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/7.png" class="">
+
+<p>以上是我们需要构造的mac帧头格式</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/8.png" class="">
+
+<p>准确的说，我们需要向设备发送取消验证包。地址1应该是DA（设备mac），地址2是BSSID（伪造成APmac），地址3源地址（还是APmac）</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#attack.cpp</span></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">Attack::deauthDevice</span><span class="params">(<span class="keyword">uint8_t</span>* apMac, <span class="keyword">uint8_t</span>* stMac, <span class="keyword">uint8_t</span> reason, <span class="keyword">uint8_t</span> ch)</span> </span>&#123;</span><br><span class="line">	······</span><br><span class="line">    <span class="comment">// build deauth packet</span></span><br><span class="line">    packetSize = <span class="keyword">sizeof</span>(deauthPacket);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span> deauthpkt[packetSize];</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(deauthpkt, deauthPacket, packetSize);<span class="comment">//构造mac帧头，初始数据见下</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">4</span>], stMac, <span class="number">6</span>);</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">10</span>], apMac, <span class="number">6</span>);</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">16</span>], apMac, <span class="number">6</span>);</span><br><span class="line">    deauthpkt[<span class="number">24</span>] = reason;</span><br><span class="line">    ······</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#attack.h</span></span><br><span class="line"><span class="keyword">uint8_t</span> deauthPacket[<span class="number">26</span>] = &#123;</span><br><span class="line">            <span class="comment">/*  0 - 1  */</span> <span class="number">0xC0</span>, <span class="number">0x00</span>,</span><br><span class="line">            <span class="comment">/*  2 - 3  */</span> <span class="number">0x00</span>, <span class="number">0x00</span>, </span><br><span class="line">            <span class="comment">/*  4 - 9  */</span> <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>,</span><br><span class="line">            <span class="comment">/* 10 - 15 */</span> <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>,</span><br><span class="line">            <span class="comment">/* 16 - 21 */</span> <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>,</span><br><span class="line">            <span class="comment">/* 22 - 23 */</span> <span class="number">0x00</span>, <span class="number">0x00</span>,                         </span><br><span class="line">            <span class="comment">/* 24 - 25 */</span> <span class="number">0x01</span>, <span class="number">0x00</span>                         </span><br><span class="line">        &#125;;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>软件安全</category>
+      </categories>
+  </entry>
+  <entry>
     <title>深入理解计算机系统一</title>
     <url>/2021/04/12/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%80/</url>
     <content><![CDATA[<h4 id="位："><a href="#位：" class="headerlink" title="位："></a>位：</h4><p>​        计算机中数据储存的基本单位，源程序实际上就是由0和1组成的位序列，8位等于一个字节，系统中的所有信息都是由一串比特位来表示的。</p>
@@ -1430,58 +1482,6 @@
 ]]></content>
       <categories>
         <category>CSAPP</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>无线DOS之取消验证洪水攻击</title>
-    <url>/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/</url>
-    <content><![CDATA[<h1 id="攻击原理"><a href="#攻击原理" class="headerlink" title="攻击原理"></a>攻击原理</h1><p>​    取消验证洪水攻击，全程为De-authenticationFloodAttack,简称为Deauth攻击。首先，攻击者通过扫描周围的WIFI网络，获取WIFI站点的SSID。然后扫描连接周围连接该网络的设备。最后，对周边网络进行抓包（嗅探），寻找要攻击的WIFI站点和连接该站点的设备，以获取的包头信息重新构造一个取消验证包，发给连接设备。设备会被欺骗，从而取消对AP的连接。</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/0.png" class="">
-
-<h1 id="攻击实现"><a href="#攻击实现" class="headerlink" title="攻击实现"></a>攻击实现</h1><p>​    参考已有的张馆长的工程，将其烧录到esp8266模块上。<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/1.jpg" class=""></p>
-<p>简单配置一下</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/2.jpg" class="">
-
-<p>烧录</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/3.jpg" class="">
-
-<p>这时，esp8266会建立一个WIFI，</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/4.jpg" class="">
-
-<p>我们连接这个wifi，进入192.168.4.1，可以看到攻击界面，里面会显示当前的AP，我们选取一个作为攻击对象。这里我们设置的是无差别攻击。当我们要定点攻击时，需要扫描连接该WiFi的设备，选择一个攻击。</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/5.jpg" class="">
-
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/6.jpg" class="">
-
-<p>​        选择Deauth攻击，然后我们就可以观察到连接该网的设备断连的现象，手机上方的WiFi图标会不断闪烁。</p>
-<h1 id="代码架构"><a href="#代码架构" class="headerlink" title="代码架构"></a>代码架构</h1><p>首先，WIFI模块有两种工作模式：</p>
-<p>ap是无线发射端，station是接收端，两种模式组建成一个无线局域网。</p>
-<ol>
-<li>ap mode 通常应用在无线局域网成员设备（即客户端）的加入，即<strong>网络下行</strong>。它提供以无线方式组建无线局域网 WLAN，相当际 <strong>WLAN 的中心设备</strong>。AP和AP之间允许相互连接。</li>
-<li>station mode即工作站模式，可以理解为某个网格中的一个工作站即<strong>客户端</strong>，<strong>网络上行</strong>。那当一个 WIFI 芯片提供这个功能时，它就可以连到另外的一个网络当中，如家用路由器。通常用于提供网络的数据上行服务。</li>
-</ol>
-<p>代码的核心是扫描、嗅探和伪造。扫描站点，嗅探（抓包）和通过。</p>
-<p>首先是扫描：</p>
-<p>​    AP模式扫描周围的AP。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line">	<span class="comment">/* AP Scan */</span></span><br><span class="line">    <span class="keyword">if</span> ((mode == SCAN_MODE_APS) || (mode == SCAN_MODE_ALL)) &#123;</span><br><span class="line">        <span class="comment">// remove old results</span></span><br><span class="line">        accesspoints.removeAll();</span><br><span class="line">        stations.removeAll();</span><br><span class="line">        <span class="comment">// start AP scan</span></span><br><span class="line">        prntln(SC_START_AP);</span><br><span class="line">        WiFi.scanNetworks(<span class="literal">true</span>, <span class="literal">true</span>);</span><br><span class="line">        <span class="comment">/*该函数可以扫描到ESP8266开发板所在环境中的可用WIFI网络，并且将WiFi网络信息保存到内存中。通过调用SSID、RSSI等函数，我们还可以得到这些扫描到的WIFI的更多信息。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-<p>​    station模式开启后可以开启混杂模式（混杂模式（英语：promiscuous mode）是电脑网络中的术语。是指一台机器的网卡能够接收所有经过它的数据流，而不论其目的地址是否是它。），从而为嗅探作准备</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line"><span class="comment">/* Station Scan */</span></span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (mode == SCAN_MODE_STATIONS) &#123;</span><br><span class="line">        <span class="comment">// start station scan</span></span><br><span class="line">        <span class="keyword">if</span> (accesspoints.count() &lt; <span class="number">1</span>) &#123;</span><br><span class="line">            start(SCAN_MODE_ALL);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;<span class="comment">//如果当前网络没有AP,返回重新扫描，因为我们需要先确定攻击的AP再确定攻击的设备，如果在嗅探前AP已经不存在了，则没有继续的必要</span></span><br><span class="line">        snifferStartTime = currentTime;</span><br><span class="line">        prnt(SC_START_CLIENT);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (sniffTime &gt; <span class="number">0</span>) prnt(String(sniffTime / <span class="number">1000</span>) + S);</span><br><span class="line">        <span class="keyword">else</span> prnt(SC_INFINITELY);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!channelHop) &#123;</span><br><span class="line">            prnt(SC_ON_CHANNEL);</span><br><span class="line">            prnt(wifi_channel);</span><br><span class="line">        &#125;</span><br><span class="line">        prntln();</span><br><span class="line">        wifi::stopAP();</span><br><span class="line">        wifi_promiscuous_enable(<span class="literal">true</span>);<span class="comment">//开启混杂模式</span></span><br><span class="line">    	<span class="comment">/*混杂模式就是接收所有经过网卡的数据包，包括不是发给本机的包。默认情况下网卡只把发给本机的包（包括广播包）传递给上层程序，其它的包一律丢弃。但是混杂模式就是指网卡能接受所有通过它的数据流，不管是什么格式，什么地址的。事实上，计算机收到数据包后，由网络层进行判断（这里是802.11系协议），确定是递交上层（传输层），还是丢弃，还是递交下层（数据链路层、MAC子层）转发。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-<p>进入嗅探模式：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Scan::sniffer</span><span class="params">(<span class="keyword">uint8_t</span>* buf, <span class="keyword">uint16_t</span> len)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!isSniffing()) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    packets++;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">28</span>) <span class="keyword">return</span>;  <span class="comment">// 丢弃掉过短的数据包</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0xc0</span>) || (buf[<span class="number">12</span>] == <span class="number">0xa0</span>)) &#123;</span><br><span class="line">        tmpDeauths++;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 丢弃信标帧、探测请求/响应和解除授权/解除关联帧</span></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0x80</span>) || (buf[<span class="number">12</span>] == <span class="number">0x40</span>) || (buf[<span class="number">12</span>] == <span class="number">0x50</span>) <span class="comment">/* || buf[12] == 0xc0 || buf[12] == 0xa0*/</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 只允许数据帧</span></span><br><span class="line">    <span class="comment">// if(buf[12] != 0x08 &amp;&amp; buf[12] != 0x88) return;数据帧12位为08和88的时候说明是数据帧，如果都不是，可以丢弃，但作者将这句话注释了，不知道原因。。。</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span>* macTo   = &amp;buf[<span class="number">16</span>];<span class="comment">//该数据包要去哪</span></span><br><span class="line">    <span class="keyword">uint8_t</span>* macFrom = &amp;buf[<span class="number">22</span>];<span class="comment">//该数据包从哪来</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (macBroadcast(macTo) || macBroadcast(macFrom) || !macValid(macTo) || !macValid(macFrom) || macMulticast(macTo) ||</span><br><span class="line">        macMulticast(macFrom)) <span class="keyword">return</span>;</span><br><span class="line">	<span class="comment">//Broadcast所谓广播地址指同时向网上所有的主机发送报文，也就是说，不管物理网络特性如何，internet网都支持广播传输。这里表示如果收发地址为广播地址，则丢弃。</span></span><br><span class="line">    <span class="comment">//Multicast是一个群组传播模式。。。其他的看不懂了，和上面区别不大。也丢弃。</span></span><br><span class="line">    <span class="comment">//上面两种的特点都是一对多模式，而我们只需要要截获一对一的数据包，并认为该mac为有效mac地址。</span></span><br><span class="line">    <span class="keyword">int</span> accesspointNum = findAccesspoint(macFrom);<span class="comment">//查看该mac地址有几个AP。这个如果小于0说明该mac地址是连接AP的设备</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        stations.add(macTo, accesspoints.getID(accesspointNum));</span><br><span class="line">        <span class="comment">//macForm为AP了，那么macTo肯定为设备，我们将该设备的mac加入列表。</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;  <span class="comment">//如果AP数量为0，那么macTo是AP，macForm为设备，</span></span><br><span class="line">        accesspointNum = findAccesspoint(macTo);</span><br><span class="line">        <span class="comment">//这两个if判断谁是AP谁是设备，写的很垃圾</span></span><br><span class="line">        <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            stations.add(macFrom, accesspoints.getID(accesspointNum));</span><br><span class="line">            <span class="comment">//我们将该设备的mac加入列表。</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="802-11协议"><a href="#802-11协议" class="headerlink" title="802.11协议"></a>802.11协议</h2><img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/7.png" class="">
-
-<p>以上是我们需要构造的mac帧头格式</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/8.png" class="">
-
-<p>准确的说，我们需要向设备发送取消验证包。地址1应该是DA（设备mac），地址2是BSSID（伪造成APmac），地址3源地址（还是APmac）</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#attack.cpp</span></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">Attack::deauthDevice</span><span class="params">(<span class="keyword">uint8_t</span>* apMac, <span class="keyword">uint8_t</span>* stMac, <span class="keyword">uint8_t</span> reason, <span class="keyword">uint8_t</span> ch)</span> </span>&#123;</span><br><span class="line">	······</span><br><span class="line">    <span class="comment">// build deauth packet</span></span><br><span class="line">    packetSize = <span class="keyword">sizeof</span>(deauthPacket);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span> deauthpkt[packetSize];</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(deauthpkt, deauthPacket, packetSize);<span class="comment">//构造mac帧头，初始数据见下</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">4</span>], stMac, <span class="number">6</span>);</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">10</span>], apMac, <span class="number">6</span>);</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">16</span>], apMac, <span class="number">6</span>);</span><br><span class="line">    deauthpkt[<span class="number">24</span>] = reason;</span><br><span class="line">    ······</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#attack.h</span></span><br><span class="line"><span class="keyword">uint8_t</span> deauthPacket[<span class="number">26</span>] = &#123;</span><br><span class="line">            <span class="comment">/*  0 - 1  */</span> <span class="number">0xC0</span>, <span class="number">0x00</span>,</span><br><span class="line">            <span class="comment">/*  2 - 3  */</span> <span class="number">0x00</span>, <span class="number">0x00</span>, </span><br><span class="line">            <span class="comment">/*  4 - 9  */</span> <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>,</span><br><span class="line">            <span class="comment">/* 10 - 15 */</span> <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>,</span><br><span class="line">            <span class="comment">/* 16 - 21 */</span> <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>,</span><br><span class="line">            <span class="comment">/* 22 - 23 */</span> <span class="number">0x00</span>, <span class="number">0x00</span>,                         </span><br><span class="line">            <span class="comment">/* 24 - 25 */</span> <span class="number">0x01</span>, <span class="number">0x00</span>                         </span><br><span class="line">        &#125;;</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>软件安全</category>
       </categories>
   </entry>
   <entry>
@@ -2633,7 +2633,172 @@
       </categories>
   </entry>
   <entry>
-    <title>Fallout: Leaking Data on Meltdown-resistant CPUs论文笔记</title>
+    <title>A Novel Two-stage Separable Deep Learning Framework for 论文笔记</title>
+    <url>/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/</url>
+    <content><![CDATA[<h1 id="一种两阶段可分离深度学习框架的实用盲水印"><a href="#一种两阶段可分离深度学习框架的实用盲水印" class="headerlink" title="一种两阶段可分离深度学习框架的实用盲水印"></a>一种两阶段可分离深度学习框架的实用盲水印</h1><h2 id="传统OET深度网络体系"><a href="#传统OET深度网络体系" class="headerlink" title="传统OET深度网络体系"></a>传统OET深度网络体系</h2><img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/1.png" class="">
+
+<p>这样一个体系由三个组件构成：</p>
+<ul>
+<li>编码器<ul>
+<li>对输入图像添加水印</li>
+</ul>
+</li>
+<li>噪声层<ul>
+<li>模拟水印图像遭受的噪声攻击</li>
+</ul>
+</li>
+<li>解码器<ul>
+<li>从收到噪声攻击的图像中恢复水印</li>
+</ul>
+</li>
+</ul>
+<h2 id="存在的问题"><a href="#存在的问题" class="headerlink" title="存在的问题"></a>存在的问题</h2><ol>
+<li>OET中，编码器和解码器必须同时与噪声层共同训练，这意味着噪声必须支持反向传播，但自然的噪声往往不具备这样的能力。</li>
+<li>每当引入一个新类型的噪声，编码器和解码器的参数必须重新调整，算力要求高。</li>
+<li>对超参数十分敏感，对于新型噪声，学习得到的超参数可能不能很好的应对。所以在损失函数的指导下，训练过程中会往降低水印质量的方向收敛。</li>
+</ol>
+<p>关于超参数:</p>
+<p>机器学习需要人工调整参数（如权重和偏移），让输出的结果尽可能靠近正确结果。而深度学习是计算机自己调整参数，直到达到一个最好的学习效果。但在学习开始之前，需要设置一些参数，来定义关于模型的复杂性或学习能力，被称为<strong>超参数</strong>。超参数是不能通过训练模型得到的。</p>
+<h2 id="TSDL（可分离式深度学习）"><a href="#TSDL（可分离式深度学习）" class="headerlink" title="TSDL（可分离式深度学习）"></a>TSDL（可分离式深度学习）</h2><p>我们提出了一种可分离式深度学习(TSDL)水印框架。存在两个工作阶段。</p>
+<ol>
+<li>第一阶段，采用多层特征编码策略，在不参考任何噪声的情况下冗余地将水印消息自动编码到图像中，我们称之为无噪声端到端对手训练（FEAT）</li>
+<li>第二阶段，名为噪声感知解码器（ADOT）训练。不断修改解码器的参数，使其能在噪声攻击下准确提取水印。</li>
+</ol>
+<p>与OET相比，我们的编码器能获得更好的编码图像质量。由于第一阶段并没有引入噪声层，所以我们的编码器必须做到在看不到任何噪声的情况下学会对抗噪声。</p>
+<p>为了实现这一目标，我们提出了一种冗余的多层次特征编码网络（RMFEN）。我们还设置了一个强度因子，灵活地在鲁棒性和不可感知性之间权衡。</p>
+<h2 id="模型架构"><a href="#模型架构" class="headerlink" title="模型架构"></a>模型架构</h2><img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/2.png" class="">
+
+<ol>
+<li>将原图像Ico和信息M（-1和1的序列）输入到<strong>编码器</strong>中，输出水印图像Ien</li>
+<li>对Ien进行<strong>噪声攻击</strong>，输出遭受攻击后的图像Ino</li>
+<li>用<strong>解码器</strong>恢复Ien或Ino中的水印信息M’</li>
+<li><strong>对手A</strong>比较Ico和Ien，评估所给图像是编码图像的概率</li>
+</ol>
+<h3 id="编码器E"><a href="#编码器E" class="headerlink" title="编码器E"></a>编码器E</h3><p>消息M是一个一维向量，我们将其复制扩展为三维张量{−1, 1}^(L∗H∗W)。</p>
+<p>L是消息长度，H、W是图像长宽。</p>
+<p>关于张量：</p>
+<p><a href="https://www.jianshu.com/p/f34457c222c5">https://www.jianshu.com/p/f34457c222c5</a></p>
+<p>先将彩色RGB图像转化为YUV图像（其实指的是 YCbCr），转化过程如下：</p>
+<p><strong>Y= 0.299*R+0.587*G+0.114*B</strong><br><strong>U=-0.147*R-0.289*G+0.463*B</strong><br><strong>V= 0.615*R-0.515*G-0.100*B</strong></p>
+<p>编码器使用64个1∗1卷积核放大覆盖图像的颜色通道（由3维放大为64维）。然后使用3∗3核大小的5个卷积层进行特征提取和水印嵌入。在嵌入水印的过程中，我们将重复的水印串接到每个卷积层的输入，引入冗余。</p>
+<p>注：1x1卷积一般只改变输出通道数（channels），<strong>而不改变输出的宽度和高度</strong></p>
+<p>将上述三维张量连接到每一层的输出特征上R^(64*H*W)，然后新的张量R^（（64+L）*H*W）被输入到下一层。最后，我们使用1∗1卷积层将多通道图片转换为3通道图片。</p>
+<img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/3.png" class="">
+
+<p>用M生成Im的水印掩码。Ien=Ico+S*Im。其中S是强度因子。</p>
+<p>损失函数（目标找到参数θE使得Ico和Ien差距最小）：</p>
+<img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/4.png" class="">
+
+<p>MSE：均方误差。</p>
+<h3 id="解码器D"><a href="#解码器D" class="headerlink" title="解码器D"></a>解码器D</h3><p>对于水印图片，解码器输出的M’的分布应该更接近（1，-1）。而对于没有水印的图片，输出的分布更接近0。所以我们用（-1，1）代替（0，1）。</p>
+<p>对比：</p>
+<ul>
+<li>M为0，0，1，1，M’为0，0，0，0。那么有均方误差为2</li>
+<li>M为-1，-1，1，1，M’为0，0，0，0。那么均方误差为4</li>
+</ul>
+<p>这样损失函数更能比较解码器的性能：</p>
+<img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/5.png" class="">
+
+<h3 id="对手A"><a href="#对手A" class="headerlink" title="对手A"></a>对手A</h3><p>在对手网络对抗中，编码器不断更新θE，来试图欺骗对手，使得对手无法判断Ico和Ien。对于A，则不断更新θA来对Ico和Ien进行二分类。</p>
+<img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/6.png" class="">
+
+<img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/7.png" class="">
+
+<h2 id="两阶段可分离式训练"><a href="#两阶段可分离式训练" class="headerlink" title="两阶段可分离式训练"></a>两阶段可分离式训练</h2><p>阶段一：无噪声端到端对手训练（FEAT），目的是最小化：</p>
+<img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/8.png" class="">
+
+<p>阶段二：噪声感知解码器（ADOT）训练。目标是最小化：</p>
+<img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/5.png" class="">
+
+<p>第一阶段的训练对第二阶段的训练能起到加速作用。</p>
+<h3 id="传统噪声攻击"><a href="#传统噪声攻击" class="headerlink" title="传统噪声攻击"></a>传统噪声攻击</h3><ol>
+<li>Resize噪声，将图片缩小为原先的p倍再放大回原先尺寸</li>
+<li>椒盐噪声(salt-and-pepper noise)是指两种噪声，一种是盐噪声（salt noise），另一种是胡椒噪声（pepper  noise）。盐=白色(0)，椒=黑色(255)。前者是高灰度噪声，后者属于低灰度噪声。一般两种噪声同时出现，呈现在图像上就是黑白杂点。</li>
+<li>高斯噪声，指噪声的概率密度函数服从高斯分布</li>
+<li>JPEG压缩</li>
+</ol>
+<h3 id="黑盒噪声攻击"><a href="#黑盒噪声攻击" class="headerlink" title="黑盒噪声攻击"></a>黑盒噪声攻击</h3><p>日常生活中常见的图像处理软件引起的噪声攻击，我们称之为黑盒噪声。这种图像处理算法封装在软件中，总是集成了各种改变整个图像像素的传统噪声，</p>
+<h3 id="指定训练和组合训练"><a href="#指定训练和组合训练" class="headerlink" title="指定训练和组合训练"></a>指定训练和组合训练</h3><p>指定训练：在单个噪声下进行ADOT训练</p>
+<p>组合训练：在各种噪声下进行ADOT训练</p>
+<h2 id="评估"><a href="#评估" class="headerlink" title="评估"></a>评估</h2><img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/9.png" class="">
+
+<p>Pretrained 表示第一阶段无噪声下，解码器的准确率</p>
+<p>Specified 表示指定噪声训练下，指定解码器的准确率</p>
+<p>Combined 表示在该噪声下，组合解码器的准确率</p>
+]]></content>
+      <tags>
+        <tag>数据驱动的数字水印</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Deep_Template-Based_Watermarking 论文笔记</title>
+    <url>/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/</url>
+    <content><![CDATA[<h1 id="基于深度模板的数字水印"><a href="#基于深度模板的数字水印" class="headerlink" title="基于深度模板的数字水印"></a>基于深度模板的数字水印</h1><h2 id="传统基于模板的数字水印"><a href="#传统基于模板的数字水印" class="headerlink" title="传统基于模板的数字水印"></a>传统基于模板的数字水印</h2><p>基于模板的数字水印是传统水印算法的一个重要分支，与其他类型相比，具有更高的嵌入效率。模板是专门设计出来的带有一些统计特征的模式，用来携带水印和定位水印信息的。</p>
+<p>嵌入过程是将模板叠加到图像的空间域中来执行。</p>
+<p>关于空间域：又称图像空间(image space)。由图像像元组成的空间。在图像空间中以长度(距离)为自变量直接对像元值进行处理称为空间域处理。</p>
+<ul>
+<li>以时间作为变量所进行的研究就是时域</li>
+<li>以频率作为变量所进行的研究就是频域</li>
+<li>以空间坐标作为变量进行的研究就是空间域</li>
+<li>以波数作为变量所进行的研究称为波数域</li>
+</ul>
+<p>在深度学习之前，特征提取过程主要是通过一系列图像处理操作来完成的，如边缘检测、SIFT特征提取等。但这种的特征提取能力有限，无法抵御严重的失真。因此，这些传统方法的鲁棒性都不够好。为了提高鲁棒性，唯一可能的方法是使用更强的模板模式，但这将严重牺牲视觉质量。</p>
+<h2 id="提取程序的框架"><a href="#提取程序的框架" class="headerlink" title="提取程序的框架"></a>提取程序的框架</h2><p>主要由两个模块构成：目标水印模块和辅助定位模块</p>
+<h3 id="目标水印模块"><a href="#目标水印模块" class="headerlink" title="目标水印模块"></a>目标水印模块</h3><p>对于一个给定的目标水印序列，首先通过循环冗余码CRC（<a href="https://www.jianshu.com/p/7f4fd7f62de2%EF%BC%89%E5%92%8CBCH%E7%A0%81%EF%BC%88https://zhuanlan.zhihu.com/p/95909150?utm_source=wechat_session%EF%BC%89%E5%AF%B9%E5%85%B6%E8%BF%9B%E8%A1%8C%E7%BC%96%E7%A0%81%EF%BC%8C%E7%94%9F%E6%88%90%E5%85%B7%E6%9C%89%E7%BA%A0%E9%94%99%E8%83%BD%E5%8A%9B%E7%9A%84%E6%B6%88%E6%81%AF%E4%BD%8D%E7%9F%A9%E9%98%B5%E3%80%82">https://www.jianshu.com/p/7f4fd7f62de2）和BCH码（https://zhuanlan.zhihu.com/p/95909150?utm_source=wechat_session）对其进行编码，生成具有纠错能力的消息位矩阵。</a></p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/1.png" class="">
+
+<p>在基于模板的水印算法中，位‘0/1’用不同的图案表示。最终的水印模板是根据矩阵W放置相应的‘0/1’图案组成的。</p>
+<p>我们提出了一套基于人类视觉系统特性的模板生成准则（HVS）</p>
+<ol>
+<li><p>由于“<strong>倾斜效应</strong>”，相同的修改像素量下，倾斜方向的图像比水平方向和垂直方向的图像产生的变化感知更小。</p>
+</li>
+<li><p><strong>JPEG压缩</strong>对<strong>高频</strong>分量的影响较大，对低频影响较小，所以模板需要将信息更多的集中在低频，抵抗JPEG压缩的影响</p>
+</li>
+<li><p>由于传输过程中的<strong>采样操作</strong>，改变了模板的<strong>连通域</strong>。为了保证特征的完整性，至少要在模板中存在一个较大的连通域，这样采样操作才不会擦除所有的特征。</p>
+<p>图像的连通域：是指图像中具有相同或相似像素值并且位置相邻的像素组成的区域。</p>
+<img src="/2.png" style="zoom:50%;" /></li>
+<li><p>人眼对亮度梯度的变化十分敏感。所以我们的模板应该避免显著的亮度变化。</p>
+</li>
+</ol>
+<p>我们设计了32*32的模板</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/5.png" class="">
+
+<p>用下面两种形式来表示0和1</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/3.png" class="">
+
+<p>倾斜的区域设计满足要求1。</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/4.png" class="">
+
+<p>傅里叶变换后，发现能量明显集中在低频区域满足要求2。</p>
+<p>中间有较大的联通区域，满足要求3。</p>
+<p>以灰色亮度为低，相邻模板区域之间都是以灰色相连，无论是灰色-&gt;白色，还是灰色-&gt;黑色，变化都比较顺滑，满足要求4。</p>
+<h3 id="定位模块生成"><a href="#定位模块生成" class="headerlink" title="定位模块生成"></a>定位模块生成</h3><p>于水印单元的位置和大小会受到裁剪和缩放畸变的影响，因此在提取过程中需要对水印模板进行定位和调整大小，这些都需要定位模块的参与。当定位模板与完整的水印单元成固定比例时，我们可以根据定位模板检测到的变换来恢复水印模板的原始状态。</p>
+<p>我们在图像中反复嵌入4组完整的水印，以抵抗剪切攻击（在图像受到裁剪操作时希望总有一个幸存下来）。并设置定位模板的大小为水印模板大小的1/4（图像的1/16）。</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/6.png" class="">
+
+<p>我们生成一幅均值为0，方差为0.01的高斯噪声图像，记为S0。再在S0上做三个对称的翻转操作。</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/7.png" class="">
+
+<p>四组水印模板，就需要四组定位模板。</p>
+<h3 id="总体过程"><a href="#总体过程" class="headerlink" title="总体过程"></a>总体过程</h3><img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/9.png" class="">
+
+<p>由于人眼对蓝色和红色的敏感度低于绿色，所以嵌入到红色通道和蓝色通道中。</p>
+<h2 id="提取算法流程"><a href="#提取算法流程" class="headerlink" title="提取算法流程"></a>提取算法流程</h2><img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/10.png" class="">
+
+<p>先对图像进行透视矫正：</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/11.png" class="">
+
+<p>再寻找红色通道的横纵对称轴来定位和恢复水印。以列为例：</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/12png.png" class="">
+
+<p>以第j列为分界线，分成了j1、j2和j3三个区域。比较j1和j2的相似度。取一个相似度最高的j列来作为列对称轴。行也如此。</p>
+]]></content>
+      <categories>
+        <category>数据驱动的数字水印</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Fallout: Leaking Data on Meltdown-resistant CPUs 论文笔记</title>
     <url>/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AFallout-Leaking-Data-on-Meltdown-resistant-CPUs/</url>
     <content><![CDATA[<h1 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h1><h2 id="缓存"><a href="#缓存" class="headerlink" title="缓存"></a>缓存</h2><p>​        为了提高从内存里读取数据的速度，我们设立了多级缓存。缓存速度比内存要快很多，可以用来存储一些经常用到的数据，这样可以调高数据的利用效率。</p>
 <p>​        CPU会认为当前访问的某个地址的数据时，它周围的数据随后也会大概率被访问到，所以周围数据会一并放到缓存中，以便于取用。</p>
@@ -2673,7 +2838,7 @@
 <img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AFallout-Leaking-Data-on-Meltdown-resistant-CPUs/1.png" class="">
 
 <p>​        这样的一个漏洞给可以让我们随意阅读上下文存储的数据。</p>
-<h1 id="数据弹出（-Data-Bounce）"><a href="#数据弹出（-Data-Bounce）" class="headerlink" title="数据弹出（ Data Bounce）"></a>数据弹出（ Data Bounce）</h1><h2 id="基本思想："><a href="#基本思想：" class="headerlink" title="基本思想："></a>基本思想：</h2><p>我们想尝试，一个非法的数据写入是否能作为地址偏移量，去加载一个内存地址。如果可以，那么我们可以将需要获取的某一个秘密值作为输入，构造成地址，去访问内存。通过查看内存的访问速度，来判断哪一个内存访问速度明显较快，然后计算偏移量来恢复那个秘密值。</p>
+<h1 id="数据弹出（-Data-Bounce）"><a href="#数据弹出（-Data-Bounce）" class="headerlink" title="数据弹出（ Data Bounce）"></a>数据弹出（ Data Bounce）</h1><p>我们想尝试，一个非法的数据写入是否能作为地址偏移量，去加载一个内存地址。如果可以，那么我们可以将需要获取的某一个秘密值作为输入，构造成地址，去访问内存。通过查看内存的访问速度，来判断哪一个内存访问速度明显较快，然后计算偏移量来恢复那个秘密值。</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mov (0) -&gt; $dummy</span><br><span class="line">#生成一个异常并捕获他来启动瞬态执行</span><br><span class="line">mov $x	-&gt; $(p)</span><br><span class="line">#存储一个秘密值x在地址p上</span><br><span class="line">mov (p) —&gt; $value</span><br><span class="line">#我们读取存储在地址p上的值</span><br><span class="line">mov ($mem + $value * 4096) -&gt; $dummy</span><br><span class="line">#通过WTF，恢复存储的值</span><br></pre></td></tr></table></figure>
 
 <p>这里有两种情况：</p>
@@ -2681,18 +2846,139 @@
 <li>如果从p读取的值是x，mem的第x页被缓存了，即Store-to-Load Forwarding的情况.</li>
 <li>No Store-to-Load Forwarding的情况出现，那么该数据弹出就失败了。这种失败可能是暂时的也可能是永久的。<strong>如果一个物理地址页面不支持虚拟地址</strong>，那么永远也不可能成功。如果来自硬件的错误（如中断），那么可能该错误是暂时的。</li>
 </ol>
-<p>这种数据弹出是可以攻破ASLR的。因为上述x的物理地址在哪并不重要，无论如何随机化，我都可以构造成一个页面偏移地址来进行数据弹出。</p>
 <h1 id="Fetch-Bounce"><a href="#Fetch-Bounce" class="headerlink" title="Fetch+Bounce"></a>Fetch+Bounce</h1><p>使用数据反弹很容易区分有效地址和无效地址。然而，它的成功率(<strong>即数据反弹需要重复的频率</strong>)直接取决于在TLB中存储了哪些地址。</p>
 <p>通过分析数据反弹的成功率，我们进一步利用了与TLB相关的侧通道信息。</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">for retry = 0...2</span><br><span class="line">	mov $x→ (p)</span><br><span class="line">	mov (p)→ $value</span><br><span class="line">	mov ($mem + $value * 4096)→ $dummy</span><br><span class="line">if flush_reload($mem + $x * 4096) then break</span><br></pre></td></tr></table></figure>
 
-<p>如果上述代码第一次就能命中，说明该地址本身就在TLB中。吐过第二次可以名字，说明该地址不在TLB中，但是该地址是有效的。</p>
+<p>如果上述代码第一次就能命中，说明该地址本身就在TLB中。如果第二次可以命中，说明该地址不在TLB中，但是该地址是有效的。</p>
 <img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AFallout-Leaking-Data-on-Meltdown-resistant-CPUs/2.png" class="">
 
 <p>可以看到页面0-7是无效的，页面17是在TLB中，其他地址有效但不在TLB中。</p>
-<h1 id="Speculative（投机的）Fetch-Bounce"><a href="#Speculative（投机的）Fetch-Bounce" class="headerlink" title="Speculative（投机的）Fetch+Bounce"></a>Speculative（投机的）Fetch+Bounce</h1>]]></content>
+<h1 id="Speculative（投机的）-Fetch-Bounce"><a href="#Speculative（投机的）-Fetch-Bounce" class="headerlink" title="Speculative（投机的） Fetch+Bounce"></a>Speculative（投机的） Fetch+Bounce</h1><p>如图：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AFallout-Leaking-Data-on-Meltdown-resistant-CPUs/3.png" class="">
+
+<p>攻击者需要控制数组索引就可以从内核中泄漏任意内存内容。根据要泄漏的字节值，我们将访问256个页面中的一个。然后，Fetch +Bounce用于检测哪些页面在TLB中缓存了有效的地址。缓存的TLB条目直接显示了泄漏的字节。</p>
+<h1 id="打破内核隔离"><a href="#打破内核隔离" class="headerlink" title="打破内核隔离"></a>打破内核隔离</h1><p>我们需要人为设置两个模块：</p>
+<ul>
+<li><p>内核模块</p>
+<ul>
+<li>我们设置的内核设置了一系列写入操作，每个操作都指向不同内核页面的不同页面偏移量。这些内核页面用户是无法直接访问的。</li>
+</ul>
+</li>
+<li><p>攻击程序</p>
+<ul>
+<li>攻击者应用程序调用内核模块来执行内核写操作，然后尝试恢复内核写的值。</li>
+</ul>
+<p>攻击结果：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AFallout-Leaking-Data-on-Meltdown-resistant-CPUs/4.png" class=""></li>
+</ul>
+<p>可以看到，内核存储数据数量越多，读取成功率越高。</p>
+<p>在易受熔断的机器上，禁用KAISER补丁会使机器暴露在熔断攻击下。这意味着，与旧CPU相比，英特尔新一代CPU更容易受到攻击出现内核消息泄漏。</p>
+]]></content>
       <categories>
         <category>幽灵与熔断</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>VisCode: Embedding Information in Visualization Images using 论文笔记</title>
+    <url>/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/</url>
+    <content><![CDATA[<h1 id="VisCode-使用编码器-解码器网络在可视化图像中嵌入信息"><a href="#VisCode-使用编码器-解码器网络在可视化图像中嵌入信息" class="headerlink" title="VisCode:使用编码器-解码器网络在可视化图像中嵌入信息"></a>VisCode:使用编码器-解码器网络在可视化图像中嵌入信息</h1><h2 id="Overiew"><a href="#Overiew" class="headerlink" title="Overiew"></a>Overiew</h2><p>​        数据可视化的一个基本目标是提高对数据的认知和感知能力。与传输大量的原始数据相比，图像是更能被接受的载体。但是，在将原始信息转化为像素值后，很难从得到的图像中重建原始信息。而VisCode，就是一个在可视化图像中使用编码器和解码器网络嵌入和恢复隐藏信息的框架。</p>
+<h2 id="三个组件（Visual-Importance-Network、Encoder-Network、Decoder-Network）"><a href="#三个组件（Visual-Importance-Network、Encoder-Network、Decoder-Network）" class="headerlink" title="三个组件（Visual Importance Network、Encoder Network、Decoder Network）"></a>三个组件（Visual Importance Network、Encoder Network、Decoder Network）</h2><h3 id="Visual-Importance-Network"><a href="#Visual-Importance-Network" class="headerlink" title="Visual Importance Network"></a>Visual Importance Network</h3><p>​        由于数据可视化的语义特征与自然图像有很大的不同，文章使用网络来建模，得到一个<strong>视觉重要性图</strong>来用于下一个组件(Encode Network)的约束。考虑到错误校正，文章将普通信息转换为嵌入一系列<strong>QR码</strong>，而不是二进制数据。</p>
+<p>​        <img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/1.png" class=""></p>
+<h3 id="Encoder-Network"><a href="#Encoder-Network" class="headerlink" title="Encoder Network"></a>Encoder Network</h3><p>​        在该网络组件中，通过特征提取过程将<strong>载体图像和二维码图像</strong>嵌入到向量中。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/2.png" class="">、
+
+<h3 id="Decoder-Network"><a href="#Decoder-Network" class="headerlink" title="Decoder Network"></a>Decoder Network</h3><p>​        解码器网络从编码的图像中检索信息。用户可以通过数字传输与他人共享编码图像。将编码后的图像解码后，从解码后的QR码图像中获得最终的信息，并进行纠错。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/3.png" class="">
+
+<h2 id="VisCode系统运行过程"><a href="#VisCode系统运行过程" class="headerlink" title="VisCode系统运行过程"></a>VisCode系统运行过程</h2><p>​        VisCode系统的主要组件。首先，视觉重要性网络(b)对输入图形图(a)进行处理，便于检测可视化的显著特征，输出<strong>视觉重要性图</strong>。接下来，编码器网络(c)将<strong>秘密信息</strong>嵌入到图形图(a)中，通过特征提取将<strong>载体图像和二维码图像</strong>嵌入到向量中。然后，将这两个向量连接起来(如黄色矩形所示)，并进入<strong>自编码阶段</strong>。编码后的图像(d)被发送给用户(e)，用户可以通过数字传输将其发送给其他人。当用户希望获取图表中隐藏的详细信息时，可以将编码后的图像上传到解码器网络(f)。经过数据恢复和纠错后，用户接收到解码后的信息(g)。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/4.png" class="">
+
+<h2 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h2><h3 id="视觉重要性地图Visual-Importance-Map"><a href="#视觉重要性地图Visual-Importance-Map" class="headerlink" title="视觉重要性地图Visual Importance Map"></a>视觉重要性地图Visual Importance Map</h3><p>​        编码器网络的目标是将大量信息嵌入到图形图表中，同时使编码的图像在感知上与原始图像相同。一个简单的解决办法是训练一个模型使原始图表和编码后的图表之间像素差的平均平方误差最小。然而，这里的每个像素之间的权重是相同的，当编码到了重要区域，就可能产生可见噪声。所以文章需要一个视觉重要性地图来表明重要区域，方便在编码时绕过这些重要区域。</p>
+<p>​        视觉重要性图为图像的不同区域分配不同的分数（分数越高的区域越重要），这有助于在编码阶段保持重要内容的视觉质量。</p>
+<h3 id="如何得到一个数据集？"><a href="#如何得到一个数据集？" class="headerlink" title="如何得到一个数据集？"></a>如何得到一个数据集？</h3><p>​        Bylinskii等人的启发，文章利用基于带有<strong>眼动注释</strong>（<strong>人看一张图是眼球的聚焦点</strong>）的MASSVIS数据集建立了一个预测模型。</p>
+<p>​        因此，为了获得更准确的高层次语义上下文信息和更低层次的细节信息，文章使用混合训练，又人工对每个像素点进行注释，标注了其重要性。</p>
+<p>​        在上述两种预测模型的混合训练下，文章得到结果：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/5.png" class="">
+
+<p>​        a是输入的两个图像，b是用Bylinskii预测模型建的结果，c是人工注释后的结果，d是混合两种模型得到的重要性地图。</p>
+<p>​        这样就训练出了一个能输出视觉重要性地图的模型。</p>
+<h3 id="编码器网络和解码器网络"><a href="#编码器网络和解码器网络" class="headerlink" title="编码器网络和解码器网络"></a>编码器网络和解码器网络</h3><p>​        编码器网络设计用于将信息嵌入到载波图图像中，同时<strong>最小化编码图像中的扰动</strong>（尽量往视觉重要性高的地方嵌入-个人理解）。解码器网络从已编码的图像中恢复嵌入的秘密信息。</p>
+<p>​        关于损失函数：</p>
+<p>​            损失函数是用来估量<strong>模型的输出</strong>与<strong>真实值</strong>之间的差距，给模型的优化指引方向。</p>
+<p>​        编码器的损失函数：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/6.png" class="">
+
+<p>​        Vp是预测的<strong>视觉重要性图</strong>，可以看作是一个<strong>权重矩阵</strong>。视觉重要性得分越高的区域权重越大。Icp是输入的载波图像，Icp’是输出的编码图像。N是像素的个数。</p>
+<p>​        解码器的联合损失函数：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/7.png" class="">
+
+<p>​        其中，Is为原始输入二维码图像，Is’为解码器网络重构结果。α是解码器损耗的权重，表示编码图像的视觉质量和解码精度之间的权衡。</p>
+<p>​        α值越高，解码精度越高，感知质量越低（图像失真越严重，越像嵌入了东西）。α在实现中被设置为0.25。</p>
+<p>​        在训练过程中，同时训练编码器网络和解码器网络。也就是说，联合损失函数同时考虑了编码图像的视觉质量和重建误差。</p>
+<h4 id="训练结果"><a href="#训练结果" class="headerlink" title="训练结果"></a>训练结果</h4><img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/8.png" class="">
+
+<p>可以看出，（a）与（b）肉眼已经看不出差别，将差别放大10倍后的（c）仍不明显。</p>
+<p>​        结果表明，VisCode模型可以在保持原始图表图像感知质量的同时嵌入信息。</p>
+<h2 id="大规模数据嵌入"><a href="#大规模数据嵌入" class="headerlink" title="大规模数据嵌入"></a>大规模数据嵌入</h2><p>​        在图像中嵌入大量的信息是一个具有挑战性的问题，因为它容易产生明显的噪声或导致颜色或纹理的偏差。</p>
+<p>​        文章提出了一种新的方法，在人类视觉系统不敏感的区域大规模嵌入信息。</p>
+<p>​        假设文章将输入一个大规模的文本信息，那么第一步就是将文本分块：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/9.png" class="">
+
+<p>​        LenT是总文本长度，n是设定的每块的文本长度，NumB是块数量，LenB是实际上每块的文本长度。这里很严谨，LenB在最后一块上可能不等于n。</p>
+<p>​        考虑到QR码有多种模块配置，这可能会影响编解码网络的效果，文章使用不同的文本长度与QR码模块配置的映射关系进行测试。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/10.png" class="">
+
+<p>​        在实际操作中，文章并没有使用动态配置QR码。而是依据上表进行配置。n越大说明QR码存储的信息越多，但是ECC level（容错级别）就比较低。文章使用的n=800。这样QR码的区域框大小就是200X200了。</p>
+<h3 id="大规模数据的嵌入位置"><a href="#大规模数据的嵌入位置" class="headerlink" title="大规模数据的嵌入位置"></a>大规模数据的嵌入位置</h3><p>​        之前说了要找视觉最不敏感的区域嵌入信息，但找到了以后该怎么做呢？一种方案是随机取一些不敏感的区域嵌入信息，但这样修改与未修改的地方边界之间会很不和谐。另一种是蛮力搜索所有可能区域，用编解码器网络评估影响。但这样时间成本会很高。</p>
+<p>​        文章需要通过上面得到的<strong>视觉重要性图</strong>和<strong>区域框大小</strong>，找到最适合插入的地方，文章运用<strong>平均池化</strong>，来计算每个区域框的特征值(<strong>视觉重要性</strong>)，然后对其进行递增排序，获得候选区域列表。</p>
+<p>​                关于池化：</p>
+<p>​                        每个像素点都有自己的特征值（视觉重要性），而文章要寻找视觉重要性最小的区域框。那如何对框的视觉重要性进行评判了。文章选择了<strong>平均池化</strong>的方法（即用框内所有像素点特征值的平均来代替这个框的特征值）。</p>
+<p>​        现在有了从小到大的区域框候选列表，我遍历这个列表，找最适合的区域框。但是在找的过程中，会出现选入的两个区域框之间重合的情况。这里采用非最大抑制的方法NSM（说人话就是<strong>取前面的区域框</strong>，后面若和前面选中的框重合就丢弃，因为排过序了，<strong>前面框的视觉重要性低</strong>）。</p>
+<p>​        当选出所有的区域框后，这些区域框一定是视觉重要性最小的区域框，且两两之间不重合。这些区域框的位置信息需要存放到一个位置上，文章选择<strong>最左上角</strong>生成了一个区域框，来存放这些信息。</p>
+<h3 id="嵌入算法代码分析"><a href="#嵌入算法代码分析" class="headerlink" title="嵌入算法代码分析"></a>嵌入算法代码分析</h3><figure class="highlight vbscript"><table><tr><td class="code"><pre><span class="line">#Input:</span><br><span class="line">	#V:视觉重要性地图</span><br><span class="line">	#text：嵌入的大数据文本</span><br><span class="line">	#n: 分块的大小，<span class="number">800</span></span><br><span class="line">#Output:</span><br><span class="line">	#Ro_set：生成的嵌入区域框集合</span><br><span class="line">(W,H) =size(V)#视觉重要性地图的长和宽</span><br><span class="line">Calculate NumB <span class="keyword">and</span> LenB#根据文本分块公式计算分块的个数和分块后的文本长度</span><br><span class="line">Roset=&#123;&#125;,cnt=<span class="number">0</span></span><br><span class="line">kernel_size=map(LenB)#通过QR码的模块测试表生成区域框的长宽（因为n=<span class="number">800</span>，所以kernel_size=<span class="number">200</span>)</span><br><span class="line">Full_set#用平均池化的方式得到候选区域框集合</span><br><span class="line">sort(Full_set)#对该集合进行递增排序</span><br><span class="line"><span class="keyword">for</span>	c_egion	<span class="keyword">in</span> Full_set <span class="keyword">do</span></span><br><span class="line">	<span class="keyword">for</span>	s_region <span class="keyword">in</span> Ro_set <span class="keyword">do</span>#遍历每一个选中的区域s_region，比较候选区域c_egion是否和s_region重合</span><br><span class="line">		<span class="keyword">if</span>	Intersection(cregion,sregion) &gt; <span class="number">0</span> <span class="keyword">then</span></span><br><span class="line">			conflict=<span class="literal">true</span>#重合即标记该区域</span><br><span class="line">		<span class="keyword">end</span> <span class="keyword">if</span></span><br><span class="line">	<span class="keyword">end</span> <span class="keyword">for</span></span><br><span class="line">	<span class="keyword">if</span> conflict = <span class="literal">false</span> <span class="keyword">and</span> cnt &lt;= NumB <span class="keyword">then</span>#标记的区域丢弃，如果该候选区域没和已选区域重合，就选中，直到选满</span><br><span class="line">		Ro_set.append(c_region),cnt=cnt+<span class="number">1</span></span><br><span class="line">	<span class="keyword">end</span> <span class="keyword">if</span></span><br><span class="line"><span class="keyword">end</span> <span class="keyword">for</span></span><br><span class="line">return Ro_set</span><br></pre></td></tr></table></figure>
+
+<h3 id="个人关于此算法的看法"><a href="#个人关于此算法的看法" class="headerlink" title="个人关于此算法的看法"></a>个人关于此算法的看法</h3><p>​        嵌入算法本身没有问题，但是算法结果都要保存在最左上角的区域框中。假设载体图片最左上角的视觉重要性很大呢，就对原图像造成了很大的可发现的扰动。</p>
+<p>​        可改进的方法：未知</p>
+<h2 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h2><h3 id="可视化设计的元数据嵌入"><a href="#可视化设计的元数据嵌入" class="headerlink" title="可视化设计的元数据嵌入"></a>可视化设计的元数据嵌入</h3><p>如下图</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/11.png" class="">
+
+<p>将url，版权信息，版本信息等嵌入到可视化图表当中</p>
+<h3 id="源代码嵌入可视化"><a href="#源代码嵌入可视化" class="headerlink" title="源代码嵌入可视化"></a>源代码嵌入可视化</h3><p>​        这里的源代码指代的网页前端代码，系统可以从图像中解码源代码，并以<strong>网页的形式</strong>动态生成和显示可视化文件。</p>
+<p>​        具体流程，使用VisCode系统的美工和开发人员之间的协作通道：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/12.png" class="">
+
+<h3 id="可视化重新定位目标"><a href="#可视化重新定位目标" class="headerlink" title="可视化重新定位目标"></a>可视化重新定位目标</h3><h4 id="形式重定位"><a href="#形式重定位" class="headerlink" title="形式重定位"></a>形式重定位</h4><p>​        重新定位信息表示形式。输入的可视化可以转换为其他可视化形式。</p>
+<p>流程：提取源数据，按照嵌入的源代码重构输出图像。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/13.png" class="">
+
+<h4 id="主题重定位"><a href="#主题重定位" class="headerlink" title="主题重定位"></a>主题重定位</h4><p>​        通过提取源数据，重新构建色彩主题，VisCode的这个应用程序可以提供丰富的视觉风格和颜色主题。</p>
+<p>流程：提取源数据，按照嵌入的源代码重构输出的色彩主题。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/14.png" class="">
+
+<h2 id="评价"><a href="#评价" class="headerlink" title="评价"></a>评价</h2><p>​        我们从三个方面评估我们的VisCode模型：隐写指标，不同信息位数下的编码图像质量，隐写防御，通过数字传输的各种破坏场景下的解码精度，嵌入信息和恢复时间在不同设置下的时间性能。</p>
+<h3 id="隐写指标"><a href="#隐写指标" class="headerlink" title="隐写指标"></a>隐写指标</h3><p>关于PSNR：</p>
+<p>​        峰值信噪比，给定一个干净图像和噪声图像（这里的噪声图像就是经过VisCode处理后的图像），评价画质好坏的标准。(通常越大效果越好)</p>
+<p>关于SSIM：</p>
+<p>​        结构相似性，基于样本x（原图像）和y（VisCode处理后的图像）之间的三个比较衡量：亮度、对比度、结构。每次计算的时候都从图片上取一个N X N的窗口，然后不断滑动窗口进行计算，最后取平均值作为全局的SSIM。（0~1，越大表示效果越好）</p>
+<p>关于LPIPS：</p>
+<p>​        一种深度深度特征作为感知度量的无理由的有效性。（通常效果越小越好）</p>
+<p>供参考：</p>
+<p><a href="https://zhuanlan.zhihu.com/p/50757421">https://zhuanlan.zhihu.com/p/50757421</a></p>
+<p><a href="https://zhuanlan.zhihu.com/p/206470186">https://zhuanlan.zhihu.com/p/206470186</a></p>
+<p>见表格：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/15.png" class="">
+
+<h3 id="隐写抗性"><a href="#隐写抗性" class="headerlink" title="隐写抗性"></a>隐写抗性</h3><p>​        文章给出了隐写抗性评估的比较结果。LSB是一种传统的使用固定原理的隐写方法，无法抵抗任何干扰。我们发现VisCode在调整亮度、应用旋转和JPEG压缩方面的性能接近于DeepSteg，因为这三种操作应用于所有像素的变化。而水印将局部变化应用于图像，这可能会破坏图像的重要特征。在这种情况下，VisCode通过在不敏感区域中嵌入信息而胜过DeepSteg。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/16.png" class="">
+
+<h3 id="时间性能"><a href="#时间性能" class="headerlink" title="时间性能"></a>时间性能</h3><p>我们评估了不同尺度的输入下VisCode系统的时间性能。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/17.png" class="">
+
+<p>x轴表示输入<strong>文本的位数</strong>，Y轴表示编码阶段或解码阶段的<strong>平均时间(秒)<strong>。不同颜色的线条代表输入图表图像的</strong>不同分辨率</strong>。</p>
+]]></content>
+      <categories>
+        <category>数据驱动的数字水印</category>
       </categories>
   </entry>
   <entry>
@@ -2830,108 +3116,6 @@
 <p>如果在嵌入过程中，将提取到的关键点的强度提高，再减弱未嵌入区域关键点的强度。使前k个关键点能抵御失真。就可以减少提取过程时提取区域的数量。从而提高提取速度。这是一种减缓了嵌入速度但加快了提取速度的做法。</p>
 <p>同时因为对关键点的特征编辑，画面可能会有所失真，如图。</p>
 <img src="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/7.png" class="">
-]]></content>
-      <categories>
-        <category>数据驱动的数字水印</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>VisCode: Embedding Information in Visualization Images using 论文笔记</title>
-    <url>/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/</url>
-    <content><![CDATA[<h1 id="VisCode-使用编码器-解码器网络在可视化图像中嵌入信息"><a href="#VisCode-使用编码器-解码器网络在可视化图像中嵌入信息" class="headerlink" title="VisCode:使用编码器-解码器网络在可视化图像中嵌入信息"></a>VisCode:使用编码器-解码器网络在可视化图像中嵌入信息</h1><h2 id="Overiew"><a href="#Overiew" class="headerlink" title="Overiew"></a>Overiew</h2><p>​        数据可视化的一个基本目标是提高对数据的认知和感知能力。与传输大量的原始数据相比，图像是更能被接受的载体。但是，在将原始信息转化为像素值后，很难从得到的图像中重建原始信息。而VisCode，就是一个在可视化图像中使用编码器和解码器网络嵌入和恢复隐藏信息的框架。</p>
-<h2 id="三个组件（Visual-Importance-Network、Encoder-Network、Decoder-Network）"><a href="#三个组件（Visual-Importance-Network、Encoder-Network、Decoder-Network）" class="headerlink" title="三个组件（Visual Importance Network、Encoder Network、Decoder Network）"></a>三个组件（Visual Importance Network、Encoder Network、Decoder Network）</h2><h3 id="Visual-Importance-Network"><a href="#Visual-Importance-Network" class="headerlink" title="Visual Importance Network"></a>Visual Importance Network</h3><p>​        由于数据可视化的语义特征与自然图像有很大的不同，文章使用网络来建模，得到一个<strong>视觉重要性图</strong>来用于下一个组件(Encode Network)的约束。考虑到错误校正，文章将普通信息转换为嵌入一系列<strong>QR码</strong>，而不是二进制数据。</p>
-<p>​        <img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/1.png" class=""></p>
-<h3 id="Encoder-Network"><a href="#Encoder-Network" class="headerlink" title="Encoder Network"></a>Encoder Network</h3><p>​        在该网络组件中，通过特征提取过程将<strong>载体图像和二维码图像</strong>嵌入到向量中。</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/2.png" class="">、
-
-<h3 id="Decoder-Network"><a href="#Decoder-Network" class="headerlink" title="Decoder Network"></a>Decoder Network</h3><p>​        解码器网络从编码的图像中检索信息。用户可以通过数字传输与他人共享编码图像。将编码后的图像解码后，从解码后的QR码图像中获得最终的信息，并进行纠错。</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/3.png" class="">
-
-<h2 id="VisCode系统运行过程"><a href="#VisCode系统运行过程" class="headerlink" title="VisCode系统运行过程"></a>VisCode系统运行过程</h2><p>​        VisCode系统的主要组件。首先，视觉重要性网络(b)对输入图形图(a)进行处理，便于检测可视化的显著特征，输出<strong>视觉重要性图</strong>。接下来，编码器网络(c)将<strong>秘密信息</strong>嵌入到图形图(a)中，通过特征提取将<strong>载体图像和二维码图像</strong>嵌入到向量中。然后，将这两个向量连接起来(如黄色矩形所示)，并进入<strong>自编码阶段</strong>。编码后的图像(d)被发送给用户(e)，用户可以通过数字传输将其发送给其他人。当用户希望获取图表中隐藏的详细信息时，可以将编码后的图像上传到解码器网络(f)。经过数据恢复和纠错后，用户接收到解码后的信息(g)。</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/4.png" class="">
-
-<h2 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h2><h3 id="视觉重要性地图Visual-Importance-Map"><a href="#视觉重要性地图Visual-Importance-Map" class="headerlink" title="视觉重要性地图Visual Importance Map"></a>视觉重要性地图Visual Importance Map</h3><p>​        编码器网络的目标是将大量信息嵌入到图形图表中，同时使编码的图像在感知上与原始图像相同。一个简单的解决办法是训练一个模型使原始图表和编码后的图表之间像素差的平均平方误差最小。然而，这里的每个像素之间的权重是相同的，当编码到了重要区域，就可能产生可见噪声。所以文章需要一个视觉重要性地图来表明重要区域，方便在编码时绕过这些重要区域。</p>
-<p>​        视觉重要性图为图像的不同区域分配不同的分数（分数越高的区域越重要），这有助于在编码阶段保持重要内容的视觉质量。</p>
-<h3 id="如何得到一个数据集？"><a href="#如何得到一个数据集？" class="headerlink" title="如何得到一个数据集？"></a>如何得到一个数据集？</h3><p>​        Bylinskii等人的启发，文章利用基于带有<strong>眼动注释</strong>（<strong>人看一张图是眼球的聚焦点</strong>）的MASSVIS数据集建立了一个预测模型。</p>
-<p>​        因此，为了获得更准确的高层次语义上下文信息和更低层次的细节信息，文章使用混合训练，又人工对每个像素点进行注释，标注了其重要性。</p>
-<p>​        在上述两种预测模型的混合训练下，文章得到结果：</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/5.png" class="">
-
-<p>​        a是输入的两个图像，b是用Bylinskii预测模型建的结果，c是人工注释后的结果，d是混合两种模型得到的重要性地图。</p>
-<p>​        这样就训练出了一个能输出视觉重要性地图的模型。</p>
-<h3 id="编码器网络和解码器网络"><a href="#编码器网络和解码器网络" class="headerlink" title="编码器网络和解码器网络"></a>编码器网络和解码器网络</h3><p>​        编码器网络设计用于将信息嵌入到载波图图像中，同时<strong>最小化编码图像中的扰动</strong>（尽量往视觉重要性高的地方嵌入-个人理解）。解码器网络从已编码的图像中恢复嵌入的秘密信息。</p>
-<p>​        关于损失函数：</p>
-<p>​            损失函数是用来估量<strong>模型的输出</strong>与<strong>真实值</strong>之间的差距，给模型的优化指引方向。</p>
-<p>​        编码器的损失函数：</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/6.png" class="">
-
-<p>​        Vp是预测的<strong>视觉重要性图</strong>，可以看作是一个<strong>权重矩阵</strong>。视觉重要性得分越高的区域权重越大。Icp是输入的载波图像，Icp’是输出的编码图像。N是像素的个数。</p>
-<p>​        解码器的联合损失函数：</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/7.png" class="">
-
-<p>​        其中，Is为原始输入二维码图像，Is’为解码器网络重构结果。α是解码器损耗的权重，表示编码图像的视觉质量和解码精度之间的权衡。</p>
-<p>​        α值越高，解码精度越高，感知质量越低（图像失真越严重，越像嵌入了东西）。α在实现中被设置为0.25。</p>
-<p>​        在训练过程中，同时训练编码器网络和解码器网络。也就是说，联合损失函数同时考虑了编码图像的视觉质量和重建误差。</p>
-<h4 id="训练结果"><a href="#训练结果" class="headerlink" title="训练结果"></a>训练结果</h4><img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/8.png" class="">
-
-<p>可以看出，（a）与（b）肉眼已经看不出差别，将差别放大10倍后的（c）仍不明显。</p>
-<p>​        结果表明，VisCode模型可以在保持原始图表图像感知质量的同时嵌入信息。</p>
-<h2 id="大规模数据嵌入"><a href="#大规模数据嵌入" class="headerlink" title="大规模数据嵌入"></a>大规模数据嵌入</h2><p>​        在图像中嵌入大量的信息是一个具有挑战性的问题，因为它容易产生明显的噪声或导致颜色或纹理的偏差。</p>
-<p>​        文章提出了一种新的方法，在人类视觉系统不敏感的区域大规模嵌入信息。</p>
-<p>​        假设文章将输入一个大规模的文本信息，那么第一步就是将文本分块：</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/9.png" class="">
-
-<p>​        LenT是总文本长度，n是设定的每块的文本长度，NumB是块数量，LenB是实际上每块的文本长度。这里很严谨，LenB在最后一块上可能不等于n。</p>
-<p>​        考虑到QR码有多种模块配置，这可能会影响编解码网络的效果，文章使用不同的文本长度与QR码模块配置的映射关系进行测试。</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/10.png" class="">
-
-<p>​        在实际操作中，文章并没有使用动态配置QR码。而是依据上表进行配置。n越大说明QR码存储的信息越多，但是ECC level（容错级别）就比较低。文章使用的n=800。这样QR码的区域框大小就是200X200了。</p>
-<h3 id="大规模数据的嵌入位置"><a href="#大规模数据的嵌入位置" class="headerlink" title="大规模数据的嵌入位置"></a>大规模数据的嵌入位置</h3><p>​        之前说了要找视觉最不敏感的区域嵌入信息，但找到了以后该怎么做呢？一种方案是随机取一些不敏感的区域嵌入信息，但这样修改与未修改的地方边界之间会很不和谐。另一种是蛮力搜索所有可能区域，用编解码器网络评估影响。但这样时间成本会很高。</p>
-<p>​        文章需要通过上面得到的<strong>视觉重要性图</strong>和<strong>区域框大小</strong>，找到最适合插入的地方，文章运用<strong>平均池化</strong>，来计算每个区域框的特征值(<strong>视觉重要性</strong>)，然后对其进行递增排序，获得候选区域列表。</p>
-<p>​                关于池化：</p>
-<p>​                        每个像素点都有自己的特征值（视觉重要性），而文章要寻找视觉重要性最小的区域框。那如何对框的视觉重要性进行评判了。文章选择了<strong>平均池化</strong>的方法（即用框内所有像素点特征值的平均来代替这个框的特征值）。</p>
-<p>​        现在有了从小到大的区域框候选列表，我遍历这个列表，找最适合的区域框。但是在找的过程中，会出现选入的两个区域框之间重合的情况。这里采用非最大抑制的方法NSM（说人话就是<strong>取前面的区域框</strong>，后面若和前面选中的框重合就丢弃，因为排过序了，<strong>前面框的视觉重要性低</strong>）。</p>
-<p>​        当选出所有的区域框后，这些区域框一定是视觉重要性最小的区域框，且两两之间不重合。这些区域框的位置信息需要存放到一个位置上，文章选择<strong>最左上角</strong>生成了一个区域框，来存放这些信息。</p>
-<h3 id="嵌入算法代码分析"><a href="#嵌入算法代码分析" class="headerlink" title="嵌入算法代码分析"></a>嵌入算法代码分析</h3><figure class="highlight vbscript"><table><tr><td class="code"><pre><span class="line">#Input:</span><br><span class="line">	#V:视觉重要性地图</span><br><span class="line">	#text：嵌入的大数据文本</span><br><span class="line">	#n: 分块的大小，<span class="number">800</span></span><br><span class="line">#Output:</span><br><span class="line">	#Ro_set：生成的嵌入区域框集合</span><br><span class="line">(W,H) =size(V)#视觉重要性地图的长和宽</span><br><span class="line">Calculate NumB <span class="keyword">and</span> LenB#根据文本分块公式计算分块的个数和分块后的文本长度</span><br><span class="line">Roset=&#123;&#125;,cnt=<span class="number">0</span></span><br><span class="line">kernel_size=map(LenB)#通过QR码的模块测试表生成区域框的长宽（因为n=<span class="number">800</span>，所以kernel_size=<span class="number">200</span>)</span><br><span class="line">Full_set#用平均池化的方式得到候选区域框集合</span><br><span class="line">sort(Full_set)#对该集合进行递增排序</span><br><span class="line"><span class="keyword">for</span>	c_egion	<span class="keyword">in</span> Full_set <span class="keyword">do</span></span><br><span class="line">	<span class="keyword">for</span>	s_region <span class="keyword">in</span> Ro_set <span class="keyword">do</span>#遍历每一个选中的区域s_region，比较候选区域c_egion是否和s_region重合</span><br><span class="line">		<span class="keyword">if</span>	Intersection(cregion,sregion) &gt; <span class="number">0</span> <span class="keyword">then</span></span><br><span class="line">			conflict=<span class="literal">true</span>#重合即标记该区域</span><br><span class="line">		<span class="keyword">end</span> <span class="keyword">if</span></span><br><span class="line">	<span class="keyword">end</span> <span class="keyword">for</span></span><br><span class="line">	<span class="keyword">if</span> conflict = <span class="literal">false</span> <span class="keyword">and</span> cnt &lt;= NumB <span class="keyword">then</span>#标记的区域丢弃，如果该候选区域没和已选区域重合，就选中，直到选满</span><br><span class="line">		Ro_set.append(c_region),cnt=cnt+<span class="number">1</span></span><br><span class="line">	<span class="keyword">end</span> <span class="keyword">if</span></span><br><span class="line"><span class="keyword">end</span> <span class="keyword">for</span></span><br><span class="line">return Ro_set</span><br></pre></td></tr></table></figure>
-
-<h3 id="个人关于此算法的看法"><a href="#个人关于此算法的看法" class="headerlink" title="个人关于此算法的看法"></a>个人关于此算法的看法</h3><p>​        嵌入算法本身没有问题，但是算法结果都要保存在最左上角的区域框中。假设载体图片最左上角的视觉重要性很大呢，就对原图像造成了很大的可发现的扰动。</p>
-<p>​        可改进的方法：未知</p>
-<h2 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h2><h3 id="可视化设计的元数据嵌入"><a href="#可视化设计的元数据嵌入" class="headerlink" title="可视化设计的元数据嵌入"></a>可视化设计的元数据嵌入</h3><p>如下图</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/11.png" class="">
-
-<p>将url，版权信息，版本信息等嵌入到可视化图表当中</p>
-<h3 id="源代码嵌入可视化"><a href="#源代码嵌入可视化" class="headerlink" title="源代码嵌入可视化"></a>源代码嵌入可视化</h3><p>​        这里的源代码指代的网页前端代码，系统可以从图像中解码源代码，并以<strong>网页的形式</strong>动态生成和显示可视化文件。</p>
-<p>​        具体流程，使用VisCode系统的美工和开发人员之间的协作通道：</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/12.png" class="">
-
-<h3 id="可视化重新定位目标"><a href="#可视化重新定位目标" class="headerlink" title="可视化重新定位目标"></a>可视化重新定位目标</h3><h4 id="形式重定位"><a href="#形式重定位" class="headerlink" title="形式重定位"></a>形式重定位</h4><p>​        重新定位信息表示形式。输入的可视化可以转换为其他可视化形式。</p>
-<p>流程：提取源数据，按照嵌入的源代码重构输出图像。</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/13.png" class="">
-
-<h4 id="主题重定位"><a href="#主题重定位" class="headerlink" title="主题重定位"></a>主题重定位</h4><p>​        通过提取源数据，重新构建色彩主题，VisCode的这个应用程序可以提供丰富的视觉风格和颜色主题。</p>
-<p>流程：提取源数据，按照嵌入的源代码重构输出的色彩主题。</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/14.png" class="">
-
-<h2 id="评价"><a href="#评价" class="headerlink" title="评价"></a>评价</h2><p>​        我们从三个方面评估我们的VisCode模型：隐写指标，不同信息位数下的编码图像质量，隐写防御，通过数字传输的各种破坏场景下的解码精度，嵌入信息和恢复时间在不同设置下的时间性能。</p>
-<h3 id="隐写指标"><a href="#隐写指标" class="headerlink" title="隐写指标"></a>隐写指标</h3><p>关于PSNR：</p>
-<p>​        峰值信噪比，给定一个干净图像和噪声图像（这里的噪声图像就是经过VisCode处理后的图像），评价画质好坏的标准。(通常越大效果越好)</p>
-<p>关于SSIM：</p>
-<p>​        结构相似性，基于样本x（原图像）和y（VisCode处理后的图像）之间的三个比较衡量：亮度、对比度、结构。每次计算的时候都从图片上取一个N X N的窗口，然后不断滑动窗口进行计算，最后取平均值作为全局的SSIM。（0~1，越大表示效果越好）</p>
-<p>关于LPIPS：</p>
-<p>​        一种深度深度特征作为感知度量的无理由的有效性。（通常效果越小越好）</p>
-<p>供参考：</p>
-<p><a href="https://zhuanlan.zhihu.com/p/50757421">https://zhuanlan.zhihu.com/p/50757421</a></p>
-<p><a href="https://zhuanlan.zhihu.com/p/206470186">https://zhuanlan.zhihu.com/p/206470186</a></p>
-<p>见表格：</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/15.png" class="">
-
-<h3 id="隐写抗性"><a href="#隐写抗性" class="headerlink" title="隐写抗性"></a>隐写抗性</h3><p>​        文章给出了隐写抗性评估的比较结果。LSB是一种传统的使用固定原理的隐写方法，无法抵抗任何干扰。我们发现VisCode在调整亮度、应用旋转和JPEG压缩方面的性能接近于DeepSteg，因为这三种操作应用于所有像素的变化。而水印将局部变化应用于图像，这可能会破坏图像的重要特征。在这种情况下，VisCode通过在不敏感区域中嵌入信息而胜过DeepSteg。</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/16.png" class="">
-
-<h3 id="时间性能"><a href="#时间性能" class="headerlink" title="时间性能"></a>时间性能</h3><p>我们评估了不同尺度的输入下VisCode系统的时间性能。</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/17.png" class="">
-
-<p>x轴表示输入<strong>文本的位数</strong>，Y轴表示编码阶段或解码阶段的<strong>平均时间(秒)<strong>。不同颜色的线条代表输入图表图像的</strong>不同分辨率</strong>。</p>
 ]]></content>
       <categories>
         <category>数据驱动的数字水印</category>
@@ -3544,98 +3728,5 @@ end:    for(i=0;i&lt;n;i++)
       <categories>
         <category>操作系统</category>
       </categories>
-  </entry>
-  <entry>
-    <title>论文笔记：A Novel Two-stage Separable Deep Learning Framework for</title>
-    <url>/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/</url>
-    <content><![CDATA[<h1 id="一种两阶段可分离深度学习框架的实用盲水印"><a href="#一种两阶段可分离深度学习框架的实用盲水印" class="headerlink" title="一种两阶段可分离深度学习框架的实用盲水印"></a>一种两阶段可分离深度学习框架的实用盲水印</h1><h2 id="传统OET深度网络体系"><a href="#传统OET深度网络体系" class="headerlink" title="传统OET深度网络体系"></a>传统OET深度网络体系</h2><img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/1.png" class="">
-
-<p>这样一个体系由三个组件构成：</p>
-<ul>
-<li>编码器<ul>
-<li>对输入图像添加水印</li>
-</ul>
-</li>
-<li>噪声层<ul>
-<li>模拟水印图像遭受的噪声攻击</li>
-</ul>
-</li>
-<li>解码器<ul>
-<li>从收到噪声攻击的图像中恢复水印</li>
-</ul>
-</li>
-</ul>
-<h2 id="存在的问题"><a href="#存在的问题" class="headerlink" title="存在的问题"></a>存在的问题</h2><ol>
-<li>OET中，编码器和解码器必须同时与噪声层共同训练，这意味着噪声必须支持反向传播，但自然的噪声往往不具备这样的能力。</li>
-<li>每当引入一个新类型的噪声，编码器和解码器的参数必须重新调整，算力要求高。</li>
-<li>对超参数十分敏感，对于新型噪声，学习得到的超参数可能不能很好的应对。所以在损失函数的指导下，训练过程中会往降低水印质量的方向收敛。</li>
-</ol>
-<p>关于超参数:</p>
-<p>机器学习需要人工调整参数（如权重和偏移），让输出的结果尽可能靠近正确结果。而深度学习是计算机自己调整参数，直到达到一个最好的学习效果。但在学习开始之前，需要设置一些参数，来定义关于模型的复杂性或学习能力，被称为<strong>超参数</strong>。超参数是不能通过训练模型得到的。</p>
-<h2 id="TSDL（可分离式深度学习）"><a href="#TSDL（可分离式深度学习）" class="headerlink" title="TSDL（可分离式深度学习）"></a>TSDL（可分离式深度学习）</h2><p>我们提出了一种可分离式深度学习(TSDL)水印框架。存在两个工作阶段。</p>
-<ol>
-<li>第一阶段，采用多层特征编码策略，在不参考任何噪声的情况下冗余地将水印消息自动编码到图像中，我们称之为无噪声端到端对手训练（FEAT）</li>
-<li>第二阶段，名为噪声感知解码器（ADOT）训练。不断修改解码器的参数，使其能在噪声攻击下准确提取水印。</li>
-</ol>
-<p>与OET相比，我们的编码器能获得更好的编码图像质量。由于第一阶段并没有引入噪声层，所以我们的编码器必须做到在看不到任何噪声的情况下学会对抗噪声。</p>
-<p>为了实现这一目标，我们提出了一种冗余的多层次特征编码网络（RMFEN）。我们还设置了一个强度因子，灵活地在鲁棒性和不可感知性之间权衡。</p>
-<h2 id="模型架构"><a href="#模型架构" class="headerlink" title="模型架构"></a>模型架构</h2><img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/2.png" class="">
-
-<ol>
-<li>将原图像Ico和信息M（-1和1的序列）输入到<strong>编码器</strong>中，输出水印图像Ien</li>
-<li>对Ien进行<strong>噪声攻击</strong>，输出遭受攻击后的图像Ino</li>
-<li>用<strong>解码器</strong>恢复Ien或Ino中的水印信息M’</li>
-<li><strong>对手A</strong>比较Ico和Ien，评估所给图像是编码图像的概率</li>
-</ol>
-<h3 id="编码器E"><a href="#编码器E" class="headerlink" title="编码器E"></a>编码器E</h3><p>消息M是一个一维向量，我们将其复制扩展为三维张量{−1, 1}^(L∗H∗W)。</p>
-<p>L是消息长度，H、W是图像长宽。</p>
-<p>关于张量：</p>
-<p><a href="https://www.jianshu.com/p/f34457c222c5">https://www.jianshu.com/p/f34457c222c5</a></p>
-<p>先将彩色RGB图像转化为YUV图像（其实指的是 YCbCr），转化过程如下：</p>
-<p><strong>Y= 0.299*R+0.587*G+0.114*B</strong><br><strong>U=-0.147*R-0.289*G+0.463*B</strong><br><strong>V= 0.615*R-0.515*G-0.100*B</strong></p>
-<p>编码器使用64个1∗1卷积核放大覆盖图像的颜色通道（由3维放大为64维）。然后使用3∗3核大小的5个卷积层进行特征提取和水印嵌入。在嵌入水印的过程中，我们将重复的水印串接到每个卷积层的输入，引入冗余。</p>
-<p>注：1x1卷积一般只改变输出通道数（channels），<strong>而不改变输出的宽度和高度</strong></p>
-<p>将上述三维张量连接到每一层的输出特征上R^(64*H*W)，然后新的张量R^（（64+L）*H*W）被输入到下一层。最后，我们使用1∗1卷积层将多通道图片转换为3通道图片。</p>
-<img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/3.png" class="">
-
-<p>用M生成Im的水印掩码。Ien=Ico+S*Im。其中S是强度因子，使得Ien和Ico看起来尽可能一样。</p>
-<p>损失函数（目标找到参数θE使得Ico和Ien差距最小）：</p>
-<img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/4.png" class="">
-
-<p>MSE：均方误差。</p>
-<h3 id="解码器D"><a href="#解码器D" class="headerlink" title="解码器D"></a>解码器D</h3><p>对于水印图片，解码器输出的M’的分布应该更接近（1，-1）。而对于没有水印的图片，输出的分布更接近0。所以我们用（-1，1）代替（0，1）。</p>
-<p>对比：</p>
-<ul>
-<li>M为0，0，1，1，M’为0，0，0，0。那么有均方误差为2</li>
-<li>M为-1，-1，1，1，M’为0，0，0，0。那么均方误差为4</li>
-</ul>
-<p>这样损失函数更能比较解码器的性能：</p>
-<img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/5.png" class="">
-
-<h3 id="对手A"><a href="#对手A" class="headerlink" title="对手A"></a>对手A</h3><p>在对手网络对抗中，编码器不断更新θE，来试图欺骗对手，使得对手无法判断Ico和Ien。对于A，则不断更新θA来对Ico和Ien进行二分类。</p>
-<img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/6.png" class="">
-
-<img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/7.png" class="">
-
-<h2 id="两阶段可分离式训练"><a href="#两阶段可分离式训练" class="headerlink" title="两阶段可分离式训练"></a>两阶段可分离式训练</h2><p>阶段一：无噪声端到端对手训练（FEAT），目的是最小化：</p>
-<img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/8.png" class="">
-
-<p>阶段二：噪声感知解码器（ADOT）训练。目标是最小化：</p>
-<img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/5.png" class="">
-
-<p>第一阶段的训练对第二阶段的训练能起到加速作用。</p>
-<h3 id="传统噪声攻击"><a href="#传统噪声攻击" class="headerlink" title="传统噪声攻击"></a>传统噪声攻击</h3><ol>
-<li>Resize噪声，将图片缩小为原先的p倍再放大回原先尺寸</li>
-<li>椒盐噪声(salt-and-pepper noise)是指两种噪声，一种是盐噪声（salt noise），另一种是胡椒噪声（pepper  noise）。盐=白色(0)，椒=黑色(255)。前者是高灰度噪声，后者属于低灰度噪声。一般两种噪声同时出现，呈现在图像上就是黑白杂点。</li>
-<li>高斯噪声，指噪声的概率密度函数服从高斯分布</li>
-<li>JPEG压缩</li>
-</ol>
-<h3 id="黑盒噪声攻击"><a href="#黑盒噪声攻击" class="headerlink" title="黑盒噪声攻击"></a>黑盒噪声攻击</h3><p>日常生活中常见的图像处理软件引起的噪声攻击，我们称之为黑盒噪声。这种图像处理算法封装在软件中，总是集成了各种改变整个图像像素的传统噪声，</p>
-<h3 id="指定训练和组合训练"><a href="#指定训练和组合训练" class="headerlink" title="指定训练和组合训练"></a>指定训练和组合训练</h3><p>指定训练：在单个噪声下进行ADOT训练</p>
-<p>组合训练：在各种噪声下进行ADOT训练</p>
-]]></content>
-      <tags>
-        <tag>数据驱动的数字水印</tag>
-      </tags>
   </entry>
 </search>
