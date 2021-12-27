@@ -176,7 +176,7 @@
 <img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/11.png" class="">
 
 <p>再寻找红色通道的横纵对称轴来定位和恢复水印。以列为例：</p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/12png.png" class="">
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/12.png" class="">
 
 <p>以第j列为分界线，分成了j1、j2和j3三个区域。比较j1和j2的相似度。取一个使左右相似度最高的j列来作为列对称轴。行也如此。</p>
 <h3 id="两阶段的提取网络"><a href="#两阶段的提取网络" class="headerlink" title="两阶段的提取网络"></a>两阶段的提取网络</h3><p>提取部分使用深度学习的方式，有两个阶段的提取网络，一个是辅助增强子网络用以恢复扭曲的图像，一个分类子网络对每个比特模式进行分类。</p>
@@ -189,8 +189,13 @@
 <p>这里先用16个卷积核将1通道图像输出成16通道。再用4个卷积层进行下采样（每次采样时通道数翻倍，长宽减半，所以存在两个卷积核），得到4*4的一个特征映射，再使用一个额外的卷积层得到一个全局的1*1的特征块，并反复连接到4*4的特征映射上得到一个128通道的4*4的特征块。再通过上采样过程，恢复成和输出一样。</p>
 <p>分类子网络是一个二分类器，判断该32*32单元是表示1还是0。</p>
 <p>损失函数：</p>
-<p><img src="/14.png"><img src="/15.png"></p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/14.png" class="">
+
 <p>CE：交叉熵。<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/35709485">https://zhuanlan.zhihu.com/p/35709485</a></p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/15.png" class="">
+
+
+
  
       <!-- reward -->
       
