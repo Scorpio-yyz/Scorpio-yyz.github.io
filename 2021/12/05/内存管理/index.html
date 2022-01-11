@@ -96,7 +96,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">2.2k</span>
+            <span class="post-count">2.5k</span>
         </span>
     </span>
 
@@ -105,7 +105,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">7 min</span>
+            <span class="post-count">8 min</span>
         </span>
     </span>
 </div>
@@ -312,6 +312,23 @@
 <img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/118.png" class="">
 
 <p>​        通过有效访问时间的计算，可以判断一个快表的好坏（后面会有换入和换出算法来更新快表，这种算法越好，快表命中率越高）。而快表越大，命中率也越高，但TLB也越贵。</p>
+<h2 id="段页结合的实际内存管理"><a href="#段页结合的实际内存管理" class="headerlink" title="段页结合的实际内存管理"></a>段页结合的实际内存管理</h2><h3 id="段、页同时存在：段面向用户-页面向硬件"><a href="#段、页同时存在：段面向用户-页面向硬件" class="headerlink" title="段、页同时存在：段面向用户/页面向硬件"></a>段、页同时存在：段面向用户/页面向硬件</h3><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/119.png" class="">
+
+<p>每个段再分页映射到物理内存。</p>
+<h3 id="段页同时存在时的重定位"><a href="#段页同时存在时的重定位" class="headerlink" title="段页同时存在时的重定位"></a>段页同时存在时的重定位</h3>  <img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/120.png" class="">
+
+<h3 id="一个实际的段页式内存管理"><a href="#一个实际的段页式内存管理" class="headerlink" title="一个实际的段页式内存管理"></a>一个实际的段页式内存管理</h3><h3 id="从程序放入内存开始"><a href="#从程序放入内存开始" class="headerlink" title="从程序放入内存开始"></a>从程序放入内存开始</h3><ol>
+<li>分配段、建段表；分配页、建页表</li>
+<li>进程带动使用内存</li>
+<li>从进程fork中的内存分配开始<ul>
+<li>fork时会新分配段基址，然后复制父进程的页表</li>
+</ul>
+</li>
+<li>读时共享，写时复制<ul>
+<li>比如在父进程内原来有一个全局变量，如果fork之后父子进程都没有去改变这个变量的值，那么内存中全局区这个变量只会存在一份，所谓读时共享；但是如果fork后父进程或者子进程改变了这个变量的值，那么这个变量将会在内存全局区存在两份，父子进程各自拥有各自的副本，这就是写时复制</li>
+</ul>
+</li>
+</ol>
  
       <!-- reward -->
       
@@ -416,7 +433,7 @@
     <ul>
       <li>
         Copyrights &copy;
-        2020-2021
+        2020-2022
         <i class="ri-heart-fill heart_icon"></i> YYz
       </li>
     </ul>

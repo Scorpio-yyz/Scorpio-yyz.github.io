@@ -11,7 +11,7 @@
         name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1"
       />
-      <title>Deep_Template-Based_Watermarking 论文笔记 |  Scorpio-yyz</title>
+      <title>文件管理 |  Scorpio-yyz</title>
   <meta name="generator" content="hexo-theme-ayer">
       
       <link rel="shortcut icon" href="/favicon.ico" />
@@ -65,7 +65,7 @@
     <main class="content on">
       <section class="outer">
   <article
-  id="post-论文笔记：Deep-Template-Based-Watermarking"
+  id="post-文件管理"
   class="article article-type-post"
   itemscope
   itemprop="blogPost"
@@ -76,7 +76,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  Deep_Template-Based_Watermarking 论文笔记
+  文件管理
 </h1>
  
 
@@ -84,11 +84,11 @@
     </header>
      
     <div class="article-meta">
-      <a href="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/" class="article-date">
-  <time datetime="2021-12-25T15:58:52.000Z" itemprop="datePublished">2021-12-25</time>
+      <a href="/2022/01/03/%E6%96%87%E4%BB%B6%E7%AE%A1%E7%90%86/" class="article-date">
+  <time datetime="2022-01-03T08:02:37.000Z" itemprop="datePublished">2022-01-03</time>
 </a> 
   <div class="article-category">
-    <a class="article-category-link" href="/categories/%E6%95%B0%E6%8D%AE%E9%A9%B1%E5%8A%A8%E7%9A%84%E6%95%B0%E5%AD%97%E6%B0%B4%E5%8D%B0/">数据驱动的数字水印</a>
+    <a class="article-category-link" href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a>
   </div>
   
 <div class="word_count">
@@ -96,7 +96,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">1.6k</span>
+            <span class="post-count">803</span>
         </span>
     </span>
 
@@ -105,7 +105,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">5 min</span>
+            <span class="post-count">3 min</span>
         </span>
     </span>
 </div>
@@ -120,82 +120,106 @@
   
     <div class="article-entry" itemprop="articleBody">
        
-  <h1 id="基于深度模板的数字水印"><a href="#基于深度模板的数字水印" class="headerlink" title="基于深度模板的数字水印"></a>基于深度模板的数字水印</h1><h2 id="传统基于模板的数字水印"><a href="#传统基于模板的数字水印" class="headerlink" title="传统基于模板的数字水印"></a>传统基于模板的数字水印</h2><p>基于模板的数字水印是传统水印算法的一个重要分支，与其他类型相比，具有更高的嵌入效率。模板是专门设计出来的带有一些统计特征的模式，用来携带水印和定位水印信息的。</p>
-<p>嵌入过程是将模板叠加到图像的空间域中来执行。</p>
-<p>关于空间域：又称图像空间(image space)。由图像像元组成的空间。在图像空间中以长度(距离)为自变量直接对像元值进行处理称为空间域处理。</p>
+  <h1 id="生磁盘的使用"><a href="#生磁盘的使用" class="headerlink" title="生磁盘的使用"></a>生磁盘的使用</h1><h2 id="最直接的使用磁盘"><a href="#最直接的使用磁盘" class="headerlink" title="最直接的使用磁盘"></a>最直接的使用磁盘</h2><img src="/2022/01/03/%E6%96%87%E4%BB%B6%E7%AE%A1%E7%90%86/1.png" class="">
+
 <ul>
-<li>以时间作为变量所进行的研究就是时域</li>
-<li>以频率作为变量所进行的研究就是频域</li>
-<li>以空间坐标作为变量进行的研究就是空间域</li>
-<li>以波数作为变量所进行的研究称为波数域</li>
+<li>只要往控制器中写柱面、磁头、扇区、缓存位置</li>
 </ul>
-<p>在深度学习之前，特征提取过程主要是通过一系列图像处理操作来完成的，如边缘检测、SIFT特征提取等。但这种的特征提取能力有限，无法抵御严重的失真。因此，这些传统方法的鲁棒性都不够好。为了提高鲁棒性，唯一可能的方法是使用更强的模板模式，但这将严重牺牲视觉质量。</p>
-<h2 id="提取程序的框架"><a href="#提取程序的框架" class="headerlink" title="提取程序的框架"></a>提取程序的框架</h2><p>主要由两个模块构成：目标水印模块和辅助定位模块</p>
-<h3 id="目标水印模块"><a href="#目标水印模块" class="headerlink" title="目标水印模块"></a>目标水印模块</h3><p>对于一个给定的目标水印序列，首先通过循环冗余码CRC（<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/7f4fd7f62de2%EF%BC%89%E5%92%8CBCH%E7%A0%81%EF%BC%88https://zhuanlan.zhihu.com/p/95909150?utm_source=wechat_session%EF%BC%89%E5%AF%B9%E5%85%B6%E8%BF%9B%E8%A1%8C%E7%BC%96%E7%A0%81%EF%BC%8C%E7%94%9F%E6%88%90%E5%85%B7%E6%9C%89%E7%BA%A0%E9%94%99%E8%83%BD%E5%8A%9B%E7%9A%84%E6%B6%88%E6%81%AF%E4%BD%8D%E7%9F%A9%E9%98%B5%E3%80%82">https://www.jianshu.com/p/7f4fd7f62de2）和BCH码（https://zhuanlan.zhihu.com/p/95909150?utm_source=wechat_session）对其进行编码，生成具有纠错能力的消息位矩阵。</a></p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/1.png" class="">
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">do_hd_request</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    ...hd_out(dev,nsect,sec,head,cyl,WIN_WRITE,...);</span><br><span class="line">    port_write(HD_DATA,CURRENT-&gt;buffer,<span class="number">256</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">hd_out</span><span class="params">(dev,nsect,sec,head,cyl,cmd,...)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    port = HD_DATA;<span class="comment">//数据寄存器端口0x1f0</span></span><br><span class="line">    outb_p(nesect,++pory);outb_p(sect,++port);</span><br><span class="line">    outb_p(cyl,++port);outb_p(cyl&gt;&gt;<span class="number">8</span>,++port);</span><br><span class="line">    outb_p(<span class="number">0xA0</span>|(drive&lt;&lt;<span class="number">4</span>)|head,++port);</span><br><span class="line">	outb(cmd,++port);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>在基于模板的水印算法中，位‘0/1’用不同的图案表示。最终的水印模板是根据矩阵W放置相应的‘0/1’图案组成的。</p>
-<p>我们提出了一套基于人类视觉系统特性的模板生成准则（HVS）</p>
-<ol>
-<li><p>由于“<strong>倾斜效应</strong>”，相同的修改像素量下，倾斜方向的图像比水平方向和垂直方向的图像产生的变化感知更小。</p>
+<h2 id="通过盘块号读写磁盘（一层抽象）"><a href="#通过盘块号读写磁盘（一层抽象）" class="headerlink" title="通过盘块号读写磁盘（一层抽象）"></a>通过盘块号读写磁盘（一层抽象）</h2><img src="/2022/01/03/%E6%96%87%E4%BB%B6%E7%AE%A1%E7%90%86/2.png" class="">
+
+<ul>
+<li>磁盘驱动负责从block计算出cyl，head，sec（CHS）</li>
+</ul>
+<p>磁盘寻道时间 = 写入控制器时间 + 寻道时间 +旋转时间 + 传输时间</p>
+<ul>
+<li>寻道时间：12ms~8ms</li>
+<li>旋转时间：7200转/分钟：半周4ms</li>
+<li>传输时间：50M/s，约0.3ms</li>
+</ul>
+<p>希望block相邻的盘块可以快速读出。</p>
+<h2 id="从CHS到扇区号，从扇区到盘块"><a href="#从CHS到扇区号，从扇区到盘块" class="headerlink" title="从CHS到扇区号，从扇区到盘块"></a>从CHS到扇区号，从扇区到盘块</h2><p>C*（Heads + Sectors）+ H*Sectors + S = 扇区号</p>
+<ul>
+<li>从扇区到盘块：<ul>
+<li>如果我们一个盘块可以连续包含几个扇区，那么空间利用率会下降但读写速度会上升。（用空间换时间）</li>
+<li><img src="/2022/01/03/%E6%96%87%E4%BB%B6%E7%AE%A1%E7%90%86/3.png" class=""></li>
+</ul>
 </li>
-<li><p><strong>JPEG压缩</strong>对<strong>高频</strong>分量的影响较大，对低频影响较小，所以模板需要将信息更多的集中在低频，抵抗JPEG压缩的影响</p>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">make_request</span><span class="params">(...)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">request</span> * <span class="title">req</span>;</span></span><br><span class="line">    eq-&gt;sector = bh-&gt;b_blocknr&lt;&lt;<span class="number">1</span>;<span class="comment">//盘块起始扇区为1，2，4，...</span></span><br><span class="line">    <span class="comment">//盘块大小是两个扇区</span></span><br><span class="line">    add_request(major+blk_dev,req);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">do_hd_request</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">int</span> block = CURRENT-&gt;sector;</span><br><span class="line">    __asm__(<span class="string">&quot;divl %4&quot;</span>:<span class="string">&quot;=a&quot;</span> (block),<span class="string">&quot;=d&quot;</span> (sec):<span class="string">&quot;0&quot;</span> (block),<span class="string">&quot;1&quot;</span> (<span class="number">0</span>),<span class="string">&quot;r&quot;</span> (hd_info[dev].sect));</span><br><span class="line">	__asm__(<span class="string">&quot;divl %4&quot;</span>:<span class="string">&quot;=a&quot;</span> (cyl),<span class="string">&quot;=d&quot;</span> (head):<span class="string">&quot;0&quot;</span> (block),<span class="string">&quot;1&quot;</span> (<span class="number">0</span>),<span class="string">&quot;r&quot;</span> (hd_info[dev].head));</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="多个进程通过队列使用磁盘（第二层抽象）"><a href="#多个进程通过队列使用磁盘（第二层抽象）" class="headerlink" title="多个进程通过队列使用磁盘（第二层抽象）"></a>多个进程通过队列使用磁盘（第二层抽象）</h2><img src="/2022/01/03/%E6%96%87%E4%BB%B6%E7%AE%A1%E7%90%86/4.png" class="">
+
+<ul>
+<li>多个磁盘访问请求出现在请求队列怎么办？<ul>
+<li>多个进程将请求放进请求队列中，操作系统进行调度。</li>
+</ul>
 </li>
-<li><p>由于传输过程中的<strong>采样操作</strong>，改变了模板的<strong>连通域</strong>。为了保证特征的完整性，至少要在模板中存在一个较大的连通域，这样采样操作才不会擦除所有的特征。</p>
-<p>图像的连通域：是指图像中具有相同或相似像素值并且位置相邻的像素组成的区域。</p>
-<img src="/2.png" style="zoom:50%;" /></li>
-<li><p>人眼对亮度梯度的变化十分敏感。所以我们的模板应该避免显著的亮度变化。</p>
+<li>调度的目标是让平均访问延迟最小，而寻道时间是主要矛盾</li>
+</ul>
+<h2 id="FCFS磁盘调度算法"><a href="#FCFS磁盘调度算法" class="headerlink" title="FCFS磁盘调度算法"></a>FCFS磁盘调度算法</h2><ul>
+<li>最直观、最公平的调度：<ul>
+<li>一个实例：磁盘开始位置：53</li>
+<li>请求队列=98，183，37，122，14，124，65，67</li>
+<li><img src="/2022/01/03/%E6%96%87%E4%BB%B6%E7%AE%A1%E7%90%86/5.png" class=""></li>
+</ul>
 </li>
+</ul>
+<h2 id="短寻道优先磁盘调度SSTF"><a href="#短寻道优先磁盘调度SSTF" class="headerlink" title="短寻道优先磁盘调度SSTF"></a>短寻道优先磁盘调度SSTF</h2><ul>
+<li>每次去处理离磁头最近的请求<ul>
+<li><img src="/2022/01/03/%E6%96%87%E4%BB%B6%E7%AE%A1%E7%90%86/6.png" class=""></li>
+<li>问题：磁头会不断处理中间部分的请求，两边会产生饥饿。</li>
+</ul>
+</li>
+</ul>
+<h2 id="SCAN磁盘调度（电梯算法）"><a href="#SCAN磁盘调度（电梯算法）" class="headerlink" title="SCAN磁盘调度（电梯算法）"></a>SCAN磁盘调度（电梯算法）</h2><ul>
+<li>SSTF+中途不回折：每个请求都有处理的机会<ul>
+<li><img src="/2022/01/03/%E6%96%87%E4%BB%B6%E7%AE%A1%E7%90%86/7.png" class=""></li>
+</ul>
+</li>
+</ul>
+<h2 id="生磁盘的使用整理"><a href="#生磁盘的使用整理" class="headerlink" title="生磁盘的使用整理"></a>生磁盘的使用整理</h2><ol>
+<li>进程得到“进程盘块号”，算出扇区号（sector）</li>
+<li>用扇区号make request，用电梯算法add_request</li>
+<li>进程sleep_on</li>
+<li>磁盘中断处理</li>
+<li>do_hd_request算出cyl、head、sector</li>
+<li>hd_out调用outp(…)完成端口写</li>
 </ol>
-<p>我们设计了32*32的模板</p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/5.png" class="">
-
-<p>用下面两种形式来表示0和1</p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/3.png" class="">
-
-<p>倾斜的区域设计满足要求1。</p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/4.png" class="">
-
-<p>傅里叶变换后，发现能量明显集中在低频区域满足要求2。</p>
-<p>中间有较大的联通区域，满足要求3。</p>
-<p>以灰色亮度为低，相邻模板区域之间都是以灰色相连，无论是灰色-&gt;白色，还是灰色-&gt;黑色，变化都比较顺滑，满足要求4。</p>
-<h3 id="定位模块生成"><a href="#定位模块生成" class="headerlink" title="定位模块生成"></a>定位模块生成</h3><p>于水印单元的位置和大小会受到裁剪和缩放畸变的影响，因此在提取过程中需要对水印模板进行定位和调整大小，这些都需要定位模块的参与。当定位模板与完整的水印单元成固定比例时，我们可以根据定位模板检测到的变换来恢复水印模板的原始状态。</p>
-<p>我们在图像中反复嵌入4组完整的水印，以抵抗剪切攻击（在图像受到裁剪操作时希望总有一个幸存下来）。并设置定位模板的大小为水印模板大小的1/4（图像的1/16）。</p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/6.png" class="">
-
-<p>我们生成一幅均值为0，方差为0.01的高斯噪声图像，记为S0。再在S0上做三个对称的翻转操作。</p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/7.png" class="">
-
-<p>四组水印模板，就需要四组定位模板。</p>
-<h3 id="总体过程"><a href="#总体过程" class="headerlink" title="总体过程"></a>总体过程</h3><img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/9.png" class="">
-
-<p>由于人眼对蓝色和红色的敏感度低于绿色，所以嵌入到红色通道和蓝色通道中。</p>
-<h2 id="提取算法流程"><a href="#提取算法流程" class="headerlink" title="提取算法流程"></a>提取算法流程</h2><img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/10.png" class="">
-
-<p>先对图像进行透视矫正：</p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/11.png" class="">
-
-<p>再寻找红色通道的横纵对称轴来定位和恢复水印。以列为例：</p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/12.png" class="">
-
-<p>以第j列为分界线，分成了j1、j2和j3三个区域。比较j1和j2的相似度。取一个使左右相似度最高的j列来作为列对称轴。行也如此。</p>
-<h3 id="两阶段的提取网络"><a href="#两阶段的提取网络" class="headerlink" title="两阶段的提取网络"></a>两阶段的提取网络</h3><p>提取部分使用深度学习的方式，有两个阶段的提取网络，一个是辅助增强子网络用以恢复扭曲的图像，一个分类子网络对每个比特模式进行分类。</p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/13.png" class="">
-
-<p>我们希望辅助增强子网络能学习逆畸变过程。使用Unet结构</p>
-<p>关于Unet：<a target="_blank" rel="noopener" href="https://blog.csdn.net/l2181265/article/details/87735610">https://blog.csdn.net/l2181265/article/details/87735610</a></p>
-<p>Unet的结构是先编码（下采用）再解码（上采样）的<strong>U形结构</strong>，保持输入和输出大小一样。</p>
-<p>关于通道数和卷积的关系：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/251068800">https://zhuanlan.zhihu.com/p/251068800</a></p>
-<p>这里先用16个卷积核将1通道图像输出成16通道。再用4个卷积层进行下采样（每次采样时通道数翻倍，长宽减半，所以存在两个卷积核），得到4*4的一个特征映射，再使用一个额外的卷积层得到一个全局的1*1的特征块，并反复连接到4*4的特征映射上得到一个128通道的4*4的特征块。再通过上采样过程，恢复成和输出一样。</p>
-<p>分类子网络是一个二分类器，判断该32*32单元是表示1还是0。</p>
-<p>损失函数：</p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/14.png" class="">
-
-<p>CE：交叉熵。<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/35709485">https://zhuanlan.zhihu.com/p/35709485</a></p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/15.png" class="">
-
-
-
+<h1 id="从生磁盘到文件"><a href="#从生磁盘到文件" class="headerlink" title="从生磁盘到文件"></a>从生磁盘到文件</h1><h2 id="引入文件，对磁盘使用的第三层抽象"><a href="#引入文件，对磁盘使用的第三层抽象" class="headerlink" title="引入文件，对磁盘使用的第三层抽象"></a>引入文件，对磁盘使用的第三层抽象</h2><ul>
+<li>普通用户访问生磁盘会产生困难，所以在盘块上引入更高一层的抽象：文件<ul>
+<li>用户眼里的文件是一堆字符序列</li>
+<li>磁盘上的盘块是一块一块的</li>
+</ul>
+</li>
+<li>建立字符序列到盘块集合的映射关系<ul>
+<li>连续结构：存放文件在连续的盘块上，需要在表（FCB：文件控制块）中存放文件的起始块和块数。<ul>
+<li><img src="/2022/01/03/%E6%96%87%E4%BB%B6%E7%AE%A1%E7%90%86/8.png" class=""></li>
+<li>缺点：速度快，动态扩展慢</li>
+</ul>
+</li>
+<li>链式结构：<ul>
+<li><img src="/2022/01/03/%E6%96%87%E4%BB%B6%E7%AE%A1%E7%90%86/9.png" class=""></li>
+<li><img src="/2022/01/03/%E6%96%87%E4%BB%B6%E7%AE%A1%E7%90%86/10.png" class=""></li>
+<li>速度慢，但动态扩展快</li>
+</ul>
+</li>
+<li>索引结构：<ul>
+<li><img src="/2022/01/03/%E6%96%87%E4%BB%B6%E7%AE%A1%E7%90%86/11.png" class=""></li>
+<li><img src="/2022/01/03/%E6%96%87%E4%BB%B6%E7%AE%A1%E7%90%86/12.png" class=""></li>
+</ul>
+</li>
+<li>多级索引:<ul>
+<li><img src="/2022/01/03/%E6%96%87%E4%BB%B6%E7%AE%A1%E7%90%86/13.png" class=""></li>
+<li>小文件直接索引数据库</li>
+<li>中等文件一阶索引</li>
+<li>大文件二阶或三阶索引</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
  
       <!-- reward -->
       
@@ -260,7 +284,7 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2022/01/03/%E6%96%87%E4%BB%B6%E7%AE%A1%E7%90%86/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -271,19 +295,10 @@
    
   <nav class="article-nav">
     
-      <a href="/2022/01/03/%E6%96%87%E4%BB%B6%E7%AE%A1%E7%90%86/" class="article-nav-link">
-        <strong class="article-nav-caption">上一篇</strong>
-        <div class="article-nav-title">
-          
-            文件管理
-          
-        </div>
-      </a>
     
-    
-      <a href="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/" class="article-nav-link">
+      <a href="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">A Novel Two-stage Separable Deep Learning Framework for 论文笔记</div>
+        <div class="article-nav-title">Deep_Template-Based_Watermarking 论文笔记</div>
       </a>
     
   </nav>
