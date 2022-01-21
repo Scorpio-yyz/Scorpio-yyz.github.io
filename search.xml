@@ -1,220 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>内存管理</title>
-    <url>/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/</url>
-    <content><![CDATA[<h2 id="内存使用与分段"><a href="#内存使用与分段" class="headerlink" title="内存使用与分段"></a>内存使用与分段</h2><h3 id="从计算机如何工作开始讲起"><a href="#从计算机如何工作开始讲起" class="headerlink" title="从计算机如何工作开始讲起"></a>从计算机如何工作开始讲起</h3><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/95.png" class="">
+    <title>StegaStamp代码分析</title>
+    <url>/2022/01/17/StegaStamp%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/</url>
+    <content><![CDATA[<h1 id="说明"><a href="#说明" class="headerlink" title="说明"></a>说明</h1><p>课题的思路可能还是得从源码入手，我认为当下的思路应该是：复现-&gt;改进-&gt;创新。</p>
+<p>这里分析论文：StegaStamp: Invisible Hyperlinks in Physical Photographs的源码，我也会在分析过程中寻找可以改进的点。</p>
+<h1 id="数据集预处理"><a href="#数据集预处理" class="headerlink" title="数据集预处理"></a>数据集预处理</h1><p>代码使用的是MIRFLICKR数据集（重采样到400x400分辨率），水印信息是一个二进制串。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#TRAIN_PATH是数据集路径，先读取数据集。</span></span><br><span class="line">91files_list = glob.glob(join(TRAIN_PATH, <span class="string">&quot;**/*&quot;</span>))</span><br><span class="line"></span><br><span class="line">161images, secrets = get_img_batch(files_list=files_list,</span><br><span class="line"><span class="number">162</span>                                            secret_size=args.secret_size,</span><br><span class="line"><span class="number">163</span>                                            batch_size=args.batch_size,</span><br><span class="line"><span class="number">164</span>                                            size=(height, width))</span><br><span class="line"><span class="comment">#get_img_batch(...)</span></span><br><span class="line">20<span class="keyword">def</span> get_img_batch(files_list,	<span class="comment">#数据集的图像表</span></span><br><span class="line"><span class="number">21</span>                  secret_size,	<span class="comment">#水印长度</span></span><br><span class="line"><span class="number">22</span>                  batch_size=<span class="number">4</span>,	<span class="comment">#训练数据集可以分为一个或多个Batch，一次batch获取的图像个数</span></span><br><span class="line"><span class="number">23</span>                  size=(<span class="number">400</span>, <span class="number">400</span>)):	<span class="comment">#重采样大小</span></span><br><span class="line"><span class="number">24</span>    batch_cover = []</span><br><span class="line"><span class="number">25</span>    batch_secret = []</span><br><span class="line"><span class="number">26</span></span><br><span class="line"><span class="number">27</span>    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(batch_size):</span><br><span class="line"><span class="number">28</span>        img_cover_path = random.choice(files_list)	<span class="comment">#随机取一个图像</span></span><br><span class="line"><span class="number">29</span>        <span class="keyword">try</span>:</span><br><span class="line"><span class="number">30</span>            img_cover = Image.<span class="built_in">open</span>(img_cover_path).convert(<span class="string">&quot;RGB&quot;</span>)	<span class="comment">#获取RGB的图像矩阵</span></span><br><span class="line"><span class="number">31</span>            img_cover = ImageOps.fit(img_cover, size)	<span class="comment">#ImageOps.fit()方法返回一个指定大小的裁剪过的图像（重采样为400x400）</span></span><br><span class="line"><span class="number">32</span>            img_cover = np.array(img_cover, dtype=np.float32) / <span class="number">255.</span>	<span class="comment">#归一化</span></span><br><span class="line"><span class="number">33</span>        <span class="keyword">except</span>:</span><br><span class="line"><span class="number">34</span>            img_cover = np.zeros((size[<span class="number">0</span>], size[<span class="number">1</span>], <span class="number">3</span>), dtype=np.float32)</span><br><span class="line"><span class="number">35</span>        batch_cover.append(img_cover)	<span class="comment">#将图像矩阵加入到batch_cover[]中</span></span><br><span class="line"><span class="number">36</span></span><br><span class="line"><span class="number">37</span>        secret = np.random.binomial(<span class="number">1</span>, <span class="number">.5</span>, secret_size)	<span class="comment">#生成随机的二进制串，01出现概率是1：1</span></span><br><span class="line"><span class="number">38</span>        batch_secret.append(secret)	<span class="comment">#将二进制串加入到batch_secret[]</span></span><br><span class="line"><span class="number">39</span></span><br><span class="line"><span class="number">40</span>    batch_cover, batch_secret = np.array(batch_cover), np.array(batch_secret)</span><br><span class="line"><span class="number">41</span>    <span class="keyword">return</span> batch_cover, batch_secret	<span class="comment">#返回batch_cover[]和batch_secret</span></span><br></pre></td></tr></table></figure>
 
-<ul>
-<li>内存使用：将程序放入内存中，PC指向开始地址</li>
-</ul>
-<h3 id="首先让程序进入内存"><a href="#首先让程序进入内存" class="headerlink" title="首先让程序进入内存"></a>首先让程序进入内存</h3><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/96.png" class="">
+<h1 id="占位符的设置"><a href="#占位符的设置" class="headerlink" title="占位符的设置"></a>占位符的设置</h1><p>占位变量是一种TensorFlow用来解决读取大量训练数据问题的机制,它允许你现在不用给它赋值,随着训练的开始,再把训练数据传送给训练网络<em>学习</em>。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="number">100</span>	secret_pl = tf.placeholder(shape=[<span class="literal">None</span>, args.secret_size], dtype=tf.float32, name=<span class="string">&quot;input_prep&quot;</span>)</span><br><span class="line"><span class="comment">#传入的秘密信息（一串随机生成的二进制串）</span></span><br><span class="line"><span class="number">101</span>	image_pl = tf.placeholder(shape=[<span class="literal">None</span>, height, width, <span class="number">3</span>], dtype=tf.float32, name=<span class="string">&quot;input_hide&quot;</span>)</span><br><span class="line"><span class="comment">#载体图片（400*400）</span></span><br><span class="line"><span class="number">102</span>	M_pl = tf.placeholder(shape=[<span class="literal">None</span>, <span class="number">2</span>, <span class="number">8</span>], dtype=tf.float32, name=<span class="string">&quot;input_transform&quot;</span>)</span><br><span class="line"><span class="comment">#用于投影变换的矩阵，投影变换矩阵的生成也是随机的</span></span><br><span class="line"><span class="number">103</span>	global_step_tensor = tf.Variable(<span class="number">0</span>, trainable=<span class="literal">False</span>, name=<span class="string">&#x27;global_step&#x27;</span>)</span><br><span class="line"><span class="comment">#全局步数，初始化为0，记录训练达到第几轮，什么阶段执行什么样的操作</span></span><br><span class="line"><span class="number">104</span>	loss_scales_pl = tf.placeholder(shape=[<span class="number">4</span>], dtype=tf.float32, name=<span class="string">&quot;input_loss_scales&quot;</span>)</span><br><span class="line"><span class="comment">#损失函数权重，见代码:loss_op = loss_scales[0]*image_loss_op + loss_scales[1]*lpips_loss_op + loss_scales[2]*secret</span></span><br><span class="line"><span class="number">105</span>	l2_edge_gain_pl = tf.placeholder(shape=[<span class="number">1</span>], dtype=tf.float32, name=<span class="string">&quot;input_edge_gain&quot;</span>)</span><br><span class="line"><span class="comment">#用于falloff_im *= l2_edge_gain_pl(没看懂)</span></span><br><span class="line"><span class="number">106</span>	yuv_scales_pl = tf.placeholder(shape=[<span class="number">3</span>], dtype=tf.float32, name=<span class="string">&quot;input_yuv_scales&quot;</span>)</span><br><span class="line"><span class="comment">#没懂，image_loss_op = tf.tensordot(yuv_loss_op, yuv_scales, axes=1)</span></span><br><span class="line"><span class="number">107</span> log_decode_mod_pl = tf.placeholder(shape=[], dtype=tf.float32, name=<span class="string">&quot;input_log_decode_mod&quot;</span>)</span><br><span class="line"><span class="comment">#打开之前训练一半的模型(代码没用到这个变量)</span></span><br></pre></td></tr></table></figure>
 
-<p>​    用磁盘将对应的机械代码读入内存，call 40时需要在地址总线上发送40，然后main函数的入口就放在40地址处。而物理内存40正好是_entry到_main的偏移地址，所以_entry就在地址0处。</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/97.png" class="">
+<h1 id="建立模型"><a href="#建立模型" class="headerlink" title="建立模型"></a>建立模型</h1><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="number">110</span> encoder = models.StegaStampEncoder(height=height, width=width)</span><br><span class="line"><span class="comment">#编码器模型</span></span><br><span class="line"><span class="number">111</span> decoder = models.StegaStampDecoder(secret_size=args.secret_size, height=height, width=width)</span><br><span class="line"><span class="comment">#解码器模型</span></span><br><span class="line"><span class="number">112</span> discriminator = models.Discriminator()</span><br><span class="line"><span class="comment">#一个评论网络，可以预测信息是否被编码到图像中，并作为编解码器模型的感知损失，是全部损失函数的一部分</span></span><br></pre></td></tr></table></figure>
 
-<p>但如果有0地址处被占用了，或多个程序在内存中，就不能都放在0地址处。</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/98.png" class="">
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="number">114</span> loss_op, secret_loss_op, D_loss_op, summary_op, image_summary_op, _ = models.build_model(</span><br><span class="line"><span class="number">115</span>     encoder=encoder,</span><br><span class="line"><span class="number">116</span>     decoder=decoder,</span><br><span class="line"><span class="number">117</span>	    discriminator=discriminator,</span><br><span class="line"><span class="number">118</span>	  	secret_input=secret_pl,</span><br><span class="line"><span class="number">119</span>     image_input=image_pl,</span><br><span class="line"><span class="number">120</span>     l2_edge_gain=l2_edge_gain_pl,</span><br><span class="line"><span class="number">121</span>     borders=args.borders,</span><br><span class="line"><span class="number">122</span>     secret_size=args.secret_size,</span><br><span class="line"><span class="number">123</span>     M=M_pl,</span><br><span class="line"><span class="number">124</span>	   	loss_scales=loss_scales_pl,</span><br><span class="line"><span class="number">125</span>     yuv_scales=yuv_scales_pl,</span><br><span class="line"><span class="number">126</span>     args=args,</span><br><span class="line"><span class="number">127</span>	  	global_step=global_step_tensor)</span><br><span class="line"></span><br><span class="line"><span class="comment">#建立模型在models.py中从184行开始</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">build_model</span>(<span class="params"></span></span></span><br><span class="line"><span class="params"><span class="function">    	...</span></span></span><br><span class="line"><span class="params"><span class="function">               </span>):</span></span><br><span class="line">    input_warped = tf.contrib.image.transform(image_input, M[:,<span class="number">1</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">    <span class="comment">#根据M[:,1,:]矩阵进行投影变形</span></span><br><span class="line">    <span class="comment">#train.py:178	M = utils.get_rand_transform_matrix(width, np.floor(width * rnd_tran), args.batch_size)</span></span><br><span class="line">    <span class="comment">#获取一个随机的形变矩阵（具体算法可以看utils.py）</span></span><br><span class="line">    mask_warped = tf.contrib.image.transform(tf.ones_like(input_warped), M[:,<span class="number">1</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">    input_warped += (<span class="number">1</span>-mask_warped) * image_input</span><br><span class="line">    <span class="comment">#一系列没看懂的变形操作，得到一个变形后的输入图像</span></span><br><span class="line">    residual_warped = encoder((secret_input, input_warped))</span><br><span class="line">    <span class="comment">#将变形后的输入图像和secret_input一起输入到编码器模型中，进行编码，得到一个residual图像，里面蕴含着水印信息</span></span><br><span class="line">    encoded_warped = residual_warped + input_warped</span><br><span class="line">    <span class="comment">#将含有水印信息的residual图像加回到变形后的输入图像，得到一个变形的含水印图像</span></span><br><span class="line">    residual = tf.contrib.image.transform(residual_warped, M[:,<span class="number">0</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">    <span class="comment">#再通过形变矩阵的逆，将变形的含水印图像变回去</span></span><br><span class="line">	...</span><br></pre></td></tr></table></figure>
 
-<p>但一旦IP修改到一个空闲的地址，那么call 40就不再是_main的地址。</p>
-<h3 id="重定位：修改程序中的地址-相对地址-逻辑地址"><a href="#重定位：修改程序中的地址-相对地址-逻辑地址" class="headerlink" title="重定位：修改程序中的地址(相对地址/逻辑地址)"></a>重定位：修改程序中的地址(相对地址/逻辑地址)</h3><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/99.png" class="">
+<h2 id="编码器模型"><a href="#编码器模型" class="headerlink" title="编码器模型"></a>编码器模型</h2><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">StegaStampEncoder</span>(<span class="params">Layer</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, height, width</span>):</span></span><br><span class="line">        <span class="built_in">super</span>(StegaStampEncoder, self).__init__()</span><br><span class="line">        self.secret_dense = Dense(<span class="number">7500</span>, activation=<span class="string">&#x27;relu&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        <span class="comment">#将输入的100bit图像扩展成7500bit大小</span></span><br><span class="line">        self.conv1 = Conv2D(<span class="number">32</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv2 = Conv2D(<span class="number">32</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, strides=<span class="number">2</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv3 = Conv2D(<span class="number">64</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, strides=<span class="number">2</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv4 = Conv2D(<span class="number">128</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, strides=<span class="number">2</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv5 = Conv2D(<span class="number">256</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, strides=<span class="number">2</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.up6 = Conv2D(<span class="number">128</span>, <span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv6 = Conv2D(<span class="number">128</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.up7 = Conv2D(<span class="number">64</span>, <span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv7 = Conv2D(<span class="number">64</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.up8 = Conv2D(<span class="number">32</span>, <span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv8 = Conv2D(<span class="number">32</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.up9 = Conv2D(<span class="number">32</span>, <span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv9 = Conv2D(<span class="number">32</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv10 = Conv2D(<span class="number">32</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.residual = Conv2D(<span class="number">3</span>, <span class="number">1</span>, activation=<span class="literal">None</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">call</span>(<span class="params">self, inputs</span>):</span></span><br><span class="line">        secret, image = inputs</span><br><span class="line">        secret = secret - <span class="number">.5</span></span><br><span class="line">        image = image - <span class="number">.5</span></span><br><span class="line">        <span class="comment">#对输入的水印信息和图像矩阵进行处理（看不懂这个- .5）</span></span><br><span class="line">        secret = self.secret_dense(secret)</span><br><span class="line">        <span class="comment">#见上方的 self.secret_dense ，将输入的100bit图像扩展成7500bit大小</span></span><br><span class="line">        secret = Reshape((<span class="number">50</span>, <span class="number">50</span>, <span class="number">3</span>))(secret)</span><br><span class="line">        <span class="comment">#将一维水印信息变为3维，7500 = 50 * 50 * 3</span></span><br><span class="line">        secret_enlarged = UpSampling2D(size=(<span class="number">8</span>,<span class="number">8</span>))(secret)</span><br><span class="line">		<span class="comment">#(50,50,3)进行上采样变为(400,400,3)</span></span><br><span class="line">        inputs = concatenate([secret_enlarged, image], axis=-<span class="number">1</span>)</span><br><span class="line">        <span class="comment">#将secret和image拼接到一起，concatenate()函数没太明白拼接过程，axis = -1太抽象了</span></span><br><span class="line">        conv1 = self.conv1(inputs)</span><br><span class="line">        conv2 = self.conv2(conv1)</span><br><span class="line">        conv3 = self.conv3(conv2)</span><br><span class="line">        conv4 = self.conv4(conv3)</span><br><span class="line">        conv5 = self.conv5(conv4)</span><br><span class="line">        up6 = self.up6(UpSampling2D(size=(<span class="number">2</span>,<span class="number">2</span>))(conv5))</span><br><span class="line">        merge6 = concatenate([conv4,up6], axis=<span class="number">3</span>)</span><br><span class="line">        conv6 = self.conv6(merge6)</span><br><span class="line">        up7 = self.up7(UpSampling2D(size=(<span class="number">2</span>,<span class="number">2</span>))(conv6))</span><br><span class="line">        merge7 = concatenate([conv3,up7], axis=<span class="number">3</span>)</span><br><span class="line">        conv7 = self.conv7(merge7)</span><br><span class="line">        up8 = self.up8(UpSampling2D(size=(<span class="number">2</span>,<span class="number">2</span>))(conv7))</span><br><span class="line">        merge8 = concatenate([conv2,up8], axis=<span class="number">3</span>)</span><br><span class="line">        conv8 = self.conv8(merge8)</span><br><span class="line">        up9 = self.up9(UpSampling2D(size=(<span class="number">2</span>,<span class="number">2</span>))(conv8))</span><br><span class="line">        merge9 = concatenate([conv1,up9,inputs], axis=<span class="number">3</span>)</span><br><span class="line">        conv9 = self.conv9(merge9)</span><br><span class="line">        conva = self.conv9(merge9)</span><br><span class="line">        conv10 = self.conv10(conv9)</span><br><span class="line">        residual = self.residual(conv9)</span><br><span class="line">        <span class="keyword">return</span> residual</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
-<p>什么时候完成重定位？</p>
-<ol>
-<li>编译时（编译时不知道执行时哪些地址是空闲的，在实际系统中何难实现。但例如嵌入式系统烧录后不再改变，就可以实现）</li>
-<li>载入时（在载入内存时重定位，执行前分配空闲的地址）</li>
-<li>运行时（支持进程换入和换出）</li>
-</ol>
-<h3 id="程序载入后还需要移动"><a href="#程序载入后还需要移动" class="headerlink" title="程序载入后还需要移动"></a>程序载入后还需要移动</h3><ul>
-<li>一个重要概念：交换（swap）<ul>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/100.png" class=""></li>
-<li>如果一个进程阻塞了，那么需要将睡眠的进程换出，将就绪的进程换入。</li>
-<li>一旦进程在载入后移动，地址就又发生了该百年。</li>
-</ul>
-</li>
-</ul>
-<h3 id="重定位最合适的时机-运行时重定位"><a href="#重定位最合适的时机-运行时重定位" class="headerlink" title="重定位最合适的时机-运行时重定位"></a>重定位最合适的时机-运行时重定位</h3><ul>
-<li>在运行每条指令时才完成重定位<ul>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/101.png" class=""></li>
-<li>base放在哪里？怎么找到？<ul>
-<li>在PCB中，一旦进程执行，执行指令翻译时，就从PCB中找基地址</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h3 id="引入分段：是将整个程序一起载入内存中吗？"><a href="#引入分段：是将整个程序一起载入内存中吗？" class="headerlink" title="引入分段：是将整个程序一起载入内存中吗？"></a>引入分段：是将整个程序一起载入内存中吗？</h3><ul>
-<li>程序员眼中的程序<ul>
-<li>由若干部分（段）组成，每个段有各自的特点、用途：代码段只读，代码段/数据段不会动态增长</li>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/102.png" class=""></li>
-</ul>
-</li>
-<li>符合用户观点：用户可独立考虑每个分段（分治）</li>
-<li>怎么具体定位具体指令（数据）：&lt;段号，段内偏移&gt;（&lt;cs:ip&gt;）</li>
-</ul>
-<h3 id="不是将整个程序，是将各个段分别放入内存"><a href="#不是将整个程序，是将各个段分别放入内存" class="headerlink" title="不是将整个程序，是将各个段分别放入内存"></a>不是将整个程序，是将各个段分别放入内存</h3><p>由高地址到低地址分别是：</p>
-<ol>
-<li><p><strong>栈</strong>：是一种用来存储函数调用时的临时信息的结构，如函数调用所传递的参数、函数的返回地址、函数的局部变量等。 在程序运行时由编译器在需要的时候分配，在不需要的时候自动清除。</p>
-</li>
-<li><p><strong>堆</strong>：用来存储程序运行时分配的变量。</p>
-<p>堆的大小并不固定，可动态扩张或缩减。其分配由malloc()、new()等这类实时内存分配函数来实现。当进程调用malloc等函数分配内存时，新分配的内存就被动态添加到堆上（堆被扩张）；当利用free()等函数释放内存时，被释放的内存从堆中被剔除（堆被缩减）  堆的内存释放由应用程序去控制，通常一个new()就要对应一个delete()，如果程序员没有释放掉，那么在程序结束后操作系统会自动回收。</p>
-</li>
-<li><p><strong>BSS段</strong>：用来保存全局的和静态的未初始化变量</p>
-</li>
-<li><p><strong>data段</strong>：用来存放保存全局的和静态的已初始化变量</p>
-</li>
-<li><p><strong>text段</strong>：存放着程序的机器码和只读数据，可执行指令就是从这里取得的。</p>
-</li>
-</ol>
-<p>需要一张表，来记录每个段的<strong>基址、长度、读写权限</strong>等，即<strong>进程段表</strong>（LDT）</p>
-<p>而操作系统的那张段表就是（GDT）</p>
-<h3 id="真正的故事：GDT-LDT"><a href="#真正的故事：GDT-LDT" class="headerlink" title="真正的故事：GDT+LDT"></a>真正的故事：GDT+LDT</h3><p>GDT表项：</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/103.png" class="">
-
-<p>通过GDT表分开各个进程的基址，通过LDT表来分开进程中各个段的基址</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/104.png" class="">
-
-<h2 id="内存分区与分页"><a href="#内存分区与分页" class="headerlink" title="内存分区与分页"></a>内存分区与分页</h2><p>编译将程序分成多个段以后，需要将内存分成多个区域。将内存分割后，就能将程序的各个段载入到相应的内存分区中。</p>
-<h3 id="固定分区和可变分区"><a href="#固定分区和可变分区" class="headerlink" title="固定分区和可变分区"></a>固定分区和可变分区</h3><ul>
-<li>将内存等分成k个分区<ul>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/105.png" class=""></li>
-<li>但程序有大有小。段也有大有小，需求不一样，这样不太合适</li>
-</ul>
-</li>
-<li>按需要分配内存分区<ul>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/106.png" class=""></li>
-</ul>
-</li>
-</ul>
-<h3 id="可变分区的管理过程-核心数据结构"><a href="#可变分区的管理过程-核心数据结构" class="headerlink" title="可变分区的管理过程-核心数据结构"></a>可变分区的管理过程-核心数据结构</h3><p>当前内存图像：</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/107.png" class="">
-
-<p>对应的表：</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/108.png" class="">
-
-<ul>
-<li>当段内存请求：reqSize=100K<ul>
-<li>起始地址+100K</li>
-<li>长度-100K</li>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/109.png" class=""></li>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/110.png" class=""></li>
-</ul>
-</li>
-<li>段2不再需要，释放内存<ul>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/111.png" class=""></li>
-</ul>
-</li>
-</ul>
-<h3 id="可变分区的管理-再次申请"><a href="#可变分区的管理-再次申请" class="headerlink" title="可变分区的管理-再次申请"></a>可变分区的管理-再次申请</h3><ul>
-<li>又一个段提出内存申请：reqSize=40K。空闲分区表中有两个分区，选择哪一个需要合适的算法（长度分别为50K和150K）<ul>
-<li>首<strong>先</strong>适配：选表中第一个空闲分区<ul>
-<li>速度最快</li>
-</ul>
-</li>
-<li>最<strong>佳</strong>适配：选择一个分区长度最接近内存申请长度的区域<ul>
-<li>空闲分区会被分割的越来约小</li>
-</ul>
-</li>
-<li>最<strong>差</strong>适配：选择一个分区长度最不接近内存申请长度的区域（最大的区域）<ul>
-<li>空闲分区长度会很均匀</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h3 id="引入分页：解决内存分区导致的内存效率问题"><a href="#引入分页：解决内存分区导致的内存效率问题" class="headerlink" title="引入分页：解决内存分区导致的内存效率问题"></a>引入分页：解决内存分区导致的内存效率问题</h3><ul>
-<li>发起请求reqSize=160K怎么办？<ul>
-<li>总空闲空间&gt;160，但没有一个空闲分区&gt;160，怎么办？<ul>
-<li>这就是内存碎片的问题</li>
-<li>将空闲分区合并，则需要移动：<strong>内存紧缩</strong></li>
-</ul>
-</li>
-</ul>
-</li>
-<li>但是内存紧缩会有大量的性能损失</li>
-</ul>
-<h3 id="从连续到离散"><a href="#从连续到离散" class="headerlink" title="从连续到离散"></a>从连续到离散</h3><p>将内存分成页，针对每个段内存请求，系统一页一页的分配给这个段。</p>
-<ul>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/112.png" class=""></li>
-<li>段内存请求来到后，算一下需要几页的内存，然后将内存一页一页地分配给这个段。</li>
-<li>这样一来有页内部碎片，但没有页外部碎片</li>
-</ul>
-<h3 id="页已经载入了内存，那么"><a href="#页已经载入了内存，那么" class="headerlink" title="页已经载入了内存，那么"></a>页已经载入了内存，那么</h3><p>程序调用内存，需要通过偏移地址，找到对应的页号（页框），而页内的地址需要重定位。</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/113.png" class="">
-
-<p>每个进程都有自己的页表：</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/114.png" class="">
-
-<p>若有一指令：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mov [0x2240],	%eax</span><br></pre></td></tr></table></figure>
-
-<p>则需要将0x2240除以4K（假设的页大小），然后得到页号（商）和页内偏移地址（余数）</p>
-<p>计算机内的除4K即右移12位，所有地址后12位是偏移地址，前4位是页号。</p>
-<p>逻辑地址：0x2240，0x2是页号找到页框号（0x3），0x240是页内偏移地址</p>
-<p>得到物理地址：0x3240</p>
-<h2 id="多级页表和快表"><a href="#多级页表和快表" class="headerlink" title="多级页表和快表"></a>多级页表和快表</h2><h3 id="页表会很大，页表放置就成了问题"><a href="#页表会很大，页表放置就成了问题" class="headerlink" title="页表会很大，页表放置就成了问题"></a>页表会很大，页表放置就成了问题</h3><p>为了提高空间利用率，页的大小就应该小，但页的表项就会多。</p>
-<ul>
-<li>页大小一般是4k，而地址是32位的，所以由2的20次方个页表现</li>
-<li>这么多页表项，需要4M的内存；当系统中并发10个进程，就需要40M内存</li>
-<li>进程越多，存储页表项需要内存越多，这也是一种内存的浪费</li>
-</ul>
-<p>实际上大部分逻辑地址根本不会用到</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/115.png" class="">
-
-<h3 id="第一种尝试，只存放用到的页"><a href="#第一种尝试，只存放用到的页" class="headerlink" title="第一种尝试，只存放用到的页"></a>第一种尝试，只存放用到的页</h3><ul>
-<li>很自然的想法：只有用到的逻辑页才有页表项<ul>
-<li>但页表中的页号不连续，就需要比较、查找 ，浪费时间</li>
-<li>如果页号连续，一次访问就能找到相应的页框号</li>
-</ul>
-</li>
-<li>页号连续，浪费内存。页号不连续，浪费查找时间</li>
-</ul>
-<p>既要连续又要让页表占用内存少，怎么办？</p>
-<h3 id="多级页表，即页目录表-页表"><a href="#多级页表，即页目录表-页表" class="headerlink" title="多级页表，即页目录表 + 页表"></a>多级页表，即页目录表 + 页表</h3><p>​        多个页号放进一个页目录中，这样生成的页表只记录该页目录下的页，就缩小了页表的长度。而这样的一个页表又是连续的，就不需要比较查找。</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/116.png" class="">
-
-<p>​        offset指向了一个4k大小的页。而一个页目录下有1024个页。共有1024个页目录。所以一个32位逻辑地址指向了一个4G的空间。</p>
-<h3 id="多级页表提高了空间效率，但在时间？"><a href="#多级页表提高了空间效率，但在时间？" class="headerlink" title="多级页表提高了空间效率，但在时间？"></a>多级页表提高了空间效率，但在时间？</h3><ul>
-<li>多级页表怎加了访问内存的次数<ul>
-<li>每增加一级页表，内存的访问次数就要怎加一次</li>
-<li>访问次数增多，时间效率不高</li>
-</ul>
-</li>
-<li>快表：TLB是一组相联快速存储，是寄存器<ul>
-<li>将最常用的页号存到寄存器中，调用十分迅速</li>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/117.png" class="">
-<ul>
-<li>如果命中，可以直接硬件上将逻辑地址转换成物理地址</li>
-<li>如果不命中，就去多级页表中查，然后将这次的存储地址放到快表中（空间局部性好的程序往往查找速度越快）</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>多级页表保证了减少了页表中的页表项，减少了内存损耗。通过快表保证了多次使用的内存，查找速度很快。这样以来，空间时间上都有较高的效率。</li>
-</ul>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/118.png" class="">
-
-<p>​        通过有效访问时间的计算，可以判断一个快表的好坏（后面会有换入和换出算法来更新快表，这种算法越好，快表命中率越高）。而快表越大，命中率也越高，但TLB也越贵。</p>
-<h2 id="段页结合的实际内存管理"><a href="#段页结合的实际内存管理" class="headerlink" title="段页结合的实际内存管理"></a>段页结合的实际内存管理</h2><h3 id="段、页同时存在：段面向用户-页面向硬件"><a href="#段、页同时存在：段面向用户-页面向硬件" class="headerlink" title="段、页同时存在：段面向用户/页面向硬件"></a>段、页同时存在：段面向用户/页面向硬件</h3><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/119.png" class="">
-
-<p>每个段再分页映射到物理内存。</p>
-<h3 id="段页同时存在时的重定位"><a href="#段页同时存在时的重定位" class="headerlink" title="段页同时存在时的重定位"></a>段页同时存在时的重定位</h3>  <img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/120.png" class="">
-
-<h3 id="一个实际的段页式内存管理"><a href="#一个实际的段页式内存管理" class="headerlink" title="一个实际的段页式内存管理"></a>一个实际的段页式内存管理</h3><h3 id="从程序放入内存开始"><a href="#从程序放入内存开始" class="headerlink" title="从程序放入内存开始"></a>从程序放入内存开始</h3><ol>
-<li>分配段、建段表；分配页、建页表</li>
-<li>进程带动使用内存</li>
-<li>从进程fork中的内存分配开始<ul>
-<li>fork时会新分配段基址，然后复制父进程的页表</li>
-</ul>
-</li>
-<li>读时共享，写时复制<ul>
-<li>比如在父进程内原来有一个全局变量，如果fork之后父子进程都没有去改变这个变量的值，那么内存中全局区这个变量只会存在一份，所谓读时共享；但是如果fork后父进程或者子进程改变了这个变量的值，那么这个变量将会在内存全局区存在两份，父子进程各自拥有各自的副本，这就是写时复制</li>
-</ul>
-</li>
-</ol>
 ]]></content>
       <categories>
-        <category>操作系统</category>
+        <category>数据驱动的数字水印</category>
       </categories>
   </entry>
   <entry>
@@ -541,6 +346,223 @@
 <h4 id="核心思想、技术：-1"><a href="#核心思想、技术：-1" class="headerlink" title="核心思想、技术："></a>核心思想、技术：</h4><ol>
 <li>仍然是程序执行、多进程、程序带动其他设备使用的基本结构</li>
 <li>开始重视用户的体验：各种文件、编程环境、图形界面</li>
+</ol>
+]]></content>
+      <categories>
+        <category>操作系统</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>内存管理</title>
+    <url>/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/</url>
+    <content><![CDATA[<h2 id="内存使用与分段"><a href="#内存使用与分段" class="headerlink" title="内存使用与分段"></a>内存使用与分段</h2><h3 id="从计算机如何工作开始讲起"><a href="#从计算机如何工作开始讲起" class="headerlink" title="从计算机如何工作开始讲起"></a>从计算机如何工作开始讲起</h3><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/95.png" class="">
+
+<ul>
+<li>内存使用：将程序放入内存中，PC指向开始地址</li>
+</ul>
+<h3 id="首先让程序进入内存"><a href="#首先让程序进入内存" class="headerlink" title="首先让程序进入内存"></a>首先让程序进入内存</h3><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/96.png" class="">
+
+<p>​    用磁盘将对应的机械代码读入内存，call 40时需要在地址总线上发送40，然后main函数的入口就放在40地址处。而物理内存40正好是_entry到_main的偏移地址，所以_entry就在地址0处。</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/97.png" class="">
+
+<p>但如果有0地址处被占用了，或多个程序在内存中，就不能都放在0地址处。</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/98.png" class="">
+
+<p>但一旦IP修改到一个空闲的地址，那么call 40就不再是_main的地址。</p>
+<h3 id="重定位：修改程序中的地址-相对地址-逻辑地址"><a href="#重定位：修改程序中的地址-相对地址-逻辑地址" class="headerlink" title="重定位：修改程序中的地址(相对地址/逻辑地址)"></a>重定位：修改程序中的地址(相对地址/逻辑地址)</h3><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/99.png" class="">
+
+<p>什么时候完成重定位？</p>
+<ol>
+<li>编译时（编译时不知道执行时哪些地址是空闲的，在实际系统中何难实现。但例如嵌入式系统烧录后不再改变，就可以实现）</li>
+<li>载入时（在载入内存时重定位，执行前分配空闲的地址）</li>
+<li>运行时（支持进程换入和换出）</li>
+</ol>
+<h3 id="程序载入后还需要移动"><a href="#程序载入后还需要移动" class="headerlink" title="程序载入后还需要移动"></a>程序载入后还需要移动</h3><ul>
+<li>一个重要概念：交换（swap）<ul>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/100.png" class=""></li>
+<li>如果一个进程阻塞了，那么需要将睡眠的进程换出，将就绪的进程换入。</li>
+<li>一旦进程在载入后移动，地址就又发生了该百年。</li>
+</ul>
+</li>
+</ul>
+<h3 id="重定位最合适的时机-运行时重定位"><a href="#重定位最合适的时机-运行时重定位" class="headerlink" title="重定位最合适的时机-运行时重定位"></a>重定位最合适的时机-运行时重定位</h3><ul>
+<li>在运行每条指令时才完成重定位<ul>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/101.png" class=""></li>
+<li>base放在哪里？怎么找到？<ul>
+<li>在PCB中，一旦进程执行，执行指令翻译时，就从PCB中找基地址</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="引入分段：是将整个程序一起载入内存中吗？"><a href="#引入分段：是将整个程序一起载入内存中吗？" class="headerlink" title="引入分段：是将整个程序一起载入内存中吗？"></a>引入分段：是将整个程序一起载入内存中吗？</h3><ul>
+<li>程序员眼中的程序<ul>
+<li>由若干部分（段）组成，每个段有各自的特点、用途：代码段只读，代码段/数据段不会动态增长</li>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/102.png" class=""></li>
+</ul>
+</li>
+<li>符合用户观点：用户可独立考虑每个分段（分治）</li>
+<li>怎么具体定位具体指令（数据）：&lt;段号，段内偏移&gt;（&lt;cs:ip&gt;）</li>
+</ul>
+<h3 id="不是将整个程序，是将各个段分别放入内存"><a href="#不是将整个程序，是将各个段分别放入内存" class="headerlink" title="不是将整个程序，是将各个段分别放入内存"></a>不是将整个程序，是将各个段分别放入内存</h3><p>由高地址到低地址分别是：</p>
+<ol>
+<li><p><strong>栈</strong>：是一种用来存储函数调用时的临时信息的结构，如函数调用所传递的参数、函数的返回地址、函数的局部变量等。 在程序运行时由编译器在需要的时候分配，在不需要的时候自动清除。</p>
+</li>
+<li><p><strong>堆</strong>：用来存储程序运行时分配的变量。</p>
+<p>堆的大小并不固定，可动态扩张或缩减。其分配由malloc()、new()等这类实时内存分配函数来实现。当进程调用malloc等函数分配内存时，新分配的内存就被动态添加到堆上（堆被扩张）；当利用free()等函数释放内存时，被释放的内存从堆中被剔除（堆被缩减）  堆的内存释放由应用程序去控制，通常一个new()就要对应一个delete()，如果程序员没有释放掉，那么在程序结束后操作系统会自动回收。</p>
+</li>
+<li><p><strong>BSS段</strong>：用来保存全局的和静态的未初始化变量</p>
+</li>
+<li><p><strong>data段</strong>：用来存放保存全局的和静态的已初始化变量</p>
+</li>
+<li><p><strong>text段</strong>：存放着程序的机器码和只读数据，可执行指令就是从这里取得的。</p>
+</li>
+</ol>
+<p>需要一张表，来记录每个段的<strong>基址、长度、读写权限</strong>等，即<strong>进程段表</strong>（LDT）</p>
+<p>而操作系统的那张段表就是（GDT）</p>
+<h3 id="真正的故事：GDT-LDT"><a href="#真正的故事：GDT-LDT" class="headerlink" title="真正的故事：GDT+LDT"></a>真正的故事：GDT+LDT</h3><p>GDT表项：</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/103.png" class="">
+
+<p>通过GDT表分开各个进程的基址，通过LDT表来分开进程中各个段的基址</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/104.png" class="">
+
+<h2 id="内存分区与分页"><a href="#内存分区与分页" class="headerlink" title="内存分区与分页"></a>内存分区与分页</h2><p>编译将程序分成多个段以后，需要将内存分成多个区域。将内存分割后，就能将程序的各个段载入到相应的内存分区中。</p>
+<h3 id="固定分区和可变分区"><a href="#固定分区和可变分区" class="headerlink" title="固定分区和可变分区"></a>固定分区和可变分区</h3><ul>
+<li>将内存等分成k个分区<ul>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/105.png" class=""></li>
+<li>但程序有大有小。段也有大有小，需求不一样，这样不太合适</li>
+</ul>
+</li>
+<li>按需要分配内存分区<ul>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/106.png" class=""></li>
+</ul>
+</li>
+</ul>
+<h3 id="可变分区的管理过程-核心数据结构"><a href="#可变分区的管理过程-核心数据结构" class="headerlink" title="可变分区的管理过程-核心数据结构"></a>可变分区的管理过程-核心数据结构</h3><p>当前内存图像：</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/107.png" class="">
+
+<p>对应的表：</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/108.png" class="">
+
+<ul>
+<li>当段内存请求：reqSize=100K<ul>
+<li>起始地址+100K</li>
+<li>长度-100K</li>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/109.png" class=""></li>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/110.png" class=""></li>
+</ul>
+</li>
+<li>段2不再需要，释放内存<ul>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/111.png" class=""></li>
+</ul>
+</li>
+</ul>
+<h3 id="可变分区的管理-再次申请"><a href="#可变分区的管理-再次申请" class="headerlink" title="可变分区的管理-再次申请"></a>可变分区的管理-再次申请</h3><ul>
+<li>又一个段提出内存申请：reqSize=40K。空闲分区表中有两个分区，选择哪一个需要合适的算法（长度分别为50K和150K）<ul>
+<li>首<strong>先</strong>适配：选表中第一个空闲分区<ul>
+<li>速度最快</li>
+</ul>
+</li>
+<li>最<strong>佳</strong>适配：选择一个分区长度最接近内存申请长度的区域<ul>
+<li>空闲分区会被分割的越来约小</li>
+</ul>
+</li>
+<li>最<strong>差</strong>适配：选择一个分区长度最不接近内存申请长度的区域（最大的区域）<ul>
+<li>空闲分区长度会很均匀</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="引入分页：解决内存分区导致的内存效率问题"><a href="#引入分页：解决内存分区导致的内存效率问题" class="headerlink" title="引入分页：解决内存分区导致的内存效率问题"></a>引入分页：解决内存分区导致的内存效率问题</h3><ul>
+<li>发起请求reqSize=160K怎么办？<ul>
+<li>总空闲空间&gt;160，但没有一个空闲分区&gt;160，怎么办？<ul>
+<li>这就是内存碎片的问题</li>
+<li>将空闲分区合并，则需要移动：<strong>内存紧缩</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>但是内存紧缩会有大量的性能损失</li>
+</ul>
+<h3 id="从连续到离散"><a href="#从连续到离散" class="headerlink" title="从连续到离散"></a>从连续到离散</h3><p>将内存分成页，针对每个段内存请求，系统一页一页的分配给这个段。</p>
+<ul>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/112.png" class=""></li>
+<li>段内存请求来到后，算一下需要几页的内存，然后将内存一页一页地分配给这个段。</li>
+<li>这样一来有页内部碎片，但没有页外部碎片</li>
+</ul>
+<h3 id="页已经载入了内存，那么"><a href="#页已经载入了内存，那么" class="headerlink" title="页已经载入了内存，那么"></a>页已经载入了内存，那么</h3><p>程序调用内存，需要通过偏移地址，找到对应的页号（页框），而页内的地址需要重定位。</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/113.png" class="">
+
+<p>每个进程都有自己的页表：</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/114.png" class="">
+
+<p>若有一指令：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mov [0x2240],	%eax</span><br></pre></td></tr></table></figure>
+
+<p>则需要将0x2240除以4K（假设的页大小），然后得到页号（商）和页内偏移地址（余数）</p>
+<p>计算机内的除4K即右移12位，所有地址后12位是偏移地址，前4位是页号。</p>
+<p>逻辑地址：0x2240，0x2是页号找到页框号（0x3），0x240是页内偏移地址</p>
+<p>得到物理地址：0x3240</p>
+<h2 id="多级页表和快表"><a href="#多级页表和快表" class="headerlink" title="多级页表和快表"></a>多级页表和快表</h2><h3 id="页表会很大，页表放置就成了问题"><a href="#页表会很大，页表放置就成了问题" class="headerlink" title="页表会很大，页表放置就成了问题"></a>页表会很大，页表放置就成了问题</h3><p>为了提高空间利用率，页的大小就应该小，但页的表项就会多。</p>
+<ul>
+<li>页大小一般是4k，而地址是32位的，所以由2的20次方个页表现</li>
+<li>这么多页表项，需要4M的内存；当系统中并发10个进程，就需要40M内存</li>
+<li>进程越多，存储页表项需要内存越多，这也是一种内存的浪费</li>
+</ul>
+<p>实际上大部分逻辑地址根本不会用到</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/115.png" class="">
+
+<h3 id="第一种尝试，只存放用到的页"><a href="#第一种尝试，只存放用到的页" class="headerlink" title="第一种尝试，只存放用到的页"></a>第一种尝试，只存放用到的页</h3><ul>
+<li>很自然的想法：只有用到的逻辑页才有页表项<ul>
+<li>但页表中的页号不连续，就需要比较、查找 ，浪费时间</li>
+<li>如果页号连续，一次访问就能找到相应的页框号</li>
+</ul>
+</li>
+<li>页号连续，浪费内存。页号不连续，浪费查找时间</li>
+</ul>
+<p>既要连续又要让页表占用内存少，怎么办？</p>
+<h3 id="多级页表，即页目录表-页表"><a href="#多级页表，即页目录表-页表" class="headerlink" title="多级页表，即页目录表 + 页表"></a>多级页表，即页目录表 + 页表</h3><p>​        多个页号放进一个页目录中，这样生成的页表只记录该页目录下的页，就缩小了页表的长度。而这样的一个页表又是连续的，就不需要比较查找。</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/116.png" class="">
+
+<p>​        offset指向了一个4k大小的页。而一个页目录下有1024个页。共有1024个页目录。所以一个32位逻辑地址指向了一个4G的空间。</p>
+<h3 id="多级页表提高了空间效率，但在时间？"><a href="#多级页表提高了空间效率，但在时间？" class="headerlink" title="多级页表提高了空间效率，但在时间？"></a>多级页表提高了空间效率，但在时间？</h3><ul>
+<li>多级页表怎加了访问内存的次数<ul>
+<li>每增加一级页表，内存的访问次数就要怎加一次</li>
+<li>访问次数增多，时间效率不高</li>
+</ul>
+</li>
+<li>快表：TLB是一组相联快速存储，是寄存器<ul>
+<li>将最常用的页号存到寄存器中，调用十分迅速</li>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/117.png" class="">
+<ul>
+<li>如果命中，可以直接硬件上将逻辑地址转换成物理地址</li>
+<li>如果不命中，就去多级页表中查，然后将这次的存储地址放到快表中（空间局部性好的程序往往查找速度越快）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>多级页表保证了减少了页表中的页表项，减少了内存损耗。通过快表保证了多次使用的内存，查找速度很快。这样以来，空间时间上都有较高的效率。</li>
+</ul>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/118.png" class="">
+
+<p>​        通过有效访问时间的计算，可以判断一个快表的好坏（后面会有换入和换出算法来更新快表，这种算法越好，快表命中率越高）。而快表越大，命中率也越高，但TLB也越贵。</p>
+<h2 id="段页结合的实际内存管理"><a href="#段页结合的实际内存管理" class="headerlink" title="段页结合的实际内存管理"></a>段页结合的实际内存管理</h2><h3 id="段、页同时存在：段面向用户-页面向硬件"><a href="#段、页同时存在：段面向用户-页面向硬件" class="headerlink" title="段、页同时存在：段面向用户/页面向硬件"></a>段、页同时存在：段面向用户/页面向硬件</h3><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/119.png" class="">
+
+<p>每个段再分页映射到物理内存。</p>
+<h3 id="段页同时存在时的重定位"><a href="#段页同时存在时的重定位" class="headerlink" title="段页同时存在时的重定位"></a>段页同时存在时的重定位</h3>  <img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/120.png" class="">
+
+<h3 id="一个实际的段页式内存管理"><a href="#一个实际的段页式内存管理" class="headerlink" title="一个实际的段页式内存管理"></a>一个实际的段页式内存管理</h3><h3 id="从程序放入内存开始"><a href="#从程序放入内存开始" class="headerlink" title="从程序放入内存开始"></a>从程序放入内存开始</h3><ol>
+<li>分配段、建段表；分配页、建页表</li>
+<li>进程带动使用内存</li>
+<li>从进程fork中的内存分配开始<ul>
+<li>fork时会新分配段基址，然后复制父进程的页表</li>
+</ul>
+</li>
+<li>读时共享，写时复制<ul>
+<li>比如在父进程内原来有一个全局变量，如果fork之后父子进程都没有去改变这个变量的值，那么内存中全局区这个变量只会存在一份，所谓读时共享；但是如果fork后父进程或者子进程改变了这个变量的值，那么这个变量将会在内存全局区存在两份，父子进程各自拥有各自的副本，这就是写时复制</li>
+</ul>
+</li>
 </ol>
 ]]></content>
       <categories>
@@ -2338,157 +2360,6 @@
       </categories>
   </entry>
   <entry>
-    <title>计算机网络绪论</title>
-    <url>/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/</url>
-    <content><![CDATA[<h2 id="第一章"><a href="#第一章" class="headerlink" title="第一章"></a>第一章</h2><h3 id="1-1-1-概念、组成、功能和分类"><a href="#1-1-1-概念、组成、功能和分类" class="headerlink" title="1.1.1 概念、组成、功能和分类"></a>1.1.1 概念、组成、功能和分类</h3><h4 id="计算机网络的概念："><a href="#计算机网络的概念：" class="headerlink" title="计算机网络的概念："></a>计算机网络的概念：</h4><p>​    计算机网络：是一个将分散的、具有独立功能的计算机系统。通过通信设备与线路连接起来，由功能完善的软件实现资源共享和信息传递的系统。</p>
-<p>​    计算机网络是<strong>互联的、自治的</strong>计算机集合。</p>
-<p>​        互联-互联互通 通信链路</p>
-<p>​        自治-无主从关系</p>
-<span id="more"></span>
-
-<h4 id="计算机网络的功能："><a href="#计算机网络的功能：" class="headerlink" title="计算机网络的功能："></a>计算机网络的功能：</h4><p>​    1数据通信（连通性）</p>
-<p>​    2资源共享    </p>
-<p>​         硬件    软件    数据</p>
-<p>​    3分布式处理    多台计算机各自承担同一工作任务的不同部分</p>
-<p>​    4提高可靠性(替代机)</p>
-<p>​    5负载均衡    各计算机之间更亲密</p>
-<h4 id="计算机网络的组成："><a href="#计算机网络的组成：" class="headerlink" title="计算机网络的组成："></a>计算机网络的组成：</h4><p>​    1组成部分：硬件、软件、协议</p>
-<p>​    2工作方式:</p>
-<p>​        边缘部分    用户直接使用（C/S方式；P2P方式）</p>
-<p>​        核心部分    为边缘部分服务</p>
-<p>​    3功能组成：</p>
-<img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/1.png" class="">
-
-<h6 id="资源子网-实现资源共享-数据处理"><a href="#资源子网-实现资源共享-数据处理" class="headerlink" title="资源子网    实现资源共享/数据处理"></a>资源子网    实现资源共享/数据处理</h6><p>​                实现资源共享功能的设备和软件的集合</p>
-<h6 id="通信子网-实现数据通信"><a href="#通信子网-实现数据通信" class="headerlink" title="通信子网    实现数据通信"></a>通信子网    实现数据通信</h6><p>​                各种传输介质、通讯设备、相应的网络协议组成</p>
-<h4 id="计算机网络的分类："><a href="#计算机网络的分类：" class="headerlink" title="计算机网络的分类："></a>计算机网络的分类：</h4><h6 id="1按分布范围分："><a href="#1按分布范围分：" class="headerlink" title="1按分布范围分："></a>1按分布范围分：</h6><p>​    广域网WAN    城域网MAN    局域网WAN    个人区域网PAN</p>
-<h6 id="2按使用者分："><a href="#2按使用者分：" class="headerlink" title="2按使用者分："></a>2按使用者分：</h6><p>​    公用网    专用网</p>
-<h6 id="3按交换技术分："><a href="#3按交换技术分：" class="headerlink" title="3按交换技术分："></a>3按交换技术分：</h6><p>​    电路交换    报文交换    分组交换</p>
-<h6 id="4按拓扑结构分："><a href="#4按拓扑结构分：" class="headerlink" title="4按拓扑结构分："></a>4按拓扑结构分：</h6><p>​    总线型    星型    环型    网状型</p>
-<h6 id="5按传输技术分："><a href="#5按传输技术分：" class="headerlink" title="5按传输技术分："></a>5按传输技术分：</h6><p>​    广播式网络（共享公共通信信道）</p>
-<p>​    点对点网络（使用分组存储转发和路由选择机制）</p>
-<h3 id="1-1-2-标准化工作及相关知识"><a href="#1-1-2-标准化工作及相关知识" class="headerlink" title="1.1.2 标准化工作及相关知识"></a>1.1.2 标准化工作及相关知识</h3><h4 id="标准换工作"><a href="#标准换工作" class="headerlink" title="标准换工作"></a>标准换工作</h4><h5 id="标准的分类："><a href="#标准的分类：" class="headerlink" title="标准的分类："></a>标准的分类：</h5><p>​        法定标准    由权威机构制定的正式的、合法的标准</p>
-<p>​        事实标准    某些公司的产品在竞争中占据了主流，时间长了，这些产品的协议和技术就成了标准</p>
-<h5 id="标准化工作："><a href="#标准化工作：" class="headerlink" title="标准化工作："></a>标准化工作：</h5><p>​        <strong>RFC</strong>    因特网标准的形式</p>
-<p>​        RFC要上升为因特网正式标准的<strong>四个阶段</strong>：</p>
-<p>​            1）因特网草案    这个阶段还不是RFC文档</p>
-<p>​            2）建议标准        这个阶段开始成为RFC文档</p>
-<p>​            3）草案标准        IETF、IAB认证</p>
-<p>​            4）因特网标准</p>
-<h4 id="标准化工作的相关组织"><a href="#标准化工作的相关组织" class="headerlink" title="标准化工作的相关组织"></a>标准化工作的相关组织</h4><p>​    国际标准化组织ISO</p>
-<p>​    国际电信联盟ITU</p>
-<p>​    国际电气电子工程师协会IEEE</p>
-<p>​    Internet工程任务组IETE</p>
-<h3 id="1-1-3-速率相关的性能指标"><a href="#1-1-3-速率相关的性能指标" class="headerlink" title="1.1.3 速率相关的性能指标"></a>1.1.3 速率相关的性能指标</h3><h4 id="速率"><a href="#速率" class="headerlink" title="速率"></a>速率</h4><p>​    速率即数据率或称数据传输率或比特率。</p>
-<p>​    比特    1/0    位</p>
-<p>​    连接在计算机网络上的主机在数字信道上传送熟虑位数的速率。</p>
-<p>​    单位b/s，kb/s，Mb/s，Gb/s，Tb/s</p>
-<img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/2.png" class="">
-
-<h4 id="带宽"><a href="#带宽" class="headerlink" title="带宽"></a>带宽</h4><p>​    ”带宽”原本指某个信号具有的<strong>频带宽度</strong>，即最高频率与最低速率之差，单位是赫兹（HZ）。</p>
-<p>​    计算机网络中，带宽用来表示网络的通讯线路传送数据的能力，通常是单位时间从网络的某一点到另一点所能通过的“<strong>最高数据率</strong>”。单位是“比特每秒”。网络设备所支持的最高速度。</p>
-<h4 id="吞吐量"><a href="#吞吐量" class="headerlink" title="吞吐量"></a>吞吐量</h4><p>​    表示<strong>单位时间</strong>内通过<strong>某个网络（或信道、接口）</strong>的数据量。单位是比特每秒。    </p>
-<p>​    吞吐量受网络的带宽或网络的额定速率的限制。</p>
-<h3 id="1-1-4-时延、时延带宽积、RTT和利用率"><a href="#1-1-4-时延、时延带宽积、RTT和利用率" class="headerlink" title="1.1.4 时延、时延带宽积、RTT和利用率"></a>1.1.4 时延、时延带宽积、RTT和利用率</h3><h4 id="时延"><a href="#时延" class="headerlink" title="时延"></a>时延</h4><p>​    指数据从<strong>网络（或链路）</strong>的一段传送到另一端所需的时间。也叫<strong>延迟</strong>或<strong>迟延</strong>。单位是s。</p>
-<img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/3.png" class="">
-
-<h4 id="时延带宽积"><a href="#时延带宽积" class="headerlink" title="时延带宽积"></a>时延带宽积</h4><p>​    时延带宽积=<strong>传播时延</strong>X<strong>带宽</strong></p>
-<p>​    又称为以比特为单位的链路长度</p>
-<h4 id="往返时延RTT"><a href="#往返时延RTT" class="headerlink" title="往返时延RTT"></a>往返时延RTT</h4><p>​    从发送方发送数据开始，到发送方收到接受方的确认，总共经历的时延。</p>
-<p>​    RTT越大，在收到确认之前，可以发送的数据越多。</p>
-<p>​    <img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/4.png" class=""></p>
-<h4 id="利用率"><a href="#利用率" class="headerlink" title="利用率"></a>利用率</h4><p>​    利用率分为信道利用率和网络利用率。</p>
-<h5 id="1-信道利用率"><a href="#1-信道利用率" class="headerlink" title="1.信道利用率"></a>1.信道利用率</h5><p>​            =有数据通过时间/（有+无）数据通过时间</p>
-<h5 id="2-网络利用率"><a href="#2-网络利用率" class="headerlink" title="2.网络利用率"></a>2.网络利用率</h5><p>​            =信道利用率加权平均值</p>
-<h4 id="1-2-1-分层结构、协议、接口、服务"><a href="#1-2-1-分层结构、协议、接口、服务" class="headerlink" title="1.2.1 分层结构、协议、接口、服务"></a>1.2.1 分层结构、协议、接口、服务</h4><h5 id="为什么要分层？"><a href="#为什么要分层？" class="headerlink" title="为什么要分层？"></a>为什么要分层？</h5><p>​        发送前要完成的工作：</p>
-<p>​            （1）发起通信的计算机必须将数据通信的通路进行激活。</p>
-<p>​            （2）要告诉网络如何识别目的主机。</p>
-<p>​            （3）发起通信的计算机要查明目的主机是否开机，并且与网络连接正常。</p>
-<p>​            （4）发起通信的计算机要弄清楚，对方计算机中文件管理程序是否已经做好准备工作。</p>
-<p>​            （5）确保差错和意外可以解决</p>
-<h5 id="怎么分层？"><a href="#怎么分层？" class="headerlink" title="怎么分层？"></a>怎么分层？</h5><h6 id="分层的基本原则："><a href="#分层的基本原则：" class="headerlink" title="分层的基本原则："></a>分层的<strong>基本原则</strong>：</h6><p>​        1.各层直接相互独立，每层只实现一种相对独立的功能</p>
-<p>​        2.各层之间界面自然清晰，易于理解，相互交流可能少</p>
-<p>​        3.结构上可分隔开。各层都采用最合适的技术实现</p>
-<p>​        4.保持下层对上层的独立性，上层单向使用下层提供的服务</p>
-<p>​        5.整个分层结构应该促进标准化工作</p>
-<h5 id="正式认识分层结构"><a href="#正式认识分层结构" class="headerlink" title="正式认识分层结构:"></a>正式认识分层结构:</h5><p>​        1.实体：第n层中的活动元素称为n层实体。同一层的实体叫对等实体。</p>
-<p>​        2.协议：为进行网络中的对等实体数据交换而建立的规则、标准或约定成为网络协议。</p>
-<p>​            <img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/5.png" class=""></p>
-<p>​        3.接口（访问服务点SAP）：上层使用下层的服务。</p>
-<p>​        4.服务：下层为相邻上层提供的功能调用。【垂直】</p>
-<h5 id="概念总结"><a href="#概念总结" class="headerlink" title="概念总结:"></a>概念总结:</h5><p>​        网络体系结构是从功能上描述计算机网络结构。</p>
-<p>​        计算机网络体系结构简称网络体系结构是分层结构。</p>
-<p>​        每层遵守某个/些网络协议以完成本层功能。</p>
-<p>​        计算机网络体系结构是计算机网路的各层及其协议的集合。</p>
-<p>​        第n层在向n+1层提供服务时，此服务不仅包含第n层本身的功能，还包含由下层服务提供的功能。</p>
-<p>​        仅仅在在相邻层间有接口，且所提供服务的具体实现细节对上一层完全屏蔽。</p>
-<p>​        体系结构是抽象的，而实现是指能运行的一些软件和硬件。</p>
-<h4 id="1-2-2-OSI参考模型"><a href="#1-2-2-OSI参考模型" class="headerlink" title="1.2.2 OSI参考模型"></a>1.2.2 OSI参考模型</h4><p>​    <img src="C:\Users\86189\blog\source\_posts\6.png" style="zoom:50%;" /></p>
-<h5 id="ISO-OSI参考模型–怎么来的？"><a href="#ISO-OSI参考模型–怎么来的？" class="headerlink" title="ISO/OSI参考模型–怎么来的？"></a>ISO/OSI参考模型–怎么来的？</h5><p>​        为了解决计算机网络复杂的大问题=》分层结构（按功能）</p>
-<p>​        目的：支持异构网络系统的互联互通。</p>
-<p>​        国际标准化组织（ISO）于1984年提出开放系统互连（OSI）参考模型。</p>
-<img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/7.png" class="">
-
-<h5 id="ISO-OSI参考模型"><a href="#ISO-OSI参考模型" class="headerlink" title="ISO/OSI参考模型"></a>ISO/OSI参考模型</h5><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/8.png" class="">
-
-<h4 id="1-2-3-OSI参考模型（2）"><a href="#1-2-3-OSI参考模型（2）" class="headerlink" title="1.2.3 OSI参考模型（2）"></a><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/9.png" class="">1.2.3 OSI参考模型（2）</h4><h5 id="应用层："><a href="#应用层：" class="headerlink" title="应用层："></a>应用层：</h5><p>​            所有能和用户产生网络流量的程序</p>
-<p>​            典型应用层服务：</p>
-<p>​                文件传输（FTP）</p>
-<p>​                电子邮件（SMTP）</p>
-<p>​                万维网（HTTP）</p>
-<p>​                ······</p>
-<h5 id="表示层："><a href="#表示层：" class="headerlink" title="表示层："></a>表示层：</h5><p>​            用于处理两个通信系统中变换消息的表示方式（语法和语义）</p>
-<p>​                功能一：数据格式变换</p>
-<p>​                功能二：数据加密解密</p>
-<p>​                功能三：数据压缩和恢复</p>
-<p>​            主要协议：JPEG，ASCII</p>
-<h5 id="会话层："><a href="#会话层：" class="headerlink" title="会话层："></a>会话层：</h5><p>​            向表示层实体/用户进程提供建立连接并在连接上有序地传输数据。</p>
-<p>​                这是会话，也是<strong>建立同步</strong>（SYN）</p>
-<p>​            功能一：建立、管理、终止会话</p>
-<p>​            功能二：使用校验点可使会话在通信失效时从校验点/同步点继续回复通信，实现数据同步。</p>
-<h5 id="传输层："><a href="#传输层：" class="headerlink" title="传输层："></a>传输层：</h5><p>​            负责主机中两个进程的通信，即端到端的通信。传输单位是<strong>报文段</strong>或<strong>用户数据报</strong>。</p>
-<p>​                功能一：可靠传输、不可靠传输</p>
-<p>​                功能二：差错控制</p>
-<p>​                功能三：流量控制</p>
-<p>​                功能四：复用分用</p>
-<p>​                                <strong>复用</strong>：多个应用层进程可同时使用下面运输层的服务。</p>
-<p>​                                <strong>分用</strong>：运输层把收到的信息分别交付到上面应用层中相应的进程。</p>
-<p>​            </p>
-<h5 id="网络层："><a href="#网络层：" class="headerlink" title="网络层："></a>网络层：</h5><p>​            主要任务是把分组从源端传到目的端，为分组交换网上的不同主机提供通信服务。网络层传输单位是<strong>数据报</strong>。</p>
-<p>​                功能一：路由选择    为了找到数据传输和的<strong>最佳路径</strong></p>
-<p>​                功能二：流量控制</p>
-<p>​                功能三：差错控制</p>
-<p>​                功能四：拥塞控制</p>
-<h5 id="数据链路层："><a href="#数据链路层：" class="headerlink" title="数据链路层："></a>数据链路层：</h5><p>​            主要任务是把网络层传下来的数据报组装成<strong>帧</strong>。数据链路层的传输单位是<strong>帧</strong>。</p>
-<p>​                功能一：成帧（<strong>定义帧的开始和结束</strong>）</p>
-<p>​                功能二：差错控制 <strong>帧错+位错</strong></p>
-<p>​                功能三：流量控制</p>
-<p>​                功能四：访问（接入）控制 <strong>控制对信道的访问</strong></p>
-<h5 id="物理层："><a href="#物理层：" class="headerlink" title="物理层："></a>物理层：</h5><p>​            主要任务是在物理媒体上实现比特流的<strong>透明传输</strong>。物理层传输单位是<strong>比特</strong>。</p>
-<p>​            物理层传输单位是比特。</p>
-<p>​                功能一：定义接口特性</p>
-<p>​                功能二：定义传输模式     <strong>单工</strong>、<strong>半双工</strong>、<strong>双工</strong></p>
-<p>​                功能三：定义传输速率</p>
-<p>​                功能四：比特同步</p>
-<p>​                功能五：比特编码</p>
-<h4 id="1-2-4-TCP、IP参考模型和5层参考模型"><a href="#1-2-4-TCP、IP参考模型和5层参考模型" class="headerlink" title="1.2.4 TCP、IP参考模型和5层参考模型"></a>1.2.4 TCP、IP参考模型和5层参考模型</h4><h5 id="OSI参考模型与TCP-IP参考模型"><a href="#OSI参考模型与TCP-IP参考模型" class="headerlink" title="OSI参考模型与TCP/IP参考模型"></a>OSI参考模型与TCP/IP参考模型</h5><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/10.png" class="">
-
-<h6 id="OSI参考模型与TCP-IP参考模型的相同点"><a href="#OSI参考模型与TCP-IP参考模型的相同点" class="headerlink" title="OSI参考模型与TCP/IP参考模型的相同点"></a>OSI参考模型与TCP/IP参考模型的相同点</h6><p>​            1.都分层</p>
-<p>​            2.基于独立的协议栈的概念</p>
-<p>​            3可以实现异构网络互联</p>
-<h6 id="OSI参考模型与TCP-IP参考模型的不同点"><a href="#OSI参考模型与TCP-IP参考模型的不同点" class="headerlink" title="OSI参考模型与TCP/IP参考模型的不同点"></a>OSI参考模型与TCP/IP参考模型的不同点</h6><p>​            1.OSI定义三点：<strong>服务、协议、接口</strong></p>
-<p>​            2.OSI先出现，参考模型先于协议发明，不偏向特定协议</p>
-<p>​            3.TCP/IP设计之初就考虑到互联网异构问题，将IP作为重要层次</p>
-<p>​        <img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/11.png" class=""></p>
-<p>​            <strong>面向连接</strong>：第一是建立连接，发出一个建立连接的请求。第二阶段开始传输数据。最后传输完毕，必须释放连接。</p>
-<p>​            <strong>无连接</strong>：直接进行数据传输。</p>
-<h5 id="五层参考模型"><a href="#五层参考模型" class="headerlink" title="五层参考模型"></a>五层参考模型</h5><h5 id=""><a href="#" class="headerlink" title=""></a><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/12.png" class=""></h5><h4 id="5层参考模型的数据封装与解封装"><a href="#5层参考模型的数据封装与解封装" class="headerlink" title="5层参考模型的数据封装与解封装"></a>5层参考模型的数据封装与解封装</h4><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/13.png" class="">
-]]></content>
-      <categories>
-        <category>计算机网络</category>
-      </categories>
-  </entry>
-  <entry>
     <title>物理层</title>
     <url>/2021/04/26/%E7%89%A9%E7%90%86%E5%B1%82/</url>
     <content><![CDATA[<h2 id="第二章"><a href="#第二章" class="headerlink" title="第二章"></a>第二章</h2><h4 id="2-1-1-物理层的基本概念"><a href="#2-1-1-物理层的基本概念" class="headerlink" title="2.1.1 物理层的基本概念"></a>2.1.1 物理层的基本概念</h4><h5 id="基本概念："><a href="#基本概念：" class="headerlink" title="基本概念："></a>基本概念：</h5><p>​        物理层解决如何在连接各种计算机的传输媒体上<strong>传输数据比特流</strong>，而不是指具体的传输媒体。</p>
@@ -2752,6 +2623,157 @@
 
 <p>集线器不能分割冲突域</p>
 <p>连在集线器上的工作主机平分带宽。</p>
+]]></content>
+      <categories>
+        <category>计算机网络</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>计算机网络绪论</title>
+    <url>/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/</url>
+    <content><![CDATA[<h2 id="第一章"><a href="#第一章" class="headerlink" title="第一章"></a>第一章</h2><h3 id="1-1-1-概念、组成、功能和分类"><a href="#1-1-1-概念、组成、功能和分类" class="headerlink" title="1.1.1 概念、组成、功能和分类"></a>1.1.1 概念、组成、功能和分类</h3><h4 id="计算机网络的概念："><a href="#计算机网络的概念：" class="headerlink" title="计算机网络的概念："></a>计算机网络的概念：</h4><p>​    计算机网络：是一个将分散的、具有独立功能的计算机系统。通过通信设备与线路连接起来，由功能完善的软件实现资源共享和信息传递的系统。</p>
+<p>​    计算机网络是<strong>互联的、自治的</strong>计算机集合。</p>
+<p>​        互联-互联互通 通信链路</p>
+<p>​        自治-无主从关系</p>
+<span id="more"></span>
+
+<h4 id="计算机网络的功能："><a href="#计算机网络的功能：" class="headerlink" title="计算机网络的功能："></a>计算机网络的功能：</h4><p>​    1数据通信（连通性）</p>
+<p>​    2资源共享    </p>
+<p>​         硬件    软件    数据</p>
+<p>​    3分布式处理    多台计算机各自承担同一工作任务的不同部分</p>
+<p>​    4提高可靠性(替代机)</p>
+<p>​    5负载均衡    各计算机之间更亲密</p>
+<h4 id="计算机网络的组成："><a href="#计算机网络的组成：" class="headerlink" title="计算机网络的组成："></a>计算机网络的组成：</h4><p>​    1组成部分：硬件、软件、协议</p>
+<p>​    2工作方式:</p>
+<p>​        边缘部分    用户直接使用（C/S方式；P2P方式）</p>
+<p>​        核心部分    为边缘部分服务</p>
+<p>​    3功能组成：</p>
+<img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/1.png" class="">
+
+<h6 id="资源子网-实现资源共享-数据处理"><a href="#资源子网-实现资源共享-数据处理" class="headerlink" title="资源子网    实现资源共享/数据处理"></a>资源子网    实现资源共享/数据处理</h6><p>​                实现资源共享功能的设备和软件的集合</p>
+<h6 id="通信子网-实现数据通信"><a href="#通信子网-实现数据通信" class="headerlink" title="通信子网    实现数据通信"></a>通信子网    实现数据通信</h6><p>​                各种传输介质、通讯设备、相应的网络协议组成</p>
+<h4 id="计算机网络的分类："><a href="#计算机网络的分类：" class="headerlink" title="计算机网络的分类："></a>计算机网络的分类：</h4><h6 id="1按分布范围分："><a href="#1按分布范围分：" class="headerlink" title="1按分布范围分："></a>1按分布范围分：</h6><p>​    广域网WAN    城域网MAN    局域网WAN    个人区域网PAN</p>
+<h6 id="2按使用者分："><a href="#2按使用者分：" class="headerlink" title="2按使用者分："></a>2按使用者分：</h6><p>​    公用网    专用网</p>
+<h6 id="3按交换技术分："><a href="#3按交换技术分：" class="headerlink" title="3按交换技术分："></a>3按交换技术分：</h6><p>​    电路交换    报文交换    分组交换</p>
+<h6 id="4按拓扑结构分："><a href="#4按拓扑结构分：" class="headerlink" title="4按拓扑结构分："></a>4按拓扑结构分：</h6><p>​    总线型    星型    环型    网状型</p>
+<h6 id="5按传输技术分："><a href="#5按传输技术分：" class="headerlink" title="5按传输技术分："></a>5按传输技术分：</h6><p>​    广播式网络（共享公共通信信道）</p>
+<p>​    点对点网络（使用分组存储转发和路由选择机制）</p>
+<h3 id="1-1-2-标准化工作及相关知识"><a href="#1-1-2-标准化工作及相关知识" class="headerlink" title="1.1.2 标准化工作及相关知识"></a>1.1.2 标准化工作及相关知识</h3><h4 id="标准换工作"><a href="#标准换工作" class="headerlink" title="标准换工作"></a>标准换工作</h4><h5 id="标准的分类："><a href="#标准的分类：" class="headerlink" title="标准的分类："></a>标准的分类：</h5><p>​        法定标准    由权威机构制定的正式的、合法的标准</p>
+<p>​        事实标准    某些公司的产品在竞争中占据了主流，时间长了，这些产品的协议和技术就成了标准</p>
+<h5 id="标准化工作："><a href="#标准化工作：" class="headerlink" title="标准化工作："></a>标准化工作：</h5><p>​        <strong>RFC</strong>    因特网标准的形式</p>
+<p>​        RFC要上升为因特网正式标准的<strong>四个阶段</strong>：</p>
+<p>​            1）因特网草案    这个阶段还不是RFC文档</p>
+<p>​            2）建议标准        这个阶段开始成为RFC文档</p>
+<p>​            3）草案标准        IETF、IAB认证</p>
+<p>​            4）因特网标准</p>
+<h4 id="标准化工作的相关组织"><a href="#标准化工作的相关组织" class="headerlink" title="标准化工作的相关组织"></a>标准化工作的相关组织</h4><p>​    国际标准化组织ISO</p>
+<p>​    国际电信联盟ITU</p>
+<p>​    国际电气电子工程师协会IEEE</p>
+<p>​    Internet工程任务组IETE</p>
+<h3 id="1-1-3-速率相关的性能指标"><a href="#1-1-3-速率相关的性能指标" class="headerlink" title="1.1.3 速率相关的性能指标"></a>1.1.3 速率相关的性能指标</h3><h4 id="速率"><a href="#速率" class="headerlink" title="速率"></a>速率</h4><p>​    速率即数据率或称数据传输率或比特率。</p>
+<p>​    比特    1/0    位</p>
+<p>​    连接在计算机网络上的主机在数字信道上传送熟虑位数的速率。</p>
+<p>​    单位b/s，kb/s，Mb/s，Gb/s，Tb/s</p>
+<img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/2.png" class="">
+
+<h4 id="带宽"><a href="#带宽" class="headerlink" title="带宽"></a>带宽</h4><p>​    ”带宽”原本指某个信号具有的<strong>频带宽度</strong>，即最高频率与最低速率之差，单位是赫兹（HZ）。</p>
+<p>​    计算机网络中，带宽用来表示网络的通讯线路传送数据的能力，通常是单位时间从网络的某一点到另一点所能通过的“<strong>最高数据率</strong>”。单位是“比特每秒”。网络设备所支持的最高速度。</p>
+<h4 id="吞吐量"><a href="#吞吐量" class="headerlink" title="吞吐量"></a>吞吐量</h4><p>​    表示<strong>单位时间</strong>内通过<strong>某个网络（或信道、接口）</strong>的数据量。单位是比特每秒。    </p>
+<p>​    吞吐量受网络的带宽或网络的额定速率的限制。</p>
+<h3 id="1-1-4-时延、时延带宽积、RTT和利用率"><a href="#1-1-4-时延、时延带宽积、RTT和利用率" class="headerlink" title="1.1.4 时延、时延带宽积、RTT和利用率"></a>1.1.4 时延、时延带宽积、RTT和利用率</h3><h4 id="时延"><a href="#时延" class="headerlink" title="时延"></a>时延</h4><p>​    指数据从<strong>网络（或链路）</strong>的一段传送到另一端所需的时间。也叫<strong>延迟</strong>或<strong>迟延</strong>。单位是s。</p>
+<img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/3.png" class="">
+
+<h4 id="时延带宽积"><a href="#时延带宽积" class="headerlink" title="时延带宽积"></a>时延带宽积</h4><p>​    时延带宽积=<strong>传播时延</strong>X<strong>带宽</strong></p>
+<p>​    又称为以比特为单位的链路长度</p>
+<h4 id="往返时延RTT"><a href="#往返时延RTT" class="headerlink" title="往返时延RTT"></a>往返时延RTT</h4><p>​    从发送方发送数据开始，到发送方收到接受方的确认，总共经历的时延。</p>
+<p>​    RTT越大，在收到确认之前，可以发送的数据越多。</p>
+<p>​    <img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/4.png" class=""></p>
+<h4 id="利用率"><a href="#利用率" class="headerlink" title="利用率"></a>利用率</h4><p>​    利用率分为信道利用率和网络利用率。</p>
+<h5 id="1-信道利用率"><a href="#1-信道利用率" class="headerlink" title="1.信道利用率"></a>1.信道利用率</h5><p>​            =有数据通过时间/（有+无）数据通过时间</p>
+<h5 id="2-网络利用率"><a href="#2-网络利用率" class="headerlink" title="2.网络利用率"></a>2.网络利用率</h5><p>​            =信道利用率加权平均值</p>
+<h4 id="1-2-1-分层结构、协议、接口、服务"><a href="#1-2-1-分层结构、协议、接口、服务" class="headerlink" title="1.2.1 分层结构、协议、接口、服务"></a>1.2.1 分层结构、协议、接口、服务</h4><h5 id="为什么要分层？"><a href="#为什么要分层？" class="headerlink" title="为什么要分层？"></a>为什么要分层？</h5><p>​        发送前要完成的工作：</p>
+<p>​            （1）发起通信的计算机必须将数据通信的通路进行激活。</p>
+<p>​            （2）要告诉网络如何识别目的主机。</p>
+<p>​            （3）发起通信的计算机要查明目的主机是否开机，并且与网络连接正常。</p>
+<p>​            （4）发起通信的计算机要弄清楚，对方计算机中文件管理程序是否已经做好准备工作。</p>
+<p>​            （5）确保差错和意外可以解决</p>
+<h5 id="怎么分层？"><a href="#怎么分层？" class="headerlink" title="怎么分层？"></a>怎么分层？</h5><h6 id="分层的基本原则："><a href="#分层的基本原则：" class="headerlink" title="分层的基本原则："></a>分层的<strong>基本原则</strong>：</h6><p>​        1.各层直接相互独立，每层只实现一种相对独立的功能</p>
+<p>​        2.各层之间界面自然清晰，易于理解，相互交流可能少</p>
+<p>​        3.结构上可分隔开。各层都采用最合适的技术实现</p>
+<p>​        4.保持下层对上层的独立性，上层单向使用下层提供的服务</p>
+<p>​        5.整个分层结构应该促进标准化工作</p>
+<h5 id="正式认识分层结构"><a href="#正式认识分层结构" class="headerlink" title="正式认识分层结构:"></a>正式认识分层结构:</h5><p>​        1.实体：第n层中的活动元素称为n层实体。同一层的实体叫对等实体。</p>
+<p>​        2.协议：为进行网络中的对等实体数据交换而建立的规则、标准或约定成为网络协议。</p>
+<p>​            <img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/5.png" class=""></p>
+<p>​        3.接口（访问服务点SAP）：上层使用下层的服务。</p>
+<p>​        4.服务：下层为相邻上层提供的功能调用。【垂直】</p>
+<h5 id="概念总结"><a href="#概念总结" class="headerlink" title="概念总结:"></a>概念总结:</h5><p>​        网络体系结构是从功能上描述计算机网络结构。</p>
+<p>​        计算机网络体系结构简称网络体系结构是分层结构。</p>
+<p>​        每层遵守某个/些网络协议以完成本层功能。</p>
+<p>​        计算机网络体系结构是计算机网路的各层及其协议的集合。</p>
+<p>​        第n层在向n+1层提供服务时，此服务不仅包含第n层本身的功能，还包含由下层服务提供的功能。</p>
+<p>​        仅仅在在相邻层间有接口，且所提供服务的具体实现细节对上一层完全屏蔽。</p>
+<p>​        体系结构是抽象的，而实现是指能运行的一些软件和硬件。</p>
+<h4 id="1-2-2-OSI参考模型"><a href="#1-2-2-OSI参考模型" class="headerlink" title="1.2.2 OSI参考模型"></a>1.2.2 OSI参考模型</h4><p>​    <img src="C:\Users\86189\blog\source\_posts\6.png" style="zoom:50%;" /></p>
+<h5 id="ISO-OSI参考模型–怎么来的？"><a href="#ISO-OSI参考模型–怎么来的？" class="headerlink" title="ISO/OSI参考模型–怎么来的？"></a>ISO/OSI参考模型–怎么来的？</h5><p>​        为了解决计算机网络复杂的大问题=》分层结构（按功能）</p>
+<p>​        目的：支持异构网络系统的互联互通。</p>
+<p>​        国际标准化组织（ISO）于1984年提出开放系统互连（OSI）参考模型。</p>
+<img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/7.png" class="">
+
+<h5 id="ISO-OSI参考模型"><a href="#ISO-OSI参考模型" class="headerlink" title="ISO/OSI参考模型"></a>ISO/OSI参考模型</h5><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/8.png" class="">
+
+<h4 id="1-2-3-OSI参考模型（2）"><a href="#1-2-3-OSI参考模型（2）" class="headerlink" title="1.2.3 OSI参考模型（2）"></a><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/9.png" class="">1.2.3 OSI参考模型（2）</h4><h5 id="应用层："><a href="#应用层：" class="headerlink" title="应用层："></a>应用层：</h5><p>​            所有能和用户产生网络流量的程序</p>
+<p>​            典型应用层服务：</p>
+<p>​                文件传输（FTP）</p>
+<p>​                电子邮件（SMTP）</p>
+<p>​                万维网（HTTP）</p>
+<p>​                ······</p>
+<h5 id="表示层："><a href="#表示层：" class="headerlink" title="表示层："></a>表示层：</h5><p>​            用于处理两个通信系统中变换消息的表示方式（语法和语义）</p>
+<p>​                功能一：数据格式变换</p>
+<p>​                功能二：数据加密解密</p>
+<p>​                功能三：数据压缩和恢复</p>
+<p>​            主要协议：JPEG，ASCII</p>
+<h5 id="会话层："><a href="#会话层：" class="headerlink" title="会话层："></a>会话层：</h5><p>​            向表示层实体/用户进程提供建立连接并在连接上有序地传输数据。</p>
+<p>​                这是会话，也是<strong>建立同步</strong>（SYN）</p>
+<p>​            功能一：建立、管理、终止会话</p>
+<p>​            功能二：使用校验点可使会话在通信失效时从校验点/同步点继续回复通信，实现数据同步。</p>
+<h5 id="传输层："><a href="#传输层：" class="headerlink" title="传输层："></a>传输层：</h5><p>​            负责主机中两个进程的通信，即端到端的通信。传输单位是<strong>报文段</strong>或<strong>用户数据报</strong>。</p>
+<p>​                功能一：可靠传输、不可靠传输</p>
+<p>​                功能二：差错控制</p>
+<p>​                功能三：流量控制</p>
+<p>​                功能四：复用分用</p>
+<p>​                                <strong>复用</strong>：多个应用层进程可同时使用下面运输层的服务。</p>
+<p>​                                <strong>分用</strong>：运输层把收到的信息分别交付到上面应用层中相应的进程。</p>
+<p>​            </p>
+<h5 id="网络层："><a href="#网络层：" class="headerlink" title="网络层："></a>网络层：</h5><p>​            主要任务是把分组从源端传到目的端，为分组交换网上的不同主机提供通信服务。网络层传输单位是<strong>数据报</strong>。</p>
+<p>​                功能一：路由选择    为了找到数据传输和的<strong>最佳路径</strong></p>
+<p>​                功能二：流量控制</p>
+<p>​                功能三：差错控制</p>
+<p>​                功能四：拥塞控制</p>
+<h5 id="数据链路层："><a href="#数据链路层：" class="headerlink" title="数据链路层："></a>数据链路层：</h5><p>​            主要任务是把网络层传下来的数据报组装成<strong>帧</strong>。数据链路层的传输单位是<strong>帧</strong>。</p>
+<p>​                功能一：成帧（<strong>定义帧的开始和结束</strong>）</p>
+<p>​                功能二：差错控制 <strong>帧错+位错</strong></p>
+<p>​                功能三：流量控制</p>
+<p>​                功能四：访问（接入）控制 <strong>控制对信道的访问</strong></p>
+<h5 id="物理层："><a href="#物理层：" class="headerlink" title="物理层："></a>物理层：</h5><p>​            主要任务是在物理媒体上实现比特流的<strong>透明传输</strong>。物理层传输单位是<strong>比特</strong>。</p>
+<p>​            物理层传输单位是比特。</p>
+<p>​                功能一：定义接口特性</p>
+<p>​                功能二：定义传输模式     <strong>单工</strong>、<strong>半双工</strong>、<strong>双工</strong></p>
+<p>​                功能三：定义传输速率</p>
+<p>​                功能四：比特同步</p>
+<p>​                功能五：比特编码</p>
+<h4 id="1-2-4-TCP、IP参考模型和5层参考模型"><a href="#1-2-4-TCP、IP参考模型和5层参考模型" class="headerlink" title="1.2.4 TCP、IP参考模型和5层参考模型"></a>1.2.4 TCP、IP参考模型和5层参考模型</h4><h5 id="OSI参考模型与TCP-IP参考模型"><a href="#OSI参考模型与TCP-IP参考模型" class="headerlink" title="OSI参考模型与TCP/IP参考模型"></a>OSI参考模型与TCP/IP参考模型</h5><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/10.png" class="">
+
+<h6 id="OSI参考模型与TCP-IP参考模型的相同点"><a href="#OSI参考模型与TCP-IP参考模型的相同点" class="headerlink" title="OSI参考模型与TCP/IP参考模型的相同点"></a>OSI参考模型与TCP/IP参考模型的相同点</h6><p>​            1.都分层</p>
+<p>​            2.基于独立的协议栈的概念</p>
+<p>​            3可以实现异构网络互联</p>
+<h6 id="OSI参考模型与TCP-IP参考模型的不同点"><a href="#OSI参考模型与TCP-IP参考模型的不同点" class="headerlink" title="OSI参考模型与TCP/IP参考模型的不同点"></a>OSI参考模型与TCP/IP参考模型的不同点</h6><p>​            1.OSI定义三点：<strong>服务、协议、接口</strong></p>
+<p>​            2.OSI先出现，参考模型先于协议发明，不偏向特定协议</p>
+<p>​            3.TCP/IP设计之初就考虑到互联网异构问题，将IP作为重要层次</p>
+<p>​        <img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/11.png" class=""></p>
+<p>​            <strong>面向连接</strong>：第一是建立连接，发出一个建立连接的请求。第二阶段开始传输数据。最后传输完毕，必须释放连接。</p>
+<p>​            <strong>无连接</strong>：直接进行数据传输。</p>
+<h5 id="五层参考模型"><a href="#五层参考模型" class="headerlink" title="五层参考模型"></a>五层参考模型</h5><h5 id=""><a href="#" class="headerlink" title=""></a><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/12.png" class=""></h5><h4 id="5层参考模型的数据封装与解封装"><a href="#5层参考模型的数据封装与解封装" class="headerlink" title="5层参考模型的数据封装与解封装"></a>5层参考模型的数据封装与解封装</h4><img src="/2021/04/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%BB%AA%E8%AE%BA/13.png" class="">
 ]]></content>
       <categories>
         <category>计算机网络</category>
@@ -3156,6 +3178,108 @@
 <p>如果在嵌入过程中，将提取到的关键点的强度提高，再减弱未嵌入区域关键点的强度。使前k个关键点能抵御失真。就可以减少提取过程时提取区域的数量。从而提高提取速度。这是一种减缓了嵌入速度但加快了提取速度的做法。</p>
 <p>同时因为对关键点的特征编辑，画面可能会有所失真，如图。</p>
 <img src="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/7.png" class="">
+]]></content>
+      <categories>
+        <category>数据驱动的数字水印</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>VisCode: Embedding Information in Visualization Images using 论文笔记</title>
+    <url>/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/</url>
+    <content><![CDATA[<h1 id="VisCode-使用编码器-解码器网络在可视化图像中嵌入信息"><a href="#VisCode-使用编码器-解码器网络在可视化图像中嵌入信息" class="headerlink" title="VisCode:使用编码器-解码器网络在可视化图像中嵌入信息"></a>VisCode:使用编码器-解码器网络在可视化图像中嵌入信息</h1><h2 id="Overiew"><a href="#Overiew" class="headerlink" title="Overiew"></a>Overiew</h2><p>​        数据可视化的一个基本目标是提高对数据的认知和感知能力。与传输大量的原始数据相比，图像是更能被接受的载体。但是，在将原始信息转化为像素值后，很难从得到的图像中重建原始信息。而VisCode，就是一个在可视化图像中使用编码器和解码器网络嵌入和恢复隐藏信息的框架。</p>
+<h2 id="三个组件（Visual-Importance-Network、Encoder-Network、Decoder-Network）"><a href="#三个组件（Visual-Importance-Network、Encoder-Network、Decoder-Network）" class="headerlink" title="三个组件（Visual Importance Network、Encoder Network、Decoder Network）"></a>三个组件（Visual Importance Network、Encoder Network、Decoder Network）</h2><h3 id="Visual-Importance-Network"><a href="#Visual-Importance-Network" class="headerlink" title="Visual Importance Network"></a>Visual Importance Network</h3><p>​        由于数据可视化的语义特征与自然图像有很大的不同，文章使用网络来建模，得到一个<strong>视觉重要性图</strong>来用于下一个组件(Encode Network)的约束。考虑到错误校正，文章将普通信息转换为嵌入一系列<strong>QR码</strong>，而不是二进制数据。</p>
+<p>​        <img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/1.png" class=""></p>
+<h3 id="Encoder-Network"><a href="#Encoder-Network" class="headerlink" title="Encoder Network"></a>Encoder Network</h3><p>​        在该网络组件中，通过特征提取过程将<strong>载体图像和二维码图像</strong>嵌入到向量中。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/2.png" class="">、
+
+<h3 id="Decoder-Network"><a href="#Decoder-Network" class="headerlink" title="Decoder Network"></a>Decoder Network</h3><p>​        解码器网络从编码的图像中检索信息。用户可以通过数字传输与他人共享编码图像。将编码后的图像解码后，从解码后的QR码图像中获得最终的信息，并进行纠错。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/3.png" class="">
+
+<h2 id="VisCode系统运行过程"><a href="#VisCode系统运行过程" class="headerlink" title="VisCode系统运行过程"></a>VisCode系统运行过程</h2><p>​        VisCode系统的主要组件。首先，视觉重要性网络(b)对输入图形图(a)进行处理，便于检测可视化的显著特征，输出<strong>视觉重要性图</strong>。接下来，编码器网络(c)将<strong>秘密信息</strong>嵌入到图形图(a)中，通过特征提取将<strong>载体图像和二维码图像</strong>嵌入到向量中。然后，将这两个向量连接起来(如黄色矩形所示)，并进入<strong>自编码阶段</strong>。编码后的图像(d)被发送给用户(e)，用户可以通过数字传输将其发送给其他人。当用户希望获取图表中隐藏的详细信息时，可以将编码后的图像上传到解码器网络(f)。经过数据恢复和纠错后，用户接收到解码后的信息(g)。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/4.png" class="">
+
+<h2 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h2><h3 id="视觉重要性地图Visual-Importance-Map"><a href="#视觉重要性地图Visual-Importance-Map" class="headerlink" title="视觉重要性地图Visual Importance Map"></a>视觉重要性地图Visual Importance Map</h3><p>​        编码器网络的目标是将大量信息嵌入到图形图表中，同时使编码的图像在感知上与原始图像相同。一个简单的解决办法是训练一个模型使原始图表和编码后的图表之间像素差的平均平方误差最小。然而，这里的每个像素之间的权重是相同的，当编码到了重要区域，就可能产生可见噪声。所以文章需要一个视觉重要性地图来表明重要区域，方便在编码时绕过这些重要区域。</p>
+<p>​        视觉重要性图为图像的不同区域分配不同的分数（分数越高的区域越重要），这有助于在编码阶段保持重要内容的视觉质量。</p>
+<h3 id="如何得到一个数据集？"><a href="#如何得到一个数据集？" class="headerlink" title="如何得到一个数据集？"></a>如何得到一个数据集？</h3><p>​        Bylinskii等人的启发，文章利用基于带有<strong>眼动注释</strong>（<strong>人看一张图是眼球的聚焦点</strong>）的MASSVIS数据集建立了一个预测模型。</p>
+<p>​        因此，为了获得更准确的高层次语义上下文信息和更低层次的细节信息，文章使用混合训练，又人工对每个像素点进行注释，标注了其重要性。</p>
+<p>​        在上述两种预测模型的混合训练下，文章得到结果：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/5.png" class="">
+
+<p>​        a是输入的两个图像，b是用Bylinskii预测模型建的结果，c是人工注释后的结果，d是混合两种模型得到的重要性地图。</p>
+<p>​        这样就训练出了一个能输出视觉重要性地图的模型。</p>
+<h3 id="编码器网络和解码器网络"><a href="#编码器网络和解码器网络" class="headerlink" title="编码器网络和解码器网络"></a>编码器网络和解码器网络</h3><p>​        编码器网络设计用于将信息嵌入到载波图图像中，同时<strong>最小化编码图像中的扰动</strong>（尽量往视觉重要性高的地方嵌入-个人理解）。解码器网络从已编码的图像中恢复嵌入的秘密信息。</p>
+<p>​        关于损失函数：</p>
+<p>​            损失函数是用来估量<strong>模型的输出</strong>与<strong>真实值</strong>之间的差距，给模型的优化指引方向。</p>
+<p>​        编码器的损失函数：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/6.png" class="">
+
+<p>​        Vp是预测的<strong>视觉重要性图</strong>，可以看作是一个<strong>权重矩阵</strong>。视觉重要性得分越高的区域权重越大。Icp是输入的载波图像，Icp’是输出的编码图像。N是像素的个数。</p>
+<p>​        解码器的联合损失函数：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/7.png" class="">
+
+<p>​        其中，Is为原始输入二维码图像，Is’为解码器网络重构结果。α是解码器损耗的权重，表示编码图像的视觉质量和解码精度之间的权衡。</p>
+<p>​        α值越高，解码精度越高，感知质量越低（图像失真越严重，越像嵌入了东西）。α在实现中被设置为0.25。</p>
+<p>​        在训练过程中，同时训练编码器网络和解码器网络。也就是说，联合损失函数同时考虑了编码图像的视觉质量和重建误差。</p>
+<h4 id="训练结果"><a href="#训练结果" class="headerlink" title="训练结果"></a>训练结果</h4><img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/8.png" class="">
+
+<p>可以看出，（a）与（b）肉眼已经看不出差别，将差别放大10倍后的（c）仍不明显。</p>
+<p>​        结果表明，VisCode模型可以在保持原始图表图像感知质量的同时嵌入信息。</p>
+<h2 id="大规模数据嵌入"><a href="#大规模数据嵌入" class="headerlink" title="大规模数据嵌入"></a>大规模数据嵌入</h2><p>​        在图像中嵌入大量的信息是一个具有挑战性的问题，因为它容易产生明显的噪声或导致颜色或纹理的偏差。</p>
+<p>​        文章提出了一种新的方法，在人类视觉系统不敏感的区域大规模嵌入信息。</p>
+<p>​        假设文章将输入一个大规模的文本信息，那么第一步就是将文本分块：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/9.png" class="">
+
+<p>​        LenT是总文本长度，n是设定的每块的文本长度，NumB是块数量，LenB是实际上每块的文本长度。这里很严谨，LenB在最后一块上可能不等于n。</p>
+<p>​        考虑到QR码有多种模块配置，这可能会影响编解码网络的效果，文章使用不同的文本长度与QR码模块配置的映射关系进行测试。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/10.png" class="">
+
+<p>​        在实际操作中，文章并没有使用动态配置QR码。而是依据上表进行配置。n越大说明QR码存储的信息越多，但是ECC level（容错级别）就比较低。文章使用的n=800。这样QR码的区域框大小就是200X200了。</p>
+<h3 id="大规模数据的嵌入位置"><a href="#大规模数据的嵌入位置" class="headerlink" title="大规模数据的嵌入位置"></a>大规模数据的嵌入位置</h3><p>​        之前说了要找视觉最不敏感的区域嵌入信息，但找到了以后该怎么做呢？一种方案是随机取一些不敏感的区域嵌入信息，但这样修改与未修改的地方边界之间会很不和谐。另一种是蛮力搜索所有可能区域，用编解码器网络评估影响。但这样时间成本会很高。</p>
+<p>​        文章需要通过上面得到的<strong>视觉重要性图</strong>和<strong>区域框大小</strong>，找到最适合插入的地方，文章运用<strong>平均池化</strong>，来计算每个区域框的特征值(<strong>视觉重要性</strong>)，然后对其进行递增排序，获得候选区域列表。</p>
+<p>​                关于池化：</p>
+<p>​                        每个像素点都有自己的特征值（视觉重要性），而文章要寻找视觉重要性最小的区域框。那如何对框的视觉重要性进行评判了。文章选择了<strong>平均池化</strong>的方法（即用框内所有像素点特征值的平均来代替这个框的特征值）。</p>
+<p>​        现在有了从小到大的区域框候选列表，我遍历这个列表，找最适合的区域框。但是在找的过程中，会出现选入的两个区域框之间重合的情况。这里采用非最大抑制的方法NSM（说人话就是<strong>取前面的区域框</strong>，后面若和前面选中的框重合就丢弃，因为排过序了，<strong>前面框的视觉重要性低</strong>）。</p>
+<p>​        当选出所有的区域框后，这些区域框一定是视觉重要性最小的区域框，且两两之间不重合。这些区域框的位置信息需要存放到一个位置上，文章选择<strong>最左上角</strong>生成了一个区域框，来存放这些信息。</p>
+<h3 id="嵌入算法代码分析"><a href="#嵌入算法代码分析" class="headerlink" title="嵌入算法代码分析"></a>嵌入算法代码分析</h3><figure class="highlight vbscript"><table><tr><td class="code"><pre><span class="line">#Input:</span><br><span class="line">	#V:视觉重要性地图</span><br><span class="line">	#text：嵌入的大数据文本</span><br><span class="line">	#n: 分块的大小，<span class="number">800</span></span><br><span class="line">#Output:</span><br><span class="line">	#Ro_set：生成的嵌入区域框集合</span><br><span class="line">(W,H) =size(V)#视觉重要性地图的长和宽</span><br><span class="line">Calculate NumB <span class="keyword">and</span> LenB#根据文本分块公式计算分块的个数和分块后的文本长度</span><br><span class="line">Roset=&#123;&#125;,cnt=<span class="number">0</span></span><br><span class="line">kernel_size=map(LenB)#通过QR码的模块测试表生成区域框的长宽（因为n=<span class="number">800</span>，所以kernel_size=<span class="number">200</span>)</span><br><span class="line">Full_set#用平均池化的方式得到候选区域框集合</span><br><span class="line">sort(Full_set)#对该集合进行递增排序</span><br><span class="line"><span class="keyword">for</span>	c_egion	<span class="keyword">in</span> Full_set <span class="keyword">do</span></span><br><span class="line">	<span class="keyword">for</span>	s_region <span class="keyword">in</span> Ro_set <span class="keyword">do</span>#遍历每一个选中的区域s_region，比较候选区域c_egion是否和s_region重合</span><br><span class="line">		<span class="keyword">if</span>	Intersection(cregion,sregion) &gt; <span class="number">0</span> <span class="keyword">then</span></span><br><span class="line">			conflict=<span class="literal">true</span>#重合即标记该区域</span><br><span class="line">		<span class="keyword">end</span> <span class="keyword">if</span></span><br><span class="line">	<span class="keyword">end</span> <span class="keyword">for</span></span><br><span class="line">	<span class="keyword">if</span> conflict = <span class="literal">false</span> <span class="keyword">and</span> cnt &lt;= NumB <span class="keyword">then</span>#标记的区域丢弃，如果该候选区域没和已选区域重合，就选中，直到选满</span><br><span class="line">		Ro_set.append(c_region),cnt=cnt+<span class="number">1</span></span><br><span class="line">	<span class="keyword">end</span> <span class="keyword">if</span></span><br><span class="line"><span class="keyword">end</span> <span class="keyword">for</span></span><br><span class="line">return Ro_set</span><br></pre></td></tr></table></figure>
+
+<h3 id="个人关于此算法的看法"><a href="#个人关于此算法的看法" class="headerlink" title="个人关于此算法的看法"></a>个人关于此算法的看法</h3><p>​        嵌入算法本身没有问题，但是算法结果都要保存在最左上角的区域框中。假设载体图片最左上角的视觉重要性很大呢，就对原图像造成了很大的可发现的扰动。</p>
+<p>​        可改进的方法：未知</p>
+<h2 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h2><h3 id="可视化设计的元数据嵌入"><a href="#可视化设计的元数据嵌入" class="headerlink" title="可视化设计的元数据嵌入"></a>可视化设计的元数据嵌入</h3><p>如下图</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/11.png" class="">
+
+<p>将url，版权信息，版本信息等嵌入到可视化图表当中</p>
+<h3 id="源代码嵌入可视化"><a href="#源代码嵌入可视化" class="headerlink" title="源代码嵌入可视化"></a>源代码嵌入可视化</h3><p>​        这里的源代码指代的网页前端代码，系统可以从图像中解码源代码，并以<strong>网页的形式</strong>动态生成和显示可视化文件。</p>
+<p>​        具体流程，使用VisCode系统的美工和开发人员之间的协作通道：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/12.png" class="">
+
+<h3 id="可视化重新定位目标"><a href="#可视化重新定位目标" class="headerlink" title="可视化重新定位目标"></a>可视化重新定位目标</h3><h4 id="形式重定位"><a href="#形式重定位" class="headerlink" title="形式重定位"></a>形式重定位</h4><p>​        重新定位信息表示形式。输入的可视化可以转换为其他可视化形式。</p>
+<p>流程：提取源数据，按照嵌入的源代码重构输出图像。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/13.png" class="">
+
+<h4 id="主题重定位"><a href="#主题重定位" class="headerlink" title="主题重定位"></a>主题重定位</h4><p>​        通过提取源数据，重新构建色彩主题，VisCode的这个应用程序可以提供丰富的视觉风格和颜色主题。</p>
+<p>流程：提取源数据，按照嵌入的源代码重构输出的色彩主题。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/14.png" class="">
+
+<h2 id="评价"><a href="#评价" class="headerlink" title="评价"></a>评价</h2><p>​        我们从三个方面评估我们的VisCode模型：隐写指标，不同信息位数下的编码图像质量，隐写防御，通过数字传输的各种破坏场景下的解码精度，嵌入信息和恢复时间在不同设置下的时间性能。</p>
+<h3 id="隐写指标"><a href="#隐写指标" class="headerlink" title="隐写指标"></a>隐写指标</h3><p>关于PSNR：</p>
+<p>​        峰值信噪比，给定一个干净图像和噪声图像（这里的噪声图像就是经过VisCode处理后的图像），评价画质好坏的标准。(通常越大效果越好)</p>
+<p>关于SSIM：</p>
+<p>​        结构相似性，基于样本x（原图像）和y（VisCode处理后的图像）之间的三个比较衡量：亮度、对比度、结构。每次计算的时候都从图片上取一个N X N的窗口，然后不断滑动窗口进行计算，最后取平均值作为全局的SSIM。（0~1，越大表示效果越好）</p>
+<p>关于LPIPS：</p>
+<p>​        一种深度深度特征作为感知度量的无理由的有效性。（通常效果越小越好）</p>
+<p>供参考：</p>
+<p><a href="https://zhuanlan.zhihu.com/p/50757421">https://zhuanlan.zhihu.com/p/50757421</a></p>
+<p><a href="https://zhuanlan.zhihu.com/p/206470186">https://zhuanlan.zhihu.com/p/206470186</a></p>
+<p>见表格：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/15.png" class="">
+
+<h3 id="隐写抗性"><a href="#隐写抗性" class="headerlink" title="隐写抗性"></a>隐写抗性</h3><p>​        文章给出了隐写抗性评估的比较结果。LSB是一种传统的使用固定原理的隐写方法，无法抵抗任何干扰。我们发现VisCode在调整亮度、应用旋转和JPEG压缩方面的性能接近于DeepSteg，因为这三种操作应用于所有像素的变化。而水印将局部变化应用于图像，这可能会破坏图像的重要特征。在这种情况下，VisCode通过在不敏感区域中嵌入信息而胜过DeepSteg。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/16.png" class="">
+
+<h3 id="时间性能"><a href="#时间性能" class="headerlink" title="时间性能"></a>时间性能</h3><p>我们评估了不同尺度的输入下VisCode系统的时间性能。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/17.png" class="">
+
+<p>x轴表示输入<strong>文本的位数</strong>，Y轴表示编码阶段或解码阶段的<strong>平均时间(秒)<strong>。不同颜色的线条代表输入图表图像的</strong>不同分辨率</strong>。</p>
 ]]></content>
       <categories>
         <category>数据驱动的数字水印</category>
@@ -3767,108 +3891,6 @@ end:    for(i=0;i&lt;n;i++)
 ]]></content>
       <categories>
         <category>操作系统</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>VisCode: Embedding Information in Visualization Images using 论文笔记</title>
-    <url>/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/</url>
-    <content><![CDATA[<h1 id="VisCode-使用编码器-解码器网络在可视化图像中嵌入信息"><a href="#VisCode-使用编码器-解码器网络在可视化图像中嵌入信息" class="headerlink" title="VisCode:使用编码器-解码器网络在可视化图像中嵌入信息"></a>VisCode:使用编码器-解码器网络在可视化图像中嵌入信息</h1><h2 id="Overiew"><a href="#Overiew" class="headerlink" title="Overiew"></a>Overiew</h2><p>​        数据可视化的一个基本目标是提高对数据的认知和感知能力。与传输大量的原始数据相比，图像是更能被接受的载体。但是，在将原始信息转化为像素值后，很难从得到的图像中重建原始信息。而VisCode，就是一个在可视化图像中使用编码器和解码器网络嵌入和恢复隐藏信息的框架。</p>
-<h2 id="三个组件（Visual-Importance-Network、Encoder-Network、Decoder-Network）"><a href="#三个组件（Visual-Importance-Network、Encoder-Network、Decoder-Network）" class="headerlink" title="三个组件（Visual Importance Network、Encoder Network、Decoder Network）"></a>三个组件（Visual Importance Network、Encoder Network、Decoder Network）</h2><h3 id="Visual-Importance-Network"><a href="#Visual-Importance-Network" class="headerlink" title="Visual Importance Network"></a>Visual Importance Network</h3><p>​        由于数据可视化的语义特征与自然图像有很大的不同，文章使用网络来建模，得到一个<strong>视觉重要性图</strong>来用于下一个组件(Encode Network)的约束。考虑到错误校正，文章将普通信息转换为嵌入一系列<strong>QR码</strong>，而不是二进制数据。</p>
-<p>​        <img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/1.png" class=""></p>
-<h3 id="Encoder-Network"><a href="#Encoder-Network" class="headerlink" title="Encoder Network"></a>Encoder Network</h3><p>​        在该网络组件中，通过特征提取过程将<strong>载体图像和二维码图像</strong>嵌入到向量中。</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/2.png" class="">、
-
-<h3 id="Decoder-Network"><a href="#Decoder-Network" class="headerlink" title="Decoder Network"></a>Decoder Network</h3><p>​        解码器网络从编码的图像中检索信息。用户可以通过数字传输与他人共享编码图像。将编码后的图像解码后，从解码后的QR码图像中获得最终的信息，并进行纠错。</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/3.png" class="">
-
-<h2 id="VisCode系统运行过程"><a href="#VisCode系统运行过程" class="headerlink" title="VisCode系统运行过程"></a>VisCode系统运行过程</h2><p>​        VisCode系统的主要组件。首先，视觉重要性网络(b)对输入图形图(a)进行处理，便于检测可视化的显著特征，输出<strong>视觉重要性图</strong>。接下来，编码器网络(c)将<strong>秘密信息</strong>嵌入到图形图(a)中，通过特征提取将<strong>载体图像和二维码图像</strong>嵌入到向量中。然后，将这两个向量连接起来(如黄色矩形所示)，并进入<strong>自编码阶段</strong>。编码后的图像(d)被发送给用户(e)，用户可以通过数字传输将其发送给其他人。当用户希望获取图表中隐藏的详细信息时，可以将编码后的图像上传到解码器网络(f)。经过数据恢复和纠错后，用户接收到解码后的信息(g)。</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/4.png" class="">
-
-<h2 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h2><h3 id="视觉重要性地图Visual-Importance-Map"><a href="#视觉重要性地图Visual-Importance-Map" class="headerlink" title="视觉重要性地图Visual Importance Map"></a>视觉重要性地图Visual Importance Map</h3><p>​        编码器网络的目标是将大量信息嵌入到图形图表中，同时使编码的图像在感知上与原始图像相同。一个简单的解决办法是训练一个模型使原始图表和编码后的图表之间像素差的平均平方误差最小。然而，这里的每个像素之间的权重是相同的，当编码到了重要区域，就可能产生可见噪声。所以文章需要一个视觉重要性地图来表明重要区域，方便在编码时绕过这些重要区域。</p>
-<p>​        视觉重要性图为图像的不同区域分配不同的分数（分数越高的区域越重要），这有助于在编码阶段保持重要内容的视觉质量。</p>
-<h3 id="如何得到一个数据集？"><a href="#如何得到一个数据集？" class="headerlink" title="如何得到一个数据集？"></a>如何得到一个数据集？</h3><p>​        Bylinskii等人的启发，文章利用基于带有<strong>眼动注释</strong>（<strong>人看一张图是眼球的聚焦点</strong>）的MASSVIS数据集建立了一个预测模型。</p>
-<p>​        因此，为了获得更准确的高层次语义上下文信息和更低层次的细节信息，文章使用混合训练，又人工对每个像素点进行注释，标注了其重要性。</p>
-<p>​        在上述两种预测模型的混合训练下，文章得到结果：</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/5.png" class="">
-
-<p>​        a是输入的两个图像，b是用Bylinskii预测模型建的结果，c是人工注释后的结果，d是混合两种模型得到的重要性地图。</p>
-<p>​        这样就训练出了一个能输出视觉重要性地图的模型。</p>
-<h3 id="编码器网络和解码器网络"><a href="#编码器网络和解码器网络" class="headerlink" title="编码器网络和解码器网络"></a>编码器网络和解码器网络</h3><p>​        编码器网络设计用于将信息嵌入到载波图图像中，同时<strong>最小化编码图像中的扰动</strong>（尽量往视觉重要性高的地方嵌入-个人理解）。解码器网络从已编码的图像中恢复嵌入的秘密信息。</p>
-<p>​        关于损失函数：</p>
-<p>​            损失函数是用来估量<strong>模型的输出</strong>与<strong>真实值</strong>之间的差距，给模型的优化指引方向。</p>
-<p>​        编码器的损失函数：</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/6.png" class="">
-
-<p>​        Vp是预测的<strong>视觉重要性图</strong>，可以看作是一个<strong>权重矩阵</strong>。视觉重要性得分越高的区域权重越大。Icp是输入的载波图像，Icp’是输出的编码图像。N是像素的个数。</p>
-<p>​        解码器的联合损失函数：</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/7.png" class="">
-
-<p>​        其中，Is为原始输入二维码图像，Is’为解码器网络重构结果。α是解码器损耗的权重，表示编码图像的视觉质量和解码精度之间的权衡。</p>
-<p>​        α值越高，解码精度越高，感知质量越低（图像失真越严重，越像嵌入了东西）。α在实现中被设置为0.25。</p>
-<p>​        在训练过程中，同时训练编码器网络和解码器网络。也就是说，联合损失函数同时考虑了编码图像的视觉质量和重建误差。</p>
-<h4 id="训练结果"><a href="#训练结果" class="headerlink" title="训练结果"></a>训练结果</h4><img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/8.png" class="">
-
-<p>可以看出，（a）与（b）肉眼已经看不出差别，将差别放大10倍后的（c）仍不明显。</p>
-<p>​        结果表明，VisCode模型可以在保持原始图表图像感知质量的同时嵌入信息。</p>
-<h2 id="大规模数据嵌入"><a href="#大规模数据嵌入" class="headerlink" title="大规模数据嵌入"></a>大规模数据嵌入</h2><p>​        在图像中嵌入大量的信息是一个具有挑战性的问题，因为它容易产生明显的噪声或导致颜色或纹理的偏差。</p>
-<p>​        文章提出了一种新的方法，在人类视觉系统不敏感的区域大规模嵌入信息。</p>
-<p>​        假设文章将输入一个大规模的文本信息，那么第一步就是将文本分块：</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/9.png" class="">
-
-<p>​        LenT是总文本长度，n是设定的每块的文本长度，NumB是块数量，LenB是实际上每块的文本长度。这里很严谨，LenB在最后一块上可能不等于n。</p>
-<p>​        考虑到QR码有多种模块配置，这可能会影响编解码网络的效果，文章使用不同的文本长度与QR码模块配置的映射关系进行测试。</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/10.png" class="">
-
-<p>​        在实际操作中，文章并没有使用动态配置QR码。而是依据上表进行配置。n越大说明QR码存储的信息越多，但是ECC level（容错级别）就比较低。文章使用的n=800。这样QR码的区域框大小就是200X200了。</p>
-<h3 id="大规模数据的嵌入位置"><a href="#大规模数据的嵌入位置" class="headerlink" title="大规模数据的嵌入位置"></a>大规模数据的嵌入位置</h3><p>​        之前说了要找视觉最不敏感的区域嵌入信息，但找到了以后该怎么做呢？一种方案是随机取一些不敏感的区域嵌入信息，但这样修改与未修改的地方边界之间会很不和谐。另一种是蛮力搜索所有可能区域，用编解码器网络评估影响。但这样时间成本会很高。</p>
-<p>​        文章需要通过上面得到的<strong>视觉重要性图</strong>和<strong>区域框大小</strong>，找到最适合插入的地方，文章运用<strong>平均池化</strong>，来计算每个区域框的特征值(<strong>视觉重要性</strong>)，然后对其进行递增排序，获得候选区域列表。</p>
-<p>​                关于池化：</p>
-<p>​                        每个像素点都有自己的特征值（视觉重要性），而文章要寻找视觉重要性最小的区域框。那如何对框的视觉重要性进行评判了。文章选择了<strong>平均池化</strong>的方法（即用框内所有像素点特征值的平均来代替这个框的特征值）。</p>
-<p>​        现在有了从小到大的区域框候选列表，我遍历这个列表，找最适合的区域框。但是在找的过程中，会出现选入的两个区域框之间重合的情况。这里采用非最大抑制的方法NSM（说人话就是<strong>取前面的区域框</strong>，后面若和前面选中的框重合就丢弃，因为排过序了，<strong>前面框的视觉重要性低</strong>）。</p>
-<p>​        当选出所有的区域框后，这些区域框一定是视觉重要性最小的区域框，且两两之间不重合。这些区域框的位置信息需要存放到一个位置上，文章选择<strong>最左上角</strong>生成了一个区域框，来存放这些信息。</p>
-<h3 id="嵌入算法代码分析"><a href="#嵌入算法代码分析" class="headerlink" title="嵌入算法代码分析"></a>嵌入算法代码分析</h3><figure class="highlight vbscript"><table><tr><td class="code"><pre><span class="line">#Input:</span><br><span class="line">	#V:视觉重要性地图</span><br><span class="line">	#text：嵌入的大数据文本</span><br><span class="line">	#n: 分块的大小，<span class="number">800</span></span><br><span class="line">#Output:</span><br><span class="line">	#Ro_set：生成的嵌入区域框集合</span><br><span class="line">(W,H) =size(V)#视觉重要性地图的长和宽</span><br><span class="line">Calculate NumB <span class="keyword">and</span> LenB#根据文本分块公式计算分块的个数和分块后的文本长度</span><br><span class="line">Roset=&#123;&#125;,cnt=<span class="number">0</span></span><br><span class="line">kernel_size=map(LenB)#通过QR码的模块测试表生成区域框的长宽（因为n=<span class="number">800</span>，所以kernel_size=<span class="number">200</span>)</span><br><span class="line">Full_set#用平均池化的方式得到候选区域框集合</span><br><span class="line">sort(Full_set)#对该集合进行递增排序</span><br><span class="line"><span class="keyword">for</span>	c_egion	<span class="keyword">in</span> Full_set <span class="keyword">do</span></span><br><span class="line">	<span class="keyword">for</span>	s_region <span class="keyword">in</span> Ro_set <span class="keyword">do</span>#遍历每一个选中的区域s_region，比较候选区域c_egion是否和s_region重合</span><br><span class="line">		<span class="keyword">if</span>	Intersection(cregion,sregion) &gt; <span class="number">0</span> <span class="keyword">then</span></span><br><span class="line">			conflict=<span class="literal">true</span>#重合即标记该区域</span><br><span class="line">		<span class="keyword">end</span> <span class="keyword">if</span></span><br><span class="line">	<span class="keyword">end</span> <span class="keyword">for</span></span><br><span class="line">	<span class="keyword">if</span> conflict = <span class="literal">false</span> <span class="keyword">and</span> cnt &lt;= NumB <span class="keyword">then</span>#标记的区域丢弃，如果该候选区域没和已选区域重合，就选中，直到选满</span><br><span class="line">		Ro_set.append(c_region),cnt=cnt+<span class="number">1</span></span><br><span class="line">	<span class="keyword">end</span> <span class="keyword">if</span></span><br><span class="line"><span class="keyword">end</span> <span class="keyword">for</span></span><br><span class="line">return Ro_set</span><br></pre></td></tr></table></figure>
-
-<h3 id="个人关于此算法的看法"><a href="#个人关于此算法的看法" class="headerlink" title="个人关于此算法的看法"></a>个人关于此算法的看法</h3><p>​        嵌入算法本身没有问题，但是算法结果都要保存在最左上角的区域框中。假设载体图片最左上角的视觉重要性很大呢，就对原图像造成了很大的可发现的扰动。</p>
-<p>​        可改进的方法：未知</p>
-<h2 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h2><h3 id="可视化设计的元数据嵌入"><a href="#可视化设计的元数据嵌入" class="headerlink" title="可视化设计的元数据嵌入"></a>可视化设计的元数据嵌入</h3><p>如下图</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/11.png" class="">
-
-<p>将url，版权信息，版本信息等嵌入到可视化图表当中</p>
-<h3 id="源代码嵌入可视化"><a href="#源代码嵌入可视化" class="headerlink" title="源代码嵌入可视化"></a>源代码嵌入可视化</h3><p>​        这里的源代码指代的网页前端代码，系统可以从图像中解码源代码，并以<strong>网页的形式</strong>动态生成和显示可视化文件。</p>
-<p>​        具体流程，使用VisCode系统的美工和开发人员之间的协作通道：</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/12.png" class="">
-
-<h3 id="可视化重新定位目标"><a href="#可视化重新定位目标" class="headerlink" title="可视化重新定位目标"></a>可视化重新定位目标</h3><h4 id="形式重定位"><a href="#形式重定位" class="headerlink" title="形式重定位"></a>形式重定位</h4><p>​        重新定位信息表示形式。输入的可视化可以转换为其他可视化形式。</p>
-<p>流程：提取源数据，按照嵌入的源代码重构输出图像。</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/13.png" class="">
-
-<h4 id="主题重定位"><a href="#主题重定位" class="headerlink" title="主题重定位"></a>主题重定位</h4><p>​        通过提取源数据，重新构建色彩主题，VisCode的这个应用程序可以提供丰富的视觉风格和颜色主题。</p>
-<p>流程：提取源数据，按照嵌入的源代码重构输出的色彩主题。</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/14.png" class="">
-
-<h2 id="评价"><a href="#评价" class="headerlink" title="评价"></a>评价</h2><p>​        我们从三个方面评估我们的VisCode模型：隐写指标，不同信息位数下的编码图像质量，隐写防御，通过数字传输的各种破坏场景下的解码精度，嵌入信息和恢复时间在不同设置下的时间性能。</p>
-<h3 id="隐写指标"><a href="#隐写指标" class="headerlink" title="隐写指标"></a>隐写指标</h3><p>关于PSNR：</p>
-<p>​        峰值信噪比，给定一个干净图像和噪声图像（这里的噪声图像就是经过VisCode处理后的图像），评价画质好坏的标准。(通常越大效果越好)</p>
-<p>关于SSIM：</p>
-<p>​        结构相似性，基于样本x（原图像）和y（VisCode处理后的图像）之间的三个比较衡量：亮度、对比度、结构。每次计算的时候都从图片上取一个N X N的窗口，然后不断滑动窗口进行计算，最后取平均值作为全局的SSIM。（0~1，越大表示效果越好）</p>
-<p>关于LPIPS：</p>
-<p>​        一种深度深度特征作为感知度量的无理由的有效性。（通常效果越小越好）</p>
-<p>供参考：</p>
-<p><a href="https://zhuanlan.zhihu.com/p/50757421">https://zhuanlan.zhihu.com/p/50757421</a></p>
-<p><a href="https://zhuanlan.zhihu.com/p/206470186">https://zhuanlan.zhihu.com/p/206470186</a></p>
-<p>见表格：</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/15.png" class="">
-
-<h3 id="隐写抗性"><a href="#隐写抗性" class="headerlink" title="隐写抗性"></a>隐写抗性</h3><p>​        文章给出了隐写抗性评估的比较结果。LSB是一种传统的使用固定原理的隐写方法，无法抵抗任何干扰。我们发现VisCode在调整亮度、应用旋转和JPEG压缩方面的性能接近于DeepSteg，因为这三种操作应用于所有像素的变化。而水印将局部变化应用于图像，这可能会破坏图像的重要特征。在这种情况下，VisCode通过在不敏感区域中嵌入信息而胜过DeepSteg。</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/16.png" class="">
-
-<h3 id="时间性能"><a href="#时间性能" class="headerlink" title="时间性能"></a>时间性能</h3><p>我们评估了不同尺度的输入下VisCode系统的时间性能。</p>
-<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/17.png" class="">
-
-<p>x轴表示输入<strong>文本的位数</strong>，Y轴表示编码阶段或解码阶段的<strong>平均时间(秒)<strong>。不同颜色的线条代表输入图表图像的</strong>不同分辨率</strong>。</p>
-]]></content>
-      <categories>
-        <category>数据驱动的数字水印</category>
       </categories>
   </entry>
 </search>
