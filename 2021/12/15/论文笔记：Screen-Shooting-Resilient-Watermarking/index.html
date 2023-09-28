@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+  
+
+    <head>
+      <meta charset="utf-8" />
+        
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>Screen-Shooting Resilient Watermarking 论文笔记 |  Scorpio-yyz</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/favicon.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css"
+      />
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      <canvas class="fireworks"></canvas>
+      <style>
+        .fireworks {
+          position: fixed;
+          left: 0;
+          top: 0;
+          z-index: 99999;
+          pointer-events: none;
+        }
+      </style>
+      
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-论文笔记：Screen-Shooting-Resilient-Watermarking"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Screen-Shooting Resilient Watermarking 论文笔记
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/" class="article-date">
+  <time datetime="2021-12-15T12:27:49.000Z" itemprop="datePublished">2021-12-15</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">论文笔记</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> Word count:</span>
+            <span class="post-count">3.2k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> Reading time≈</span>
+            <span class="post-count">11 min</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="基于屏幕摄像的弹性水印"><a href="#基于屏幕摄像的弹性水印" class="headerlink" title="基于屏幕摄像的弹性水印"></a>基于屏幕摄像的弹性水印</h1><h2 id="综述"><a href="#综述" class="headerlink" title="综述"></a>综述</h2><p>文章提出了一个新型的屏幕摄像的弹性水印，即当水印图像显示在屏幕上时，摄像头拍摄屏幕信息，仍然可以捕获照片中的水印信息。</p>
+<h3 id="遇到的困难和解决方案"><a href="#遇到的困难和解决方案" class="headerlink" title="遇到的困难和解决方案"></a>遇到的困难和解决方案</h3><ul>
+<li><p>由于拍摄角度，拍摄场景等的限制，屏幕拍摄过程中可能出现<strong>畸变</strong></p>
+<ul>
+<li><p>透视变形</p>
+<ul>
+<li>解决办法：为了抵抗透视变形引起的几何变换，我们提出了一种<strong>基于强度的尺度不变特征变换（I-SIFT）算法</strong>，能够有效定位嵌入区域</li>
+</ul>
+</li>
+<li><p>光源畸变和Moire畸变</p>
+<ul>
+<li>没办法解决，但可以通过一种<strong>小尺寸模板算法</strong>，将水印反复嵌入到不同区域，试至少一个完整的信息区域不受失真影响。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>提取方面，如何提高水印提取的精度</p>
+<ul>
+<li>我们设计了一种基于<strong>交叉验证</strong>的提取算法来处理重复嵌入。</li>
+</ul>
+</li>
+<li><p>速度方面，如何加快提取水印的速度</p>
+<ul>
+<li>我们提出了一种<strong>SIFT特征编辑算法</strong>来增强关键点的强度，在此基础上提高提取精度和提取速度。</li>
+</ul>
+</li>
+</ul>
+<h3 id="成果"><a href="#成果" class="headerlink" title="成果"></a>成果</h3><ol>
+<li>提出了一种基于强度的尺度不变特征变换(I-SIFT)算法，该算法可以在不含原始图像信息的情况下准确<strong>定位嵌入</strong>区域。</li>
+<li>我们提出了一种<strong>小尺寸模板算法</strong>，将水印反复嵌入到不同的区域，使至少一个完整的信息区域能够在<strong>光源失真</strong>和<strong>Moire失真</strong>的情况下存活下来。</li>
+<li>设计了一种基于<strong>交叉验证</strong>的<strong>盲提取算法</strong>，并将其与重复嵌入相结合，有效地保证了提取的准确性。</li>
+<li>我们提出了一种<strong>SIFT特征编辑算法</strong>来增强关键点的强度，应用该算法可以大大提高关键点的鲁棒性和提取过程的速度。</li>
+</ol>
+<h2 id="屏幕摄像的形变分析"><a href="#屏幕摄像的形变分析" class="headerlink" title="屏幕摄像的形变分析"></a>屏幕摄像的形变分析</h2><h3 id="透视变形"><a href="#透视变形" class="headerlink" title="透视变形"></a>透视变形</h3><p>由于拍摄<strong>角度的多样性</strong>，在透视变换中会出现旋转、缩放和平移失真RST（rotation,  scaling  and  translation distortions）。而在图像的<strong>透视较正</strong>（可以了解一下照相机成像过程）中，图像的一些细节也会失真。</p>
+<p>另外我们进行<strong>盲提取</strong>，即不通过原始图像的信息或其他先验信息。所以我们需要一个不需要<strong>任何先验信息</strong>的定位算法来定位畸变图像中的嵌入区域。</p>
+<h3 id="光源畸变"><a href="#光源畸变" class="headerlink" title="光源畸变"></a>光源畸变</h3><p>屏幕光源的不均匀性会产生很多亮度失真，因此不能采用全图嵌入的方法，否则会因为光源不均丢失大量信息。为了解决这一问题，我们需要将信息反复嵌入多个区域，以保证至少有一个完整的水印序列能够在失真中存活下来。</p>
+<h3 id="Moire畸变"><a href="#Moire畸变" class="headerlink" title="Moire畸变"></a>Moire畸变</h3><p>当摄像机传感器中的像素的空间频率接近于屏幕中的像素的空间频率时会生成摩尔纹。摩尔纹是不规律的，并且会扩散到全图，对细节信息造成很大的扭曲。所以我们需要将信息嵌入到某一个收到摩尔纹影响最小的域。</p>
+<h2 id="SIFT（尺度不变特征匹配算法）"><a href="#SIFT（尺度不变特征匹配算法）" class="headerlink" title="SIFT（尺度不变特征匹配算法）"></a>SIFT（尺度不变特征匹配算法）</h2><p>SIFT是一种计算机视觉的算法用来侦测与描述图像的<strong>局部性特征</strong>（这些局部特征对畸变引起的几何变换具有一定程度的抗性），它在<strong>空间尺度</strong>中寻找<strong>极值点</strong>，并提取出其位置、尺度、旋转不变量。这些关键点（极值点）具有<strong>特征不变性</strong>，因此我们可以使用SIFT来定位嵌入位置。使得这些位置的特征在<strong>透视变形</strong>中具有鲁棒性。</p>
+<p>关于特征不变性：</p>
+<p>有些图像的特征即使发生了旋转（<strong>旋转不变性</strong>）、距离或远或近（<strong>尺度不变性</strong>），依然可以描述一张图像。就像对一个人的照片<strong>旋转</strong>或<strong>拉远（降低分辨率）</strong>以后，但依旧可以辨识出这个人是谁。</p>
+<p>关于空间尺度：<a target="_blank" rel="noopener" href="https://blog.csdn.net/samkieth/article/details/50407655">https://blog.csdn.net/samkieth/article/details/50407655</a></p>
+<p>当用一个机器视觉系统分析未知场景时，计算机没有办法预先知识图像中物体尺度，因此，我们需要同时考虑图像在多尺度下的描述，获知感兴趣物体的<strong>最佳尺度</strong>（就像一张照片，太近了看不清楚，太远也看不清楚，所以需要一个合适的尺度去观察）。</p>
+<h3 id="存在的问题"><a href="#存在的问题" class="headerlink" title="存在的问题"></a>存在的问题</h3><ol>
+<li>在定位过程中需要提供关键点描述符，不满足盲提取的要求</li>
+<li>对于每一个关键点，拥有三个信息：位置、尺度以及方向。接下来就是为每个关键点建立一个描述符，用一组向量将这个关键点描述出来。但需要计算每个关键点的描述性信息，大大增加了定位时间</li>
+</ol>
+<h2 id="嵌入位置"><a href="#嵌入位置" class="headerlink" title="嵌入位置"></a>嵌入位置</h2><p>对于彩色图像，我们需要将其转化为YCbCr的色彩空间。</p>
+<p>摄影机感光元件产生的RGB信号中，每个色彩通道都含有<strong>色彩信息</strong>和<strong>灰度</strong>（<strong>明度</strong>）信息，后者是冗余信息。因此，大部分录像系统将色度信息提炼成了<strong>彩色差异</strong>（<strong>饱和度</strong>）信号。</p>
+<p>关于YCbCr：</p>
+<p>这是和RGB一样，是一种色彩空间。也具有三个通道：</p>
+<ul>
+<li><strong>明度</strong>以Y表示。</li>
+<li>其中一个色彩通道用<strong>蓝色元素减去明度</strong>：B-Y</li>
+<li>另外一个色彩通道用<strong>红色元素减去明度</strong>：R-Y</li>
+</ul>
+<p>这里的<strong>明度Y</strong>不是简单的亮度，而是有一个计算公式： Y = 0.2126R + 0.7152G + 0.0722B</p>
+<p>这样我们有：</p>
+<ul>
+<li>Y = Y</li>
+<li>B = Pb + Y</li>
+<li>R = Pr + Y</li>
+<li>G = (Y - 0.2126 R - 0.0722 B) / 0.7152</li>
+</ul>
+<p>如果不是彩色图像，就直接用灰度图像。</p>
+<h2 id="实现过程"><a href="#实现过程" class="headerlink" title="实现过程"></a>实现过程</h2><img src="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/3.png" class="">
+
+<h3 id="关于高斯模糊："><a href="#关于高斯模糊：" class="headerlink" title="关于高斯模糊："></a>关于高斯模糊：</h3><p>参考上述的尺度空间，我们需要找到一个观察图像最好的尺度空间。而变换图像尺度的方法，用的就是<strong>高斯模糊</strong>。高斯模糊用一个高斯核卷积图像，</p>
+<p>关于图像卷积：<a target="_blank" rel="noopener" href="https://blog.csdn.net/naruhina/article/details/104729037/">https://blog.csdn.net/naruhina/article/details/104729037/</a></p>
+<p>图像卷积就是<strong>卷积核</strong>（中间3*3的矩阵）在图像上按行滑动遍历像素时不断的相乘求和的过程。（<strong>降维</strong>，图像由7*7变成了5*5；<strong>提取特征</strong>，将一整个3*3的框内的所有特征归纳成了一个值）</p>
+<p>如图中所示，目前卷积核滑动到了图像左上角，我们把图像上的9个值与卷积核的9个数值按照对应位置相乘再相加得到一个和，这个和就是我们得到的卷积值。然后把卷积核向右移动一个像素，再执行对应位置相乘再相加的过程得到第二个卷积值，当把所有像素遍历完成之后我们得到的结果就构成了一幅图像。这就是卷积得到的图像。</p>
+<img src="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/1.png" class="">
+
+<p>高斯模糊，用一个高斯核席卷图像，保留图像的轮廓信息（低频信息），去除细节。</p>
+<img src="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/2.png" class="">
+
+<p>这里的高斯核，可以看到，中间权重高，四周低，这样卷积出来的图像，细节全部丢失，但灰度梯度大的地方反而保留了下来。</p>
+<h3 id="传统SIFT"><a href="#传统SIFT" class="headerlink" title="传统SIFT"></a>传统SIFT</h3><ol>
+<li><p>寻找关键点：</p>
+<p>使用高斯模糊，生成各个尺度下的图像，寻找各个尺度下都存在的极值点（极大值或极小值），这些点都是具有一定的特征不变性。然后去除低对比度的和不稳定的边缘点。</p>
+</li>
+<li><p>生成关键点描述符</p>
+<p>每个关键点拥有三个信息：位置、尺度以及方向（灰度图像中该像素点的梯度）。接下来就是为每个关键点建立一个描述符，用一组向量将这个关键点描述出来。</p>
+</li>
+</ol>
+<h3 id="基于强度的关键点筛选"><a href="#基于强度的关键点筛选" class="headerlink" title="基于强度的关键点筛选"></a>基于强度的关键点筛选</h3><p>在选择关键点（极值点）时，将关键点按强度降序排序，并命名为“top-n”。而在屏幕摄像的过程中，会对关键点产生重大的影响：</p>
+<ul>
+<li>关键点强度的变化</li>
+<li>点位置的偏移</li>
+</ul>
+<p>在后面会介绍具体的解决方法。</p>
+<h3 id="挑选特征区域（嵌入区域）"><a href="#挑选特征区域（嵌入区域）" class="headerlink" title="挑选特征区域（嵌入区域）"></a>挑选特征区域（嵌入区域）</h3><p>对于一个长度为I的二进制水印序列，将其嵌入到a*b的矩阵中。如图</p>
+<img src="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/4.png" class="">
+
+<p>为了防止每个特征区域之间互不重合，需要将重合的关键点筛出，取强度高的留下，其余的筛掉。这样留下的区域，我们还要比较替换前后的结构相似性指数（SSIM），选取SSIM最高的<strong>k个区域</strong>为嵌入区域，其余的不变。</p>
+<h3 id="信息嵌入"><a href="#信息嵌入" class="headerlink" title="信息嵌入"></a>信息嵌入</h3><p>关于DCT矩阵：</p>
+<p>DCT，即离散余弦变换，步骤如下：</p>
+<ol>
+<li>分割，首先将图像分割成8x8或16x16的小块；</li>
+<li>DCT变换，对每个小块进行DCT变换；</li>
+<li>舍弃高频系数（AC系数），保留低频信息（DC系数）。高频系数一般保存的是图像的边界、纹理信息，低频信息主要是保存的图像中平坦区域信息。</li>
+</ol>
+<p>对于一串二进制01串，我们将每一个0或1嵌入到DCT矩阵（8x8）中，然后我们观察发现，再屏幕摄像过程中，虽然对于的矩阵系数发生了改变（图中每个方块的亮度），但是R1（（7，7）+（7，8））和R2（（8，7）+（8，8））的相对大小没有改变。我们将R1&gt;R2当作信息0，将R1&lt;R2当作信息1。这样一来，就算就能抵抗在拍摄过程中的失真。</p>
+<p>见特征区域的图可以看出：</p>
+<p>每一个8x8块可以嵌入一个信息0或1，axb个块即可嵌入长度为I的二进制串。</p>
+<p>下图：</p>
+<p>b，c是嵌入时的0和1。</p>
+<p>c，d是提取时的0和1。</p>
+<img src="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/5.png" class="">
+
+<h3 id="提取过程"><a href="#提取过程" class="headerlink" title="提取过程"></a>提取过程</h3><h4 id="矫正失真"><a href="#矫正失真" class="headerlink" title="矫正失真"></a>矫正失真</h4><p>通过透视变换来矫正透视变形，然后进行裁剪和缩放操作。但对于获得的一个图像，我们很难直接得到<strong>4个图像的顶点</strong>，因为该矫正算法需要4个顶点时才有效。所以我们需要人为的在图像四周<strong>添加边框</strong>。</p>
+<img src="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/6.png" class="">
+
+<h4 id="特征区域定位"><a href="#特征区域定位" class="headerlink" title="特征区域定位"></a>特征区域定位</h4><p>我们采用的是盲提取，所以如何找到嵌入的特征区域十分重要。我们对图像的Y通道运用I-SIFT后，还需要做一些额外的操作来避免提取过程中关键点定位的错误，如：</p>
+<ul>
+<li>关键点强度的变化<ul>
+<li>由于关键点的强度顺序可能会发生变化，因此需要增加提取次数来确保提取的<strong>k个关键点</strong>都在其中。但关键点我们将提取范围从k翻倍，变成<strong>2k个</strong>。</li>
+</ul>
+</li>
+<li>点位置的偏移<ul>
+<li>由于矫正失真过程，同一关键点的精确位置会有一些轻微的偏移，我们需要做一个邻域遍历来补偿偏移。</li>
+<li>我们对这个点执行3 × 3像素的遍历。将以该关键点为中心的9个邻域点作为提取点组。</li>
+</ul>
+</li>
+<li>这样我们一共需要2xkx9个水印序列。</li>
+</ul>
+<h4 id="信息提取"><a href="#信息提取" class="headerlink" title="信息提取"></a>信息提取</h4><p>提取过程总的来说就算嵌入过程的逆过程。只不过我们嵌入了k个特征区域，但提取过程是<strong>2*k*9</strong>。这样我们会有<strong>2*k*9</strong>个水印序列。我们设置了一个th，如果水印对的差值不大于th，那么提取准确。</p>
+<p>但这样<strong>耗时较大</strong>，因为我们需要检索足够多的区域保证嵌入的特征区域在这些区域中。如果我们能适当<strong>减少</strong>提取区域的<strong>数量</strong>，我们就能减少<strong>提取时间</strong>。</p>
+<p>所以我们提出了<strong>SIFT特征编辑算法</strong></p>
+<h4 id="SIFT特征编辑算法"><a href="#SIFT特征编辑算法" class="headerlink" title="SIFT特征编辑算法"></a>SIFT特征编辑算法</h4><p>核心问题是，在提取过程中，有些关键点不足以抵御屏幕拍摄的扭曲，从而导致前k个强度的关键点发生了变化。</p>
+<p>如果在嵌入过程中，将提取到的关键点的强度提高，再减弱未嵌入区域关键点的强度。使前k个关键点能抵御失真。就可以减少提取过程时提取区域的数量。从而提高提取速度。这是一种减缓了嵌入速度但加快了提取速度的做法。</p>
+<p>同时因为对关键点的特征编辑，画面可能会有所失真，如图。</p>
+<img src="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/7.png" class="">
+ 
+      <!-- reward -->
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>Copyright： </strong>
+          
+          Copyright is owned by the author. For commercial reprints, please contact the author for authorization. For non-commercial reprints, please indicate the source.
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            A Novel Two-stage Separable Deep Learning Framework for Practical Blind Watermarking 论文笔记
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">VisCode: Embedding Information in Visualization Images using 论文笔记</div>
+      </a>
+    
+  </nav>
+
+   
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2020-2023
+        <i class="ri-heart-fill heart_icon"></i> YYz
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>Visitors:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>Views:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer-side.svg" alt="Scorpio-yyz"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/wechat.jpg">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<script src="https://cdn.jsdelivr.net/npm/animejs@latest/anime.min.js"></script>
+
+<script src="/js/clickBoom1.js"></script>
+ 
+<!-- ClickBoom2 -->
+
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    
+
+  </div>
+</body>
+
+</html>

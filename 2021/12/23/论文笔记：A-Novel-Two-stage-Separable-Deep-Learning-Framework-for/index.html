@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+  
+
+    <head>
+      <meta charset="utf-8" />
+        
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>A Novel Two-stage Separable Deep Learning Framework for Practical Blind Watermarking 论文笔记 |  Scorpio-yyz</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/favicon.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css"
+      />
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      <canvas class="fireworks"></canvas>
+      <style>
+        .fireworks {
+          position: fixed;
+          left: 0;
+          top: 0;
+          z-index: 99999;
+          pointer-events: none;
+        }
+      </style>
+      
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-论文笔记：A-Novel-Two-stage-Separable-Deep-Learning-Framework-for"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  A Novel Two-stage Separable Deep Learning Framework for Practical Blind Watermarking 论文笔记
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/" class="article-date">
+  <time datetime="2021-12-23T11:49:38.000Z" itemprop="datePublished">2021-12-23</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">论文笔记</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> Word count:</span>
+            <span class="post-count">1.6k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> Reading time≈</span>
+            <span class="post-count">5 min</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="一种两阶段可分离深度学习框架的实用盲水印"><a href="#一种两阶段可分离深度学习框架的实用盲水印" class="headerlink" title="一种两阶段可分离深度学习框架的实用盲水印"></a>一种两阶段可分离深度学习框架的实用盲水印</h1><h2 id="传统OET深度网络体系"><a href="#传统OET深度网络体系" class="headerlink" title="传统OET深度网络体系"></a>传统OET深度网络体系</h2>
+
+<p>这样一个体系由三个组件构成：</p>
+<ul>
+<li>编码器<ul>
+<li>对输入图像添加水印</li>
+</ul>
+</li>
+<li>噪声层<ul>
+<li>模拟水印图像遭受的噪声攻击</li>
+</ul>
+</li>
+<li>解码器<ul>
+<li>从收到噪声攻击的图像中恢复水印</li>
+</ul>
+</li>
+</ul>
+<h2 id="存在的问题"><a href="#存在的问题" class="headerlink" title="存在的问题"></a>存在的问题</h2><ol>
+<li>OET中，编码器和解码器必须同时与噪声层共同训练，这意味着噪声必须支持反向传播，但自然的噪声往往不具备这样的能力。</li>
+<li>每当引入一个新类型的噪声，编码器和解码器的参数必须重新调整，算力要求高。</li>
+<li>对超参数十分敏感，对于新型噪声，学习得到的超参数可能不能很好的应对。所以在损失函数的指导下，训练过程中会往降低水印质量的方向收敛。</li>
+</ol>
+<p>关于超参数:</p>
+<p>机器学习需要人工调整参数（如权重和偏移），让输出的结果尽可能靠近正确结果。而深度学习是计算机自己调整参数，直到达到一个最好的学习效果。但在学习开始之前，需要设置一些参数，来定义关于模型的复杂性或学习能力，被称为<strong>超参数</strong>。超参数是不能通过训练模型得到的。</p>
+<h2 id="TSDL（可分离式深度学习）"><a href="#TSDL（可分离式深度学习）" class="headerlink" title="TSDL（可分离式深度学习）"></a>TSDL（可分离式深度学习）</h2><p>我们提出了一种可分离式深度学习(TSDL)水印框架。存在两个工作阶段。</p>
+<ol>
+<li>第一阶段，采用多层特征编码策略，在不参考任何噪声的情况下冗余地将水印消息自动编码到图像中，我们称之为无噪声端到端对手训练（FEAT）</li>
+<li>第二阶段，名为噪声感知解码器（ADOT）训练。不断修改解码器的参数，使其能在噪声攻击下准确提取水印。</li>
+</ol>
+<p>与OET相比，我们的编码器能获得更好的编码图像质量。由于第一阶段并没有引入噪声层，所以我们的编码器必须做到在看不到任何噪声的情况下学会对抗噪声。</p>
+<p>为了实现这一目标，我们提出了一种冗余的多层次特征编码网络（RMFEN）。我们还设置了一个强度因子，灵活地在鲁棒性和不可感知性之间权衡。</p>
+<h2 id="模型架构"><a href="#模型架构" class="headerlink" title="模型架构"></a>模型架构</h2>
+
+<ol>
+<li>将原图像Ico和信息M（-1和1的序列）输入到<strong>编码器</strong>中，输出水印图像Ien</li>
+<li>对Ien进行<strong>噪声攻击</strong>，输出遭受攻击后的图像Ino</li>
+<li>用<strong>解码器</strong>恢复Ien或Ino中的水印信息M’</li>
+<li><strong>对手A</strong>比较Ico和Ien，评估所给图像是编码图像的概率</li>
+</ol>
+<h3 id="编码器E"><a href="#编码器E" class="headerlink" title="编码器E"></a>编码器E</h3><p>消息M是一个一维向量，我们将其复制扩展为三维张量{−1, 1}^(L∗H∗W)。</p>
+<p>L是消息长度，H、W是图像长宽。</p>
+<p>关于张量：</p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/f34457c222c5">https://www.jianshu.com/p/f34457c222c5</a></p>
+<p>先将彩色RGB图像转化为YUV图像（其实指的是 YCbCr），转化过程如下：</p>
+<p><strong>Y= 0.299*R+0.587*G+0.114*B</strong><br><strong>U=-0.147*R-0.289*G+0.463*B</strong><br><strong>V= 0.615*R-0.515*G-0.100*B</strong></p>
+<p>编码器使用64个1∗1卷积核放大覆盖图像的颜色通道（由3维放大为64维）。然后使用3∗3核大小的5个卷积层进行特征提取和水印嵌入。在嵌入水印的过程中，我们将重复的水印串接到每个卷积层的输入，引入冗余。</p>
+<p>注：1x1卷积一般只改变输出通道数（channels），<strong>而不改变输出的宽度和高度</strong></p>
+<p>将上述三维张量连接到每一层的输出特征上R^(64*H*W)，然后新的张量R^（（64+L）*H*W）被输入到下一层。最后，我们使用1∗1卷积层将多通道图片转换为3通道图片。</p>
+
+
+<p>用M生成Im的水印掩码。Ien=Ico+S*Im。其中S是强度因子。</p>
+<p>损失函数（目标找到参数θE使得Ico和Ien差距最小）：</p>
+
+
+<p>MSE：均方误差。</p>
+<h3 id="解码器D"><a href="#解码器D" class="headerlink" title="解码器D"></a>解码器D</h3><p>对于水印图片，解码器输出的M’的分布应该更接近（1，-1）。而对于没有水印的图片，输出的分布更接近0。所以我们用（-1，1）代替（0，1）。</p>
+<p>对比：</p>
+<ul>
+<li>M为0，0，1，1，M’为0，0，0，0。那么有均方误差为2</li>
+<li>M为-1，-1，1，1，M’为0，0，0，0。那么均方误差为4</li>
+</ul>
+<p>这样损失函数更能比较解码器的性能：</p>
+
+
+<h3 id="对手A"><a href="#对手A" class="headerlink" title="对手A"></a>对手A</h3><p>在对手网络对抗中，编码器不断更新θE，来试图欺骗对手，使得对手无法判断Ico和Ien。对于A，则不断更新θA来对Ico和Ien进行二分类。</p>
+
+
+
+
+<h2 id="两阶段可分离式训练"><a href="#两阶段可分离式训练" class="headerlink" title="两阶段可分离式训练"></a>两阶段可分离式训练</h2><p>阶段一：无噪声端到端对手训练（FEAT），目的是最小化：</p>
+
+
+<p>阶段二：噪声感知解码器（ADOT）训练。目标是最小化：</p>
+
+
+<p>第一阶段的训练对第二阶段的训练能起到加速作用。</p>
+<h3 id="传统噪声攻击"><a href="#传统噪声攻击" class="headerlink" title="传统噪声攻击"></a>传统噪声攻击</h3><ol>
+<li>Resize噪声，将图片缩小为原先的p倍再放大回原先尺寸</li>
+<li>椒盐噪声(salt-and-pepper noise)是指两种噪声，一种是盐噪声（salt noise），另一种是胡椒噪声（pepper  noise）。盐=白色(0)，椒=黑色(255)。前者是高灰度噪声，后者属于低灰度噪声。一般两种噪声同时出现，呈现在图像上就是黑白杂点。</li>
+<li>高斯噪声，指噪声的概率密度函数服从高斯分布</li>
+<li>JPEG压缩</li>
+</ol>
+<h3 id="黑盒噪声攻击"><a href="#黑盒噪声攻击" class="headerlink" title="黑盒噪声攻击"></a>黑盒噪声攻击</h3><p>日常生活中常见的图像处理软件引起的噪声攻击，我们称之为黑盒噪声。这种图像处理算法封装在软件中，总是集成了各种改变整个图像像素的传统噪声，</p>
+<h3 id="指定训练和组合训练"><a href="#指定训练和组合训练" class="headerlink" title="指定训练和组合训练"></a>指定训练和组合训练</h3><p>指定训练：在单个噪声下进行ADOT训练</p>
+<p>组合训练：在各种噪声下进行ADOT训练</p>
+<h2 id="评估"><a href="#评估" class="headerlink" title="评估"></a>评估</h2>
+
+<p>Pretrained 表示第一阶段无噪声下，解码器的准确率</p>
+<p>Specified 表示指定噪声训练下，指定解码器的准确率</p>
+<p>Combined 表示在该噪声下，组合解码器的准确率</p>
+ 
+      <!-- reward -->
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>Copyright： </strong>
+          
+          Copyright is owned by the author. For commercial reprints, please contact the author for authorization. For non-commercial reprints, please indicate the source.
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            Deep_Template-Based_Watermarking 论文笔记
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Screen-Shooting Resilient Watermarking 论文笔记</div>
+      </a>
+    
+  </nav>
+
+   
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2020-2023
+        <i class="ri-heart-fill heart_icon"></i> YYz
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>Visitors:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>Views:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer-side.svg" alt="Scorpio-yyz"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/wechat.jpg">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<script src="https://cdn.jsdelivr.net/npm/animejs@latest/anime.min.js"></script>
+
+<script src="/js/clickBoom1.js"></script>
+ 
+<!-- ClickBoom2 -->
+
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    
+
+  </div>
+</body>
+
+</html>

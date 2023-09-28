@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+  
+
+    <head>
+      <meta charset="utf-8" />
+        
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>VisCode: Embedding Information in Visualization Images using 论文笔记 |  Scorpio-yyz</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/favicon.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css"
+      />
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      <canvas class="fireworks"></canvas>
+      <style>
+        .fireworks {
+          position: fixed;
+          left: 0;
+          top: 0;
+          z-index: 99999;
+          pointer-events: none;
+        }
+      </style>
+      
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-论文笔记：VisCode-Embedding-Information-in-Visualization-Images-using"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  VisCode: Embedding Information in Visualization Images using 论文笔记
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/" class="article-date">
+  <time datetime="2021-12-09T14:32:44.000Z" itemprop="datePublished">2021-12-09</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">论文笔记</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> Word count:</span>
+            <span class="post-count">3.2k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> Reading time≈</span>
+            <span class="post-count">11 min</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="VisCode-使用编码器-解码器网络在可视化图像中嵌入信息"><a href="#VisCode-使用编码器-解码器网络在可视化图像中嵌入信息" class="headerlink" title="VisCode:使用编码器-解码器网络在可视化图像中嵌入信息"></a>VisCode:使用编码器-解码器网络在可视化图像中嵌入信息</h1><h2 id="Overiew"><a href="#Overiew" class="headerlink" title="Overiew"></a>Overiew</h2><p>​        数据可视化的一个基本目标是提高对数据的认知和感知能力。与传输大量的原始数据相比，图像是更能被接受的载体。但是，在将原始信息转化为像素值后，很难从得到的图像中重建原始信息。而VisCode，就是一个在可视化图像中使用编码器和解码器网络嵌入和恢复隐藏信息的框架。</p>
+<h2 id="三个组件（Visual-Importance-Network、Encoder-Network、Decoder-Network）"><a href="#三个组件（Visual-Importance-Network、Encoder-Network、Decoder-Network）" class="headerlink" title="三个组件（Visual Importance Network、Encoder Network、Decoder Network）"></a>三个组件（Visual Importance Network、Encoder Network、Decoder Network）</h2><h3 id="Visual-Importance-Network"><a href="#Visual-Importance-Network" class="headerlink" title="Visual Importance Network"></a>Visual Importance Network</h3><p>​        由于数据可视化的语义特征与自然图像有很大的不同，文章使用网络来建模，得到一个<strong>视觉重要性图</strong>来用于下一个组件(Encode Network)的约束。考虑到错误校正，文章将普通信息转换为嵌入一系列<strong>QR码</strong>，而不是二进制数据。</p>
+<p>​        <img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/1.png" class=""></p>
+<h3 id="Encoder-Network"><a href="#Encoder-Network" class="headerlink" title="Encoder Network"></a>Encoder Network</h3><p>​        在该网络组件中，通过特征提取过程将<strong>载体图像和二维码图像</strong>嵌入到向量中。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/2.png" class="">、
+
+<h3 id="Decoder-Network"><a href="#Decoder-Network" class="headerlink" title="Decoder Network"></a>Decoder Network</h3><p>​        解码器网络从编码的图像中检索信息。用户可以通过数字传输与他人共享编码图像。将编码后的图像解码后，从解码后的QR码图像中获得最终的信息，并进行纠错。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/3.png" class="">
+
+<h2 id="VisCode系统运行过程"><a href="#VisCode系统运行过程" class="headerlink" title="VisCode系统运行过程"></a>VisCode系统运行过程</h2><p>​        VisCode系统的主要组件。首先，视觉重要性网络(b)对输入图形图(a)进行处理，便于检测可视化的显著特征，输出<strong>视觉重要性图</strong>。接下来，编码器网络(c)将<strong>秘密信息</strong>嵌入到图形图(a)中，通过特征提取将<strong>载体图像和二维码图像</strong>嵌入到向量中。然后，将这两个向量连接起来(如黄色矩形所示)，并进入<strong>自编码阶段</strong>。编码后的图像(d)被发送给用户(e)，用户可以通过数字传输将其发送给其他人。当用户希望获取图表中隐藏的详细信息时，可以将编码后的图像上传到解码器网络(f)。经过数据恢复和纠错后，用户接收到解码后的信息(g)。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/4.png" class="">
+
+<h2 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h2><h3 id="视觉重要性地图Visual-Importance-Map"><a href="#视觉重要性地图Visual-Importance-Map" class="headerlink" title="视觉重要性地图Visual Importance Map"></a>视觉重要性地图Visual Importance Map</h3><p>​        编码器网络的目标是将大量信息嵌入到图形图表中，同时使编码的图像在感知上与原始图像相同。一个简单的解决办法是训练一个模型使原始图表和编码后的图表之间像素差的平均平方误差最小。然而，这里的每个像素之间的权重是相同的，当编码到了重要区域，就可能产生可见噪声。所以文章需要一个视觉重要性地图来表明重要区域，方便在编码时绕过这些重要区域。</p>
+<p>​        视觉重要性图为图像的不同区域分配不同的分数（分数越高的区域越重要），这有助于在编码阶段保持重要内容的视觉质量。</p>
+<h3 id="如何得到一个数据集？"><a href="#如何得到一个数据集？" class="headerlink" title="如何得到一个数据集？"></a>如何得到一个数据集？</h3><p>​        Bylinskii等人的启发，文章利用基于带有<strong>眼动注释</strong>（<strong>人看一张图是眼球的聚焦点</strong>）的MASSVIS数据集建立了一个预测模型。</p>
+<p>​        因此，为了获得更准确的高层次语义上下文信息和更低层次的细节信息，文章使用混合训练，又人工对每个像素点进行注释，标注了其重要性。</p>
+<p>​        在上述两种预测模型的混合训练下，文章得到结果：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/5.png" class="">
+
+<p>​        a是输入的两个图像，b是用Bylinskii预测模型建的结果，c是人工注释后的结果，d是混合两种模型得到的重要性地图。</p>
+<p>​        这样就训练出了一个能输出视觉重要性地图的模型。</p>
+<h3 id="编码器网络和解码器网络"><a href="#编码器网络和解码器网络" class="headerlink" title="编码器网络和解码器网络"></a>编码器网络和解码器网络</h3><p>​        编码器网络设计用于将信息嵌入到载波图图像中，同时<strong>最小化编码图像中的扰动</strong>（尽量往视觉重要性高的地方嵌入-个人理解）。解码器网络从已编码的图像中恢复嵌入的秘密信息。</p>
+<p>​        关于损失函数：</p>
+<p>​            损失函数是用来估量<strong>模型的输出</strong>与<strong>真实值</strong>之间的差距，给模型的优化指引方向。</p>
+<p>​        编码器的损失函数：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/6.png" class="">
+
+<p>​        Vp是预测的<strong>视觉重要性图</strong>，可以看作是一个<strong>权重矩阵</strong>。视觉重要性得分越高的区域权重越大。Icp是输入的载波图像，Icp’是输出的编码图像。N是像素的个数。</p>
+<p>​        解码器的联合损失函数：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/7.png" class="">
+
+<p>​        其中，Is为原始输入二维码图像，Is’为解码器网络重构结果。α是解码器损耗的权重，表示编码图像的视觉质量和解码精度之间的权衡。</p>
+<p>​        α值越高，解码精度越高，感知质量越低（图像失真越严重，越像嵌入了东西）。α在实现中被设置为0.25。</p>
+<p>​        在训练过程中，同时训练编码器网络和解码器网络。也就是说，联合损失函数同时考虑了编码图像的视觉质量和重建误差。</p>
+<h4 id="训练结果"><a href="#训练结果" class="headerlink" title="训练结果"></a>训练结果</h4><img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/8.png" class="">
+
+<p>可以看出，（a）与（b）肉眼已经看不出差别，将差别放大10倍后的（c）仍不明显。</p>
+<p>​        结果表明，VisCode模型可以在保持原始图表图像感知质量的同时嵌入信息。</p>
+<h2 id="大规模数据嵌入"><a href="#大规模数据嵌入" class="headerlink" title="大规模数据嵌入"></a>大规模数据嵌入</h2><p>​        在图像中嵌入大量的信息是一个具有挑战性的问题，因为它容易产生明显的噪声或导致颜色或纹理的偏差。</p>
+<p>​        文章提出了一种新的方法，在人类视觉系统不敏感的区域大规模嵌入信息。</p>
+<p>​        假设文章将输入一个大规模的文本信息，那么第一步就是将文本分块：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/9.png" class="">
+
+<p>​        LenT是总文本长度，n是设定的每块的文本长度，NumB是块数量，LenB是实际上每块的文本长度。这里很严谨，LenB在最后一块上可能不等于n。</p>
+<p>​        考虑到QR码有多种模块配置，这可能会影响编解码网络的效果，文章使用不同的文本长度与QR码模块配置的映射关系进行测试。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/10.png" class="">
+
+<p>​        在实际操作中，文章并没有使用动态配置QR码。而是依据上表进行配置。n越大说明QR码存储的信息越多，但是ECC level（容错级别）就比较低。文章使用的n=800。这样QR码的区域框大小就是200X200了。</p>
+<h3 id="大规模数据的嵌入位置"><a href="#大规模数据的嵌入位置" class="headerlink" title="大规模数据的嵌入位置"></a>大规模数据的嵌入位置</h3><p>​        之前说了要找视觉最不敏感的区域嵌入信息，但找到了以后该怎么做呢？一种方案是随机取一些不敏感的区域嵌入信息，但这样修改与未修改的地方边界之间会很不和谐。另一种是蛮力搜索所有可能区域，用编解码器网络评估影响。但这样时间成本会很高。</p>
+<p>​        文章需要通过上面得到的<strong>视觉重要性图</strong>和<strong>区域框大小</strong>，找到最适合插入的地方，文章运用<strong>平均池化</strong>，来计算每个区域框的特征值(<strong>视觉重要性</strong>)，然后对其进行递增排序，获得候选区域列表。</p>
+<p>​                关于池化：</p>
+<p>​                        每个像素点都有自己的特征值（视觉重要性），而文章要寻找视觉重要性最小的区域框。那如何对框的视觉重要性进行评判了。文章选择了<strong>平均池化</strong>的方法（即用框内所有像素点特征值的平均来代替这个框的特征值）。</p>
+<p>​        现在有了从小到大的区域框候选列表，我遍历这个列表，找最适合的区域框。但是在找的过程中，会出现选入的两个区域框之间重合的情况。这里采用非最大抑制的方法NSM（说人话就是<strong>取前面的区域框</strong>，后面若和前面选中的框重合就丢弃，因为排过序了，<strong>前面框的视觉重要性低</strong>）。</p>
+<p>​        当选出所有的区域框后，这些区域框一定是视觉重要性最小的区域框，且两两之间不重合。这些区域框的位置信息需要存放到一个位置上，文章选择<strong>最左上角</strong>生成了一个区域框，来存放这些信息。</p>
+<h3 id="嵌入算法代码分析"><a href="#嵌入算法代码分析" class="headerlink" title="嵌入算法代码分析"></a>嵌入算法代码分析</h3><figure class="highlight vbscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">#Input:</span><br><span class="line">	#V:视觉重要性地图</span><br><span class="line">	#text：嵌入的大数据文本</span><br><span class="line">	#n: 分块的大小，<span class="number">800</span></span><br><span class="line">#Output:</span><br><span class="line">	#Ro_set：生成的嵌入区域框集合</span><br><span class="line">(W,H) =size(V)#视觉重要性地图的长和宽</span><br><span class="line">Calculate NumB <span class="keyword">and</span> LenB#根据文本分块公式计算分块的个数和分块后的文本长度</span><br><span class="line">Roset=&#123;&#125;,cnt=<span class="number">0</span></span><br><span class="line">kernel_size=map(LenB)#通过QR码的模块测试表生成区域框的长宽（因为n=<span class="number">800</span>，所以kernel_size=<span class="number">200</span>)</span><br><span class="line">Full_set#用平均池化的方式得到候选区域框集合</span><br><span class="line">sort(Full_set)#对该集合进行递增排序</span><br><span class="line"><span class="keyword">for</span>	c_egion	<span class="keyword">in</span> Full_set <span class="keyword">do</span></span><br><span class="line">	<span class="keyword">for</span>	s_region <span class="keyword">in</span> Ro_set <span class="keyword">do</span>#遍历每一个选中的区域s_region，比较候选区域c_egion是否和s_region重合</span><br><span class="line">		<span class="keyword">if</span>	Intersection(cregion,sregion) &gt; <span class="number">0</span> <span class="keyword">then</span></span><br><span class="line">			conflict=<span class="literal">true</span>#重合即标记该区域</span><br><span class="line">		<span class="keyword">end</span> <span class="keyword">if</span></span><br><span class="line">	<span class="keyword">end</span> <span class="keyword">for</span></span><br><span class="line">	<span class="keyword">if</span> conflict = <span class="literal">false</span> <span class="keyword">and</span> cnt &lt;= NumB <span class="keyword">then</span>#标记的区域丢弃，如果该候选区域没和已选区域重合，就选中，直到选满</span><br><span class="line">		Ro_set.append(c_region),cnt=cnt+<span class="number">1</span></span><br><span class="line">	<span class="keyword">end</span> <span class="keyword">if</span></span><br><span class="line"><span class="keyword">end</span> <span class="keyword">for</span></span><br><span class="line">return Ro_set</span><br></pre></td></tr></table></figure>
+
+<h3 id="个人关于此算法的看法"><a href="#个人关于此算法的看法" class="headerlink" title="个人关于此算法的看法"></a>个人关于此算法的看法</h3><p>​        嵌入算法本身没有问题，但是算法结果都要保存在最左上角的区域框中。假设载体图片最左上角的视觉重要性很大呢，就对原图像造成了很大的可发现的扰动。</p>
+<p>​        可改进的方法：未知</p>
+<h2 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h2><h3 id="可视化设计的元数据嵌入"><a href="#可视化设计的元数据嵌入" class="headerlink" title="可视化设计的元数据嵌入"></a>可视化设计的元数据嵌入</h3><p>如下图</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/11.png" class="">
+
+<p>将url，版权信息，版本信息等嵌入到可视化图表当中</p>
+<h3 id="源代码嵌入可视化"><a href="#源代码嵌入可视化" class="headerlink" title="源代码嵌入可视化"></a>源代码嵌入可视化</h3><p>​        这里的源代码指代的网页前端代码，系统可以从图像中解码源代码，并以<strong>网页的形式</strong>动态生成和显示可视化文件。</p>
+<p>​        具体流程，使用VisCode系统的美工和开发人员之间的协作通道：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/12.png" class="">
+
+<h3 id="可视化重新定位目标"><a href="#可视化重新定位目标" class="headerlink" title="可视化重新定位目标"></a>可视化重新定位目标</h3><h4 id="形式重定位"><a href="#形式重定位" class="headerlink" title="形式重定位"></a>形式重定位</h4><p>​        重新定位信息表示形式。输入的可视化可以转换为其他可视化形式。</p>
+<p>流程：提取源数据，按照嵌入的源代码重构输出图像。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/13.png" class="">
+
+<h4 id="主题重定位"><a href="#主题重定位" class="headerlink" title="主题重定位"></a>主题重定位</h4><p>​        通过提取源数据，重新构建色彩主题，VisCode的这个应用程序可以提供丰富的视觉风格和颜色主题。</p>
+<p>流程：提取源数据，按照嵌入的源代码重构输出的色彩主题。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/14.png" class="">
+
+<h2 id="评价"><a href="#评价" class="headerlink" title="评价"></a>评价</h2><p>​        我们从三个方面评估我们的VisCode模型：隐写指标，不同信息位数下的编码图像质量，隐写防御，通过数字传输的各种破坏场景下的解码精度，嵌入信息和恢复时间在不同设置下的时间性能。</p>
+<h3 id="隐写指标"><a href="#隐写指标" class="headerlink" title="隐写指标"></a>隐写指标</h3><p>关于PSNR：</p>
+<p>​        峰值信噪比，给定一个干净图像和噪声图像（这里的噪声图像就是经过VisCode处理后的图像），评价画质好坏的标准。(通常越大效果越好)</p>
+<p>关于SSIM：</p>
+<p>​        结构相似性，基于样本x（原图像）和y（VisCode处理后的图像）之间的三个比较衡量：亮度、对比度、结构。每次计算的时候都从图片上取一个N X N的窗口，然后不断滑动窗口进行计算，最后取平均值作为全局的SSIM。（0~1，越大表示效果越好）</p>
+<p>关于LPIPS：</p>
+<p>​        一种深度深度特征作为感知度量的无理由的有效性。（通常效果越小越好）</p>
+<p>供参考：</p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/50757421">https://zhuanlan.zhihu.com/p/50757421</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/206470186">https://zhuanlan.zhihu.com/p/206470186</a></p>
+<p>见表格：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/15.png" class="">
+
+<h3 id="隐写抗性"><a href="#隐写抗性" class="headerlink" title="隐写抗性"></a>隐写抗性</h3><p>​        文章给出了隐写抗性评估的比较结果。LSB是一种传统的使用固定原理的隐写方法，无法抵抗任何干扰。我们发现VisCode在调整亮度、应用旋转和JPEG压缩方面的性能接近于DeepSteg，因为这三种操作应用于所有像素的变化。而水印将局部变化应用于图像，这可能会破坏图像的重要特征。在这种情况下，VisCode通过在不敏感区域中嵌入信息而胜过DeepSteg。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/16.png" class="">
+
+<h3 id="时间性能"><a href="#时间性能" class="headerlink" title="时间性能"></a>时间性能</h3><p>我们评估了不同尺度的输入下VisCode系统的时间性能。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/17.png" class="">
+
+<p>x轴表示输入<strong>文本的位数</strong>，Y轴表示编码阶段或解码阶段的<strong>平均时间(秒)<strong>。不同颜色的线条代表输入图表图像的</strong>不同分辨率</strong>。</p>
+ 
+      <!-- reward -->
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>Copyright： </strong>
+          
+          Copyright is owned by the author. For commercial reprints, please contact the author for authorization. For non-commercial reprints, please indicate the source.
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            Screen-Shooting Resilient Watermarking 论文笔记
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AFallout-Leaking-Data-on-Meltdown-resistant-CPUs/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Fallout: Leaking Data on Meltdown-resistant CPUs 论文笔记</div>
+      </a>
+    
+  </nav>
+
+   
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2020-2023
+        <i class="ri-heart-fill heart_icon"></i> YYz
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>Visitors:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>Views:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer-side.svg" alt="Scorpio-yyz"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/wechat.jpg">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<script src="https://cdn.jsdelivr.net/npm/animejs@latest/anime.min.js"></script>
+
+<script src="/js/clickBoom1.js"></script>
+ 
+<!-- ClickBoom2 -->
+
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    
+
+  </div>
+</body>
+
+</html>

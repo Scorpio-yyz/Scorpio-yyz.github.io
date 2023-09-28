@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+  
+
+    <head>
+      <meta charset="utf-8" />
+        
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>Fallout: Leaking Data on Meltdown-resistant CPUs 论文笔记 |  Scorpio-yyz</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/favicon.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css"
+      />
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      <canvas class="fireworks"></canvas>
+      <style>
+        .fireworks {
+          position: fixed;
+          left: 0;
+          top: 0;
+          z-index: 99999;
+          pointer-events: none;
+        }
+      </style>
+      
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-论文笔记：Fallout-Leaking-Data-on-Meltdown-resistant-CPUs"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Fallout: Leaking Data on Meltdown-resistant CPUs 论文笔记
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AFallout-Leaking-Data-on-Meltdown-resistant-CPUs/" class="article-date">
+  <time datetime="2021-12-08T17:04:42.000Z" itemprop="datePublished">2021-12-09</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E5%B9%BD%E7%81%B5%E4%B8%8E%E7%86%94%E6%96%AD/">幽灵与熔断</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> Word count:</span>
+            <span class="post-count">2.4k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> Reading time≈</span>
+            <span class="post-count">8 min</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h1><h2 id="缓存"><a href="#缓存" class="headerlink" title="缓存"></a>缓存</h2><p>​        为了提高从内存里读取数据的速度，我们设立了多级缓存。缓存速度比内存要快很多，可以用来存储一些经常用到的数据，这样可以调高数据的利用效率。</p>
+<p>​        CPU会认为当前访问的某个地址的数据时，它周围的数据随后也会大概率被访问到，所以周围数据会一并放到缓存中，以便于取用。</p>
+<h2 id="乱序执行"><a href="#乱序执行" class="headerlink" title="乱序执行"></a>乱序执行</h2><p>​        某些指令的准备工作，和一些不依赖前面指令运行结果的指令，都可以提前运行，然后把结果放入缓存。如果轮到该指令运行，就直接将缓存内数据写入内存。</p>
+<h2 id="分支预测"><a href="#分支预测" class="headerlink" title="分支预测"></a>分支预测</h2><p>​        遇到分支跳转时，按照之前的经验，如果某个分支经常被执行，那后续再去这个分支的概率一定很大，那这样咱们预测后面会去到这个分支，就提前把这个分支后面指令能做的工作先做了。</p>
+<h2 id="幽灵与熔断"><a href="#幽灵与熔断" class="headerlink" title="幽灵与熔断"></a>幽灵与熔断</h2><p>​        如果分支预测被恶意利用，收到恶意程序欺骗，那么就会在关键时候预测失败，从而执行一些本不该执行的指令。虽然只将数据存储在缓存中，但通过访问内存时间的不同（放入缓存的数据访问时间会明显较短），就可以知道哪一块地址被缓存了。    </p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (x &lt; array1_size)</span><br><span class="line">&#123;</span><br><span class="line">   temp &amp;= array2[array1[x] * <span class="number">512</span>];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>​        一开始的x都小于array1_size，欺骗CPU不断提前进行分支预测（投机执行）。但当真正的恶意x（某个地址单元）（大于array1_size）到来时，CPU还是把if里面的执行结果放入了缓存。只是在指令真正开始执行时，虽然缓存不被输出，但访问的时间会明显较短，数一下缓存的内存到数组开头的偏移距离，可以推出这个地址单元的值。</p>
+<h2 id="缓解机制"><a href="#缓解机制" class="headerlink" title="缓解机制"></a>缓解机制</h2><p>​        Meltdown攻击最有效的方式就是KAISER/KPTI。KAISER/KPTI方案中要求操作系统维护两个页表，一个页表给用户程序使用，一个给kernel自己使用。并且确保程序所使用的页表不会映射高优先级的页面，即不会映射kernel的页面。</p>
+<p>​        两个页表的切换，会导致CR3（控制寄存器：用于控制和确定处理器的操作模式以及当前执行任务的特性）的重新加载，从而引起TLB刷新，进而降低内存的访问速度。如果某些应用场景需要大量的内核和用户空间切换（两个页表之间的切换），会造成较高的性能开销。</p>
+<h1 id="最新的漏洞"><a href="#最新的漏洞" class="headerlink" title="最新的漏洞"></a>最新的漏洞</h1><p>​        硬件修复后，上述缓解机制被禁用，该文章说明了最新的抗熔断处理器仍是具有数据泄漏的潜在风险，仍易受到熔断攻击。</p>
+<ol>
+<li>一个写瞬态转发（WTF）的漏洞，它允许我们读取最近写入的数据</li>
+<li>展示WTF的安全影响：<ol>
+<li>恢复系统内核写入的值</li>
+<li>恢复TSX事务（粗粒度的锁，防止数据冲突）写入的数据</li>
+<li>泄漏密钥</li>
+</ol>
+</li>
+<li>定义了一个新的TLB侧信道（store-to-leak）：Inter的存储转发单元在一个不可访问的虚拟地址映射到一个相应的物理存储地址的过程中，可以利用一个丢失的权限检查，得到一个新的侧信道。</li>
+<li>文章演示如何利用Store-to-Leak破解KASLR（上述的一种缓解机制）和ASLR（地址随机化），以及将这些攻击方式写成了一个小工具</li>
+<li>定义了一个新的瞬态执行原因：它是当处理器遇到特定的边缘情况时执行的微型代码例程。（命名为assists）</li>
+<li>实现了一次熔断攻击，利用由Supervisor Mode Access<br>Prevention (SMAP)导致的页异常.</li>
+</ol>
+<h1 id="Write-Transient-Forwarding（WTF）漏洞"><a href="#Write-Transient-Forwarding（WTF）漏洞" class="headerlink" title="Write Transient Forwarding（WTF）漏洞"></a>Write Transient Forwarding（WTF）漏洞</h1><p>​        文章发现WTF会错误地将值从写入的内存传递到随后的错误加载指令中。</p>
+<p>​        当程序试图从一个地址读取数据时，CPU必须首先检查存储缓冲区是否写入了相同的地址，如果地址匹配，则执行store-to-load forwarding。但是如果地址匹配但地址无效，则会产生WTF漏洞。</p>
+<p>​        Inter的专利中表明，上述操作确实会发生错误。</p>
+<p>“if there is a hit at operation 302 [lower address match]and the physical address of the load or store operations is not valid, the physical address check at operation 310 [full physical address match] may be considered as a hit and the method 300 [store-to-load forwarding] may continue at operation 308 [block load/forward data from store].”</p>
+<p>​        如果一个无效的地址，通过了低地址匹配302，但无法通过全地址匹配310，就会引发错误。该错误会导致300操作，使得store-to-load forwarding。</p>
+<h2 id="简单的例子"><a href="#简单的例子" class="headerlink" title="简单的例子"></a>简单的例子</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span><span class="keyword">char</span>* victim_page = mmap(...,PAGE_SIZE,PROT_READ|PROT_WRITE,MAP_POPULATE, ...);</span><br><span class="line"><span class="number">2</span><span class="keyword">char</span>* attacker_address = <span class="number">0x9876543214321000</span>ull;<span class="comment">//unsigned long long</span></span><br><span class="line"><span class="number">3</span></span><br><span class="line"><span class="number">4</span><span class="keyword">int</span> offset = <span class="number">7</span>;</span><br><span class="line"><span class="number">5</span>victim_page[offset] = <span class="number">42</span>;</span><br><span class="line"><span class="number">6</span><span class="keyword">if</span>(tsx_begin() == <span class="number">0</span>) &#123;</span><br><span class="line"><span class="number">7</span>memory_access(lut + <span class="number">4096</span> * attacker_address[offset]);</span><br><span class="line"><span class="number">8</span>tsx_end();</span><br><span class="line"><span class="number">9</span>&#125;</span><br><span class="line"><span class="number">10</span></span><br><span class="line"><span class="number">11f</span><span class="keyword">or</span>(i = <span class="number">0</span>; i &lt; <span class="number">256</span>; i++) &#123;</span><br><span class="line"><span class="number">12</span>	<span class="keyword">if</span>(flush_reload(lut + i * <span class="number">4096</span>)) &#123;</span><br><span class="line"><span class="number">13</span>	report(i);</span><br><span class="line"><span class="number">14</span>	&#125;</span><br><span class="line"><span class="number">15</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<p>​        上述的victim_page是一个普通的页面，用户可以在其中读写数据。attacker_address是构造的一个非规范的地址，其中的47到63位既不全是’ 0 ‘也不全是’ 1 ‘来导致错误。（行1-2）</p>
+<p>​        然后在用户空间 victim_page的指定偏移量7中存储机密值42。（行4-5）</p>
+<p>​        注意到，上述代码并没有直接访问victim_page来读取数据。相反，攻击者通过解引用毫无关联的attacker_address来读取存储缓冲区条目。而且上述代码还利用TSX事务来抑制该操作造成的其他异常。（行6-9）</p>
+<p>​        但由于WTF漏洞，CPU会以前一个存储的值作为页面偏移量来加载一个值。而前一个值就是我们存储的秘密值42。然后我们加载该页面的所有值，计算加载时间。会得到一个加载时间远小于其他值的内存地址，算一算偏移地址，就可以算出秘密值。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AFallout-Leaking-Data-on-Meltdown-resistant-CPUs/1.png" class="">
+
+<p>​        这样的一个漏洞给可以让我们随意阅读上下文存储的数据。</p>
+<h1 id="数据弹出（-Data-Bounce）"><a href="#数据弹出（-Data-Bounce）" class="headerlink" title="数据弹出（ Data Bounce）"></a>数据弹出（ Data Bounce）</h1><p>我们想尝试，一个非法的数据写入是否能作为地址偏移量，去加载一个内存地址。如果可以，那么我们可以将需要获取的某一个秘密值作为输入，构造成地址，去访问内存。通过查看内存的访问速度，来判断哪一个内存访问速度明显较快，然后计算偏移量来恢复那个秘密值。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">mov (0) -&gt; $dummy</span><br><span class="line">#生成一个异常并捕获他来启动瞬态执行</span><br><span class="line">mov $x	-&gt; $(p)</span><br><span class="line">#存储一个秘密值x在地址p上</span><br><span class="line">mov (p) —&gt; $value</span><br><span class="line">#我们读取存储在地址p上的值</span><br><span class="line">mov ($mem + $value * 4096) -&gt; $dummy</span><br><span class="line">#通过WTF，恢复存储的值</span><br></pre></td></tr></table></figure>
+
+<p>这里有两种情况：</p>
+<ol>
+<li>如果从p读取的值是x，mem的第x页被缓存了，即Store-to-Load Forwarding的情况.</li>
+<li>No Store-to-Load Forwarding的情况出现，那么该数据弹出就失败了。这种失败可能是暂时的也可能是永久的。<strong>如果一个物理地址页面不支持虚拟地址</strong>，那么永远也不可能成功。如果来自硬件的错误（如中断），那么可能该错误是暂时的。</li>
+</ol>
+<h1 id="Fetch-Bounce"><a href="#Fetch-Bounce" class="headerlink" title="Fetch+Bounce"></a>Fetch+Bounce</h1><p>使用数据反弹很容易区分有效地址和无效地址。然而，它的成功率(<strong>即数据反弹需要重复的频率</strong>)直接取决于在TLB中存储了哪些地址。</p>
+<p>通过分析数据反弹的成功率，我们进一步利用了与TLB相关的侧通道信息。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">for retry = 0...2</span><br><span class="line">	mov $x→ (p)</span><br><span class="line">	mov (p)→ $value</span><br><span class="line">	mov ($mem + $value * 4096)→ $dummy</span><br><span class="line">if flush_reload($mem + $x * 4096) then break</span><br></pre></td></tr></table></figure>
+
+<p>如果上述代码第一次就能命中，说明该地址本身就在TLB中。如果第二次可以命中，说明该地址不在TLB中，但是该地址是有效的。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AFallout-Leaking-Data-on-Meltdown-resistant-CPUs/2.png" class="">
+
+<p>可以看到页面0-7是无效的，页面17是在TLB中，其他地址有效但不在TLB中。</p>
+<h1 id="Speculative（投机的）-Fetch-Bounce"><a href="#Speculative（投机的）-Fetch-Bounce" class="headerlink" title="Speculative（投机的） Fetch+Bounce"></a>Speculative（投机的） Fetch+Bounce</h1><p>如图：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AFallout-Leaking-Data-on-Meltdown-resistant-CPUs/3.png" class="">
+
+<p>攻击者需要控制数组索引就可以从内核中泄漏任意内存内容。根据要泄漏的字节值，我们将访问256个页面中的一个。然后，Fetch +Bounce用于检测哪些页面在TLB中缓存了有效的地址。缓存的TLB条目直接显示了泄漏的字节。</p>
+<h1 id="打破内核隔离"><a href="#打破内核隔离" class="headerlink" title="打破内核隔离"></a>打破内核隔离</h1><p>我们需要人为设置两个模块：</p>
+<ul>
+<li><p>内核模块</p>
+<ul>
+<li>我们设置的内核设置了一系列写入操作，每个操作都指向不同内核页面的不同页面偏移量。这些内核页面用户是无法直接访问的。</li>
+</ul>
+</li>
+<li><p>攻击程序</p>
+<ul>
+<li>攻击者应用程序调用内核模块来执行内核写操作，然后尝试恢复内核写的值。</li>
+</ul>
+<p>攻击结果：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AFallout-Leaking-Data-on-Meltdown-resistant-CPUs/4.png" class=""></li>
+</ul>
+<p>可以看到，内核存储数据数量越多，读取成功率越高。</p>
+<p>在易受熔断的机器上，禁用KAISER补丁会使机器暴露在熔断攻击下。这意味着，与旧CPU相比，英特尔新一代CPU更容易受到攻击出现内核消息泄漏。</p>
+ 
+      <!-- reward -->
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>Copyright： </strong>
+          
+          Copyright is owned by the author. For commercial reprints, please contact the author for authorization. For non-commercial reprints, please indicate the source.
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AFallout-Leaking-Data-on-Meltdown-resistant-CPUs/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            VisCode: Embedding Information in Visualization Images using 论文笔记
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">无线DOS之取消验证洪水攻击</div>
+      </a>
+    
+  </nav>
+
+   
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2020-2023
+        <i class="ri-heart-fill heart_icon"></i> YYz
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>Visitors:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>Views:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer-side.svg" alt="Scorpio-yyz"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/wechat.jpg">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<script src="https://cdn.jsdelivr.net/npm/animejs@latest/anime.min.js"></script>
+
+<script src="/js/clickBoom1.js"></script>
+ 
+<!-- ClickBoom2 -->
+
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    
+
+  </div>
+</body>
+
+</html>

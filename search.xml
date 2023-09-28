@@ -1,0 +1,712 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>RSNA 2023 腹部创伤检测 分割数据集预处理部分</title>
+    <url>/2023/09/22/RSNA%202023%20%E8%85%B9%E9%83%A8%E5%88%9B%E4%BC%A4%E6%A3%80%E6%B5%8B%20%E5%88%86%E5%89%B2%E6%95%B0%E6%8D%AE%E9%9B%86%E9%A2%84%E5%A4%84%E7%90%86%E9%83%A8%E5%88%86/</url>
+    <content><![CDATA[<h1 id="RSNA-2023-腹部创伤检测-分割数据集预处理部分"><a href="#RSNA-2023-腹部创伤检测-分割数据集预处理部分" class="headerlink" title="RSNA 2023 腹部创伤检测 分割数据集预处理部分"></a>RSNA 2023 腹部创伤检测 分割数据集预处理部分</h1><h2 id="腹部创伤检测数据集简介"><a href="#腹部创伤检测数据集简介" class="headerlink" title="腹部创伤检测数据集简介"></a>腹部创伤检测数据集简介</h2><p>该数据集共有460G大小，目录如下：</p>
+<img src="/2023/09/22/RSNA%202023%20%E8%85%B9%E9%83%A8%E5%88%9B%E4%BC%A4%E6%A3%80%E6%B5%8B%20%E5%88%86%E5%89%B2%E6%95%B0%E6%8D%AE%E9%9B%86%E9%A2%84%E5%A4%84%E7%90%86%E9%83%A8%E5%88%86/1.png" class="">
+
+<h2 id="segmentation"><a href="#segmentation" class="headerlink" title="segmentation"></a>segmentation</h2><p>官方提供的一些患者的器官分割标签，其中的id是系列id。为了方便，下载别人制作的分割数据集。</p>
+<img src="/2023/09/22/RSNA%202023%20%E8%85%B9%E9%83%A8%E5%88%9B%E4%BC%A4%E6%A3%80%E6%B5%8B%20%E5%88%86%E5%89%B2%E6%95%B0%E6%8D%AE%E9%9B%86%E9%A2%84%E5%A4%84%E7%90%86%E9%83%A8%E5%88%86/2.png" class="" title="image-20230922104258135">
+
+<p>每个分割标签用”患者id_系列id“分开，里面是.nii(NIFTI)文件。</p>
+<img src="/2023/09/22/RSNA%202023%20%E8%85%B9%E9%83%A8%E5%88%9B%E4%BC%A4%E6%A3%80%E6%B5%8B%20%E5%88%86%E5%89%B2%E6%95%B0%E6%8D%AE%E9%9B%86%E9%A2%84%E5%A4%84%E7%90%86%E9%83%A8%E5%88%86/3.png" class="">
+
+<p>我们只需要左上角的切片，因为模型的输入只有这个角度的。我们去该患者id的系列id原数据集下即可看到相应的CT文件夹。</p>
+<img src="/2023/09/22/RSNA%202023%20%E8%85%B9%E9%83%A8%E5%88%9B%E4%BC%A4%E6%A3%80%E6%B5%8B%20%E5%88%86%E5%89%B2%E6%95%B0%E6%8D%AE%E9%9B%86%E9%A2%84%E5%A4%84%E7%90%86%E9%83%A8%E5%88%86/4.png" class="" title="image-20230922105109407">
+
+<p>由于nii文件有多个方向的切片，而我们只要x方向的，所以通过SimpleITK库进行切片处理，得到z方向的png图片。</p>
+<h2 id="处理分割标签nii文件为png图片"><a href="#处理分割标签nii文件为png图片" class="headerlink" title="处理分割标签nii文件为png图片"></a>处理分割标签nii文件为png图片</h2><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> imageio</span><br><span class="line"><span class="keyword">import</span> nibabel <span class="keyword">as</span> nib</span><br><span class="line"><span class="keyword">import</span> SimpleITK <span class="keyword">as</span> sitk</span><br><span class="line"><span class="keyword">import</span> pydicom</span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    filepath = <span class="string">&#x27;segregate_data/&#x27;</span></span><br><span class="line">    filename = os.listdir(filepath)</span><br><span class="line">    slice_trans = []</span><br><span class="line">    <span class="keyword">for</span> f <span class="keyword">in</span> filename:</span><br><span class="line">        img_path = os.path.join(filepath, f)</span><br><span class="line">        img = nib.load(img_path)</span><br><span class="line">        <span class="comment">#加载nii文件的相关信息</span></span><br><span class="line">        img_data = sitk.ReadImage(img_path)</span><br><span class="line">        <span class="comment">#读取nii文件为Image格式</span></span><br><span class="line">        img_fdata = sitk.GetArrayFromImage(img_data)</span><br><span class="line">        <span class="comment">#将Image文件转化为np矩阵，size为（）</span></span><br><span class="line">        fname = f.replace(<span class="string">&#x27;.nii&#x27;</span>, <span class="string">&quot;&quot;</span>)</span><br><span class="line">        <span class="comment">#nii文件名去除后缀即新建文件夹的名字</span></span><br><span class="line">        imgfile = <span class="string">&quot;./segregate_data_png&quot;</span></span><br><span class="line">        img_f_path = os.path.join(imgfile, fname)</span><br><span class="line">        os.mkdir(img_f_path)</span><br><span class="line">        <span class="comment">#建立同名文件夹</span></span><br><span class="line"></span><br><span class="line">        (x, y, z) = img.shape</span><br><span class="line">        <span class="built_in">print</span>(z)</span><br><span class="line">        <span class="comment">#nii文件会有xyz三轴，这里主要取z轴切片</span></span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(z):</span><br><span class="line">            silce = img_fdata[i, :, :]</span><br><span class="line">            <span class="comment">#读取该轴切片</span></span><br><span class="line">            imageio.imwrite(os.path.join(img_f_path, <span class="string">&#x27;&#123;&#125;.png&#x27;</span>.<span class="built_in">format</span>(i + <span class="number">1</span>)), silce)</span><br><span class="line">            <span class="comment">#写入该同名文件夹下</span></span><br></pre></td></tr></table></figure>
+
+<p>上述代码，将分割数据集下的每一个nii文件转为一整个文件夹下的png图片。图片上不同像素值对应着不同的器官，后续更新会解析相应的像素值对应何种器官。</p>
+<img src="/2023/09/22/RSNA%202023%20%E8%85%B9%E9%83%A8%E5%88%9B%E4%BC%A4%E6%A3%80%E6%B5%8B%20%E5%88%86%E5%89%B2%E6%95%B0%E6%8D%AE%E9%9B%86%E9%A2%84%E5%A4%84%E7%90%86%E9%83%A8%E5%88%86/5.png" class="">
+
+<p>注：有些分割标签图像看起来黑乎乎一片什么都没有，但其实只是标签很暗，可以通过拉高曝光，对比度等方式来查看。</p>
+<img src="/2023/09/22/RSNA%202023%20%E8%85%B9%E9%83%A8%E5%88%9B%E4%BC%A4%E6%A3%80%E6%B5%8B%20%E5%88%86%E5%89%B2%E6%95%B0%E6%8D%AE%E9%9B%86%E9%A2%84%E5%A4%84%E7%90%86%E9%83%A8%E5%88%86/6.png" class="">
+
+<h2 id="读取每个dcm为张量作为分割网络的输入"><a href="#读取每个dcm为张量作为分割网络的输入" class="headerlink" title="读取每个dcm为张量作为分割网络的输入"></a>读取每个dcm为张量作为分割网络的输入</h2><p>png图像是8位图像，而dcm图像是12位图像。</p>
+<p>png取值范围是0-255，dcm是0-4096。如果强行将dcm转化为png，则会有很大信息损失。如果后续需要进行多种图像增强的手段进行处理，不如不进行转化，直接读取一整个12位图像。</p>
+<p>下图是读取一个dcm图像为矩阵，并以图像形式输出。</p>
+<img src="/2023/09/22/RSNA%202023%20%E8%85%B9%E9%83%A8%E5%88%9B%E4%BC%A4%E6%A3%80%E6%B5%8B%20%E5%88%86%E5%89%B2%E6%95%B0%E6%8D%AE%E9%9B%86%E9%A2%84%E5%A4%84%E7%90%86%E9%83%A8%E5%88%86/7.png" class="" title="image-20230922160911648">
+
+<p>下图是该dcm图像以专业CT软件查看的结果，会发现细节和亮度都有很大差别，上图明显更加模糊，不利于网络进行器官区域分割。如果直接读取dcm为矩阵，这样每一个元素都是无损失地存储在矩阵中，最后对每一个元素除以4096来归一化，从而得到一个2d的tensor作为分割网络的输入。</p>
+<img src="/8.png" alt="image-20230922163207618" style="zoom:50%;" />
+
+]]></content>
+      <categories>
+        <category>Kaggle</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>RSNA 2023 腹部创伤检测 分类数据集预处理</title>
+    <url>/2023/09/28/RSNA-2023-%E8%85%B9%E9%83%A8%E5%88%9B%E4%BC%A4%E6%A3%80%E6%B5%8B-%E5%88%86%E7%B1%BB%E6%95%B0%E6%8D%AE%E9%9B%86%E9%A2%84%E5%A4%84%E7%90%86/</url>
+    <content><![CDATA[<h1 id="RSNA-2023-腹部创伤检测-分类数据集预处理"><a href="#RSNA-2023-腹部创伤检测-分类数据集预处理" class="headerlink" title="RSNA 2023 腹部创伤检测 分类数据集预处理"></a>RSNA 2023 腹部创伤检测 分类数据集预处理</h1><p>对于一个患者的CT系列图像，我们往往只需要腹部CT图像即可，因此，为了减少数据的输入规模和筛选有用的CT切片。我们需要进行器官分割，得到至少含有肝、脾、肾、肠的CT切片。</p>
+<p>器官分割的代码参考的：<a href="https://www.kaggle.com/code/enriquezaf/poc-segmentator-with-relative-low-execution-time">PoC Segmentator with relative low execution time. | Kaggle</a></p>
+<p>读取dcm系列文件，得到分割mask</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">from</span> infer <span class="keyword">import</span> volume_and_seg</span><br><span class="line">count = <span class="built_in">len</span>(os.listdir(path))</span><br><span class="line"><span class="comment"># T1 = time.time()</span></span><br><span class="line">dicom_list, seg, _ = volume_and_seg(path, channels=count, clear_mempool=<span class="literal">True</span>, cuda=<span class="number">1</span>)</span><br><span class="line"><span class="comment"># T2 = time.time()</span></span><br><span class="line"><span class="comment"># print(T2 - T1)</span></span><br><span class="line"><span class="comment">#分割时间大概是1000张CT切片在15s以内</span></span><br><span class="line">dicom_array = np.zeros((seg.shape[<span class="number">0</span>], <span class="number">512</span>, <span class="number">512</span>))</span><br><span class="line"><span class="comment">#这里的dicom_array序列号与seg是相反的，图像也是旋转180度后，需要做一些处理与seg的mask对应</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(seg.shape[<span class="number">0</span>]):</span><br><span class="line">    dicom_array[i] = np.array(dicom_list[seg.shape[<span class="number">0</span>] - <span class="number">1</span> - i].pixel_array)</span><br><span class="line">    <span class="comment">#dicom_list[i].pixel_array是返回dcm的像素值信息，其他信息则不需要</span></span><br><span class="line">    dicom_array[i] = cv2.rotate(dicom_array[i], cv2.ROTATE_180)</span><br><span class="line"><span class="comment">#print(np.shape(dicom_array)) </span></span><br></pre></td></tr></table></figure>
+
+<p>读取到了dcm_array和seg_mask后，需要将mask里各个器官对应的切片分开。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">liver = np.zeros_like(seg, dtype=np.int32)</span><br><span class="line">spleen = np.zeros_like(seg, dtype=np.int32)</span><br><span class="line">kidney = np.zeros_like(seg, dtype=np.int32)</span><br><span class="line">bowel = np.zeros_like(seg, dtype=np.int32)</span><br><span class="line">liver[seg == <span class="number">1</span>] = <span class="number">1</span></span><br><span class="line">spleen[seg == <span class="number">2</span>] = <span class="number">1</span></span><br><span class="line">kidney[seg == <span class="number">3</span>] = <span class="number">1</span></span><br><span class="line">kidney[seg == <span class="number">4</span>] = <span class="number">1</span></span><br><span class="line">bowel[seg == <span class="number">5</span>] = <span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p>这样，每个器官对应的mask就被分开了，接下来需要筛选一下，如果对应器官对应的区域过小则丢弃，这一步是筛除错误分割结果和无价值的CT图。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">set_zero_if_less</span>(<span class="params">matrix, count</span>):</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(matrix.shape[<span class="number">0</span>]):</span><br><span class="line">        channel = matrix[i]</span><br><span class="line">        <span class="keyword">if</span> np.<span class="built_in">sum</span>(channel == <span class="number">1</span>) &lt; count:</span><br><span class="line">            <span class="comment">#如果等于1的像素个数少于一个值，则认为可能是分类错误或无价值</span></span><br><span class="line">            matrix[i] = <span class="number">0</span></span><br><span class="line">    <span class="keyword">return</span> matrix</span><br><span class="line">liver = set_zero_if_less(liver, <span class="number">400</span>)</span><br><span class="line">spleen = set_zero_if_less(spleen, <span class="number">90</span>)</span><br><span class="line"><span class="comment">#脾脏比较小，所以阈值设低一点</span></span><br><span class="line">kidney = set_zero_if_less(kidney, <span class="number">400</span>)</span><br><span class="line">bowel = set_zero_if_less(bowel, <span class="number">400</span>)</span><br></pre></td></tr></table></figure>
+
+<p>然后，生成有用图像相对应的序列，将无用的CT图像筛除。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">genernate_idx</span>(<span class="params">martix</span>):</span></span><br><span class="line">    martix_idx = []</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(martix.shape[<span class="number">0</span>]):</span><br><span class="line">        <span class="keyword">if</span> (martix[i] == <span class="number">1</span>).<span class="built_in">any</span>() == <span class="literal">True</span>:</span><br><span class="line">            <span class="comment">#如果这个分割mask里含有1，即对应CT图有该器官，则将图像序列保存下来。</span></span><br><span class="line">            martix_idx.append(i)</span><br><span class="line">    <span class="keyword">return</span> martix_idx</span><br><span class="line">liver_idx = genernate_idx(liver)</span><br><span class="line">spleen_idx = genernate_idx(spleen)</span><br><span class="line">kidney_idx = genernate_idx(kidney)</span><br><span class="line">bowel_idx = genernate_idx(bowel)</span><br></pre></td></tr></table></figure>
+
+<p>将对应的有用CT图像与分割mask提取出来，并且通过随机删除或复制，得到（128，512，512）的输入</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">matrix_idx</span>(<span class="params">matrix , idx_list</span>):</span></span><br><span class="line">    result = []</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(idx_list)):</span><br><span class="line">        <span class="comment"># print(idx_list[i])</span></span><br><span class="line">        result.append(matrix[idx_list[i]])</span><br><span class="line">        <span class="comment">#按照上面得到的索引，筛选出有用的切片</span></span><br><span class="line">    <span class="keyword">return</span> np.array(result)</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">transform_matrix</span>(<span class="params">matrix1, matrix2</span>):</span></span><br><span class="line">    C, W, H = matrix1.shape</span><br><span class="line">    <span class="keyword">if</span> C &gt;= <span class="number">128</span>:</span><br><span class="line">        keep_channels = np.random.choice(<span class="built_in">range</span>(C), size=<span class="number">128</span>, replace=<span class="literal">False</span>)</span><br><span class="line">        <span class="comment">#如果切片数大于128，随机选择到128个切片</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        keep_channels = np.random.choice(<span class="built_in">range</span>(C), size=<span class="number">128</span>, replace=<span class="literal">True</span>)</span><br><span class="line">        <span class="comment">#如果切片数小于128，随机复制到128个切片</span></span><br><span class="line">    new_matrix1 = matrix1[keep_channels]</span><br><span class="line">    new_matrix2 = matrix2[keep_channels]</span><br><span class="line">    new_matrix2 = new_matrix2.repeat(<span class="number">2</span>, axis=<span class="number">1</span>).repeat(<span class="number">2</span>, axis=<span class="number">2</span>)</span><br><span class="line">    <span class="keyword">return</span> new_matrix1, new_matrix2</span><br><span class="line"></span><br><span class="line">liver_mask = matrix_idx(liver, liver_idx)</span><br><span class="line">liver_dcm = matrix_idx(dicom_array, liver_idx)</span><br><span class="line">liver_dcm, liver_mask = transform_matrix(liver_dcm, liver_mask)</span><br><span class="line"></span><br><span class="line">spleen_mask = matrix_idx(liver, spleen_idx)</span><br><span class="line">spleen_dcm = matrix_idx(dicom_array, spleen_idx)</span><br><span class="line">spleen_dcm, spleen_mask = transform_matrix(spleen_dcm, spleen_mask)</span><br><span class="line"></span><br><span class="line">kidney_mask = matrix_idx(kidney, kidney_idx)</span><br><span class="line">kidney_dcm = matrix_idx(dicom_array, kidney_idx)</span><br><span class="line">kidney_dcm, kidney_mask = transform_matrix(kidney_dcm, kidney_mask)</span><br><span class="line"></span><br><span class="line">bowel_mask = matrix_idx(bowel, bowel_idx)</span><br><span class="line">bowel_dcm = matrix_idx(dicom_array, bowel_idx)</span><br><span class="line">bowel_dcm, bowel_mask = transform_matrix(bowel_dcm, bowel_mask)</span><br></pre></td></tr></table></figure>
+
+<p>最终结果：</p>
+<p><img src="1.png"></p>
+<p>读取该病人706张切片，其中肝有190张切片，脾有93张切片，肾有134张切片，肠有417张切片（大肠相对于其他器官数量过多了，随机筛选到128张切片，是否会丢失有用的信息？？）</p>
+<p>整个预处理部分耗时13.7s，显卡为RTX3090Ti。</p>
+<p>注：优化了切片筛选的代码，若切片数大于128的两倍，则先融合再随机丢弃，减少信息损失</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">transform_matrix</span>(<span class="params">matrix1, matrix2</span>):</span></span><br><span class="line">    C, W, H = matrix1.shape</span><br><span class="line">    <span class="keyword">if</span> C &gt;= <span class="number">128</span>:</span><br><span class="line">        <span class="keyword">while</span> C &gt;= <span class="number">2</span> * <span class="number">128</span>:</span><br><span class="line">            new_matrix1 = np.zeros((C // <span class="number">2</span>, matrix1.shape[<span class="number">1</span>], matrix1.shape[<span class="number">2</span>])) </span><br><span class="line">            new_matrix2 = np.zeros((C // <span class="number">2</span>, matrix2.shape[<span class="number">1</span>], matrix2.shape[<span class="number">2</span>]))</span><br><span class="line">            <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(C // <span class="number">2</span>):</span><br><span class="line">                new_matrix1[i] = (matrix1[<span class="number">2</span> * i] + matrix1[<span class="number">2</span> * i + <span class="number">1</span>]) / <span class="number">2</span>  <span class="comment"># 两两求平均</span></span><br><span class="line">                new_matrix2[i] = np.logical_or(matrix2[<span class="number">2</span> * i], matrix2[<span class="number">2</span> * i + <span class="number">1</span>])  <span class="comment"># 两两求并集</span></span><br><span class="line">            matrix1 = new_matrix1  <span class="comment"># 更新矩阵</span></span><br><span class="line">            matrix2 = new_matrix2</span><br><span class="line">            C = matrix1.shape[<span class="number">0</span>]  <span class="comment"># 更新C通道数</span></span><br><span class="line">        keep_channels = np.random.choice(<span class="built_in">range</span>(C), size=<span class="number">128</span>, replace=<span class="literal">False</span>)</span><br><span class="line">        <span class="comment">#优化后，最好的结果是，C是128的整数倍，只需要融合不需要丢弃，最差结果也仅是丢弃127张，保留128张。</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        keep_channels = np.random.choice(<span class="built_in">range</span>(C), size=<span class="number">128</span>, replace=<span class="literal">True</span>)</span><br><span class="line">    new_matrix1 = matrix1[keep_channels]</span><br><span class="line">    new_matrix2 = matrix2[keep_channels]</span><br><span class="line">    new_matrix2 = new_matrix2.repeat(<span class="number">2</span>, axis=<span class="number">1</span>).repeat(<span class="number">2</span>, axis=<span class="number">2</span>)</span><br><span class="line">    <span class="keyword">return</span> new_matrix1, new_matrix2</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Kaggle</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>StegaStamp代码分析</title>
+    <url>/2022/01/17/StegaStamp%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/</url>
+    <content><![CDATA[<h1 id="说明"><a href="#说明" class="headerlink" title="说明"></a>说明</h1><p>课题的思路可能还是得从源码入手，我认为当下的思路应该是：复现-&gt;改进-&gt;创新。</p>
+<p>这里分析论文：StegaStamp: Invisible Hyperlinks in Physical Photographs的源码，我也会在分析过程中寻找可以改进的点。</p>
+<h1 id="数据集预处理"><a href="#数据集预处理" class="headerlink" title="数据集预处理"></a>数据集预处理</h1><p>代码使用的是MIRFLICKR数据集（重采样到400x400分辨率），水印信息是一个二进制串。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#TRAIN_PATH是数据集路径，先读取数据集。</span></span><br><span class="line">files_list = glob.glob(join(TRAIN_PATH, <span class="string">&quot;**/*&quot;</span>))</span><br><span class="line"></span><br><span class="line">images, secrets = get_img_batch(files_list=files_list,</span><br><span class="line">                                            secret_size=args.secret_size,</span><br><span class="line">                                            batch_size=args.batch_size,</span><br><span class="line">                                            size=(height, width))</span><br><span class="line"><span class="comment">#get_img_batch(...)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_img_batch</span>(<span class="params">files_list,	<span class="comment">#数据集的图像表</span></span></span></span><br><span class="line"><span class="params"><span class="function">                  secret_size,	<span class="comment">#水印长度</span></span></span></span><br><span class="line"><span class="params"><span class="function">                  batch_size=<span class="number">4</span>,	<span class="comment">#训练数据集可以分为一个或多个Batch，一次batch获取的图像个数</span></span></span></span><br><span class="line"><span class="params"><span class="function">                  size=(<span class="params"><span class="number">400</span>, <span class="number">400</span></span>)</span>):</span>	<span class="comment">#重采样大小</span></span><br><span class="line">    batch_cover = []</span><br><span class="line">    batch_secret = []</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(batch_size):</span><br><span class="line">        img_cover_path = random.choice(files_list)	<span class="comment">#随机取一个图像</span></span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            img_cover = Image.<span class="built_in">open</span>(img_cover_path).convert(<span class="string">&quot;RGB&quot;</span>)	<span class="comment">#获取RGB的图像矩阵</span></span><br><span class="line">            img_cover = ImageOps.fit(img_cover, size)	<span class="comment">#ImageOps.fit()方法返回一个指定大小的裁剪过的图像（重采样为400x400）</span></span><br><span class="line">            img_cover = np.array(img_cover, dtype=np.float32) / <span class="number">255.</span>	<span class="comment">#归一化</span></span><br><span class="line">        <span class="keyword">except</span>:</span><br><span class="line">            img_cover = np.zeros((size[<span class="number">0</span>], size[<span class="number">1</span>], <span class="number">3</span>), dtype=np.float32)</span><br><span class="line">        batch_cover.append(img_cover)	<span class="comment">#将图像矩阵加入到batch_cover[]中</span></span><br><span class="line"></span><br><span class="line">        secret = np.random.binomial(<span class="number">1</span>, <span class="number">.5</span>, secret_size)	<span class="comment">#生成随机的二进制串，01出现概率是1：1</span></span><br><span class="line">        batch_secret.append(secret)	<span class="comment">#将二进制串加入到batch_secret[]</span></span><br><span class="line"></span><br><span class="line">    batch_cover, batch_secret = np.array(batch_cover), np.array(batch_secret)</span><br><span class="line">    <span class="keyword">return</span> batch_cover, batch_secret	<span class="comment">#返回batch_cover[]和batch_secret</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="占位符的设置"><a href="#占位符的设置" class="headerlink" title="占位符的设置"></a>占位符的设置</h1><p>占位变量是一种TensorFlow用来解决读取大量训练数据问题的机制,它允许你现在不用给它赋值,随着训练的开始,再把训练数据传送给训练网络<em>学习</em>。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">	secret_pl = tf.placeholder(shape=[<span class="literal">None</span>, args.secret_size], dtype=tf.float32, name=<span class="string">&quot;input_prep&quot;</span>)</span><br><span class="line"><span class="comment">#传入的秘密信息（一串随机生成的二进制串）</span></span><br><span class="line">	image_pl = tf.placeholder(shape=[<span class="literal">None</span>, height, width, <span class="number">3</span>], dtype=tf.float32, name=<span class="string">&quot;input_hide&quot;</span>)</span><br><span class="line"><span class="comment">#载体图片（400*400）</span></span><br><span class="line">	M_pl = tf.placeholder(shape=[<span class="literal">None</span>, <span class="number">2</span>, <span class="number">8</span>], dtype=tf.float32, name=<span class="string">&quot;input_transform&quot;</span>)</span><br><span class="line"><span class="comment">#用于投影变换的矩阵，投影变换矩阵的生成也是随机的</span></span><br><span class="line">	global_step_tensor = tf.Variable(<span class="number">0</span>, trainable=<span class="literal">False</span>, name=<span class="string">&#x27;global_step&#x27;</span>)</span><br><span class="line"><span class="comment">#全局步数，初始化为0，记录训练达到第几轮，什么阶段执行什么样的操作</span></span><br><span class="line">	loss_scales_pl = tf.placeholder(shape=[<span class="number">4</span>], dtype=tf.float32, name=<span class="string">&quot;input_loss_scales&quot;</span>)</span><br><span class="line"><span class="comment">#损失函数权重，见代码:loss_op = loss_scales[0]*image_loss_op + loss_scales[1]*lpips_loss_op + loss_scales[2]*secret</span></span><br><span class="line">	l2_edge_gain_pl = tf.placeholder(shape=[<span class="number">1</span>], dtype=tf.float32, name=<span class="string">&quot;input_edge_gain&quot;</span>)</span><br><span class="line"><span class="comment">#用于falloff_im *= l2_edge_gain_pl</span></span><br><span class="line"><span class="comment">#falloff_im是一个权重矩阵，其元素大小依靠元素位置计算，越靠近图像外侧越接近1，越靠近中心约接近0</span></span><br><span class="line"><span class="comment">#乘l2_edge_gain_pl将0-1的权重差异扩大</span></span><br><span class="line">	yuv_scales_pl = tf.placeholder(shape=[<span class="number">3</span>], dtype=tf.float32, name=<span class="string">&quot;input_yuv_scales&quot;</span>)</span><br><span class="line"><span class="comment">#image_loss_op = tf.tensordot(yuv_loss_op, yuv_scales, axes=1)，yuv各个通道在视觉损失中的占比不同</span></span><br><span class="line">	log_decode_mod_pl = tf.placeholder(shape=[], dtype=tf.float32, name=<span class="string">&quot;input_log_decode_mod&quot;</span>)</span><br><span class="line"><span class="comment">#打开之前训练一半的模型</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="建立模型"><a href="#建立模型" class="headerlink" title="建立模型"></a>建立模型</h1><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"> encoder = models.StegaStampEncoder(height=height, width=width)</span><br><span class="line"><span class="comment">#编码器模型</span></span><br><span class="line"> decoder = models.StegaStampDecoder(secret_size=args.secret_size, height=height, width=width)</span><br><span class="line"><span class="comment">#解码器模型</span></span><br><span class="line"> discriminator = models.Discriminator()</span><br><span class="line"><span class="comment">#一个评论网络，可以预测信息是否被编码到图像中，并作为编解码器模型的感知损失，是全部损失函数的一部分</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"> loss_op, secret_loss_op, D_loss_op, summary_op, image_summary_op, _ = models.build_model(</span><br><span class="line">     encoder=encoder,</span><br><span class="line">     decoder=decoder,</span><br><span class="line">	 discriminator=discriminator,</span><br><span class="line">	 secret_input=secret_pl,</span><br><span class="line">     image_input=image_pl,</span><br><span class="line">     l2_edge_gain=l2_edge_gain_pl,</span><br><span class="line">     borders=args.borders,</span><br><span class="line">     secret_size=args.secret_size,</span><br><span class="line">     M=M_pl,</span><br><span class="line">	 loss_scales=loss_scales_pl,</span><br><span class="line">     yuv_scales=yuv_scales_pl,</span><br><span class="line">     args=args,</span><br><span class="line">	 global_step=global_step_tensor)</span><br><span class="line"></span><br><span class="line"><span class="comment">#建立模型在models.py中从184行开始</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">build_model</span>(<span class="params"></span></span></span><br><span class="line"><span class="params"><span class="function">    	...</span></span></span><br><span class="line"><span class="params"><span class="function">               </span>):</span></span><br><span class="line">    input_warped = tf.contrib.image.transform(image_input, M[:,<span class="number">1</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">    <span class="comment">#根据M[:,1,:]矩阵进行投影变形</span></span><br><span class="line">    <span class="comment">#train.py:178	M = utils.get_rand_transform_matrix(width, np.floor(width * rnd_tran), args.batch_size)</span></span><br><span class="line">    <span class="comment">#获取一个随机的形变矩阵（具体算法可以看utils.py）</span></span><br><span class="line">    mask_warped = tf.contrib.image.transform(tf.ones_like(input_warped), M[:,<span class="number">1</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">    input_warped += (<span class="number">1</span>-mask_warped) * image_input</span><br><span class="line">    <span class="comment">#得到一个变形后的输入图像</span></span><br><span class="line">    residual_warped = encoder((secret_input, input_warped))</span><br><span class="line">    <span class="comment">#将变形后的输入图像和secret_input一起输入到编码器模型中，进行编码，得到一个变形后的residual图像，里面蕴含着水印信息</span></span><br><span class="line">    encoded_warped = residual_warped + input_warped</span><br><span class="line">    <span class="comment">#将含有水印信息的residual图像加回到变形后的输入图像，得到一个变形的含水印图像</span></span><br><span class="line">    residual = tf.contrib.image.transform(residual_warped, M[:,<span class="number">0</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">    <span class="comment">#再通过形变矩阵的逆，将变形的residual变回去</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">#下面是在各种边框下，对编码图像的处理，并进行透视畸变的逆变换</span></span><br><span class="line">    <span class="keyword">if</span> borders == <span class="string">&#x27;no_edge&#x27;</span>:	<span class="comment">#无边框</span></span><br><span class="line">        encoded_image = image_input + residual</span><br><span class="line">    <span class="keyword">elif</span> borders == <span class="string">&#x27;black&#x27;</span>:	<span class="comment">#黑色边框</span></span><br><span class="line">        encoded_image = residual_warped + input_warped</span><br><span class="line">        encoded_image = tf.contrib.image.transform(encoded_image, M[:,<span class="number">0</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">        input_unwarped = tf.contrib.image.transform(input_warped, M[:,<span class="number">0</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">    <span class="keyword">elif</span> borders.startswith(<span class="string">&#x27;random&#x27;</span>):	<span class="comment">#随机RGB的一种作为背景</span></span><br><span class="line">        mask = tf.contrib.image.transform(tf.ones_like(residual), M[:,<span class="number">0</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">        encoded_image = residual_warped + input_warped</span><br><span class="line">        encoded_image = tf.contrib.image.transform(encoded_image, M[:,<span class="number">0</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">        input_unwarped = tf.contrib.image.transform(input_warped, M[:,<span class="number">0</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">        ch = <span class="number">3</span> <span class="keyword">if</span> borders.endswith(<span class="string">&#x27;rgb&#x27;</span>) <span class="keyword">else</span> <span class="number">1</span></span><br><span class="line">        encoded_image += (<span class="number">1</span>-mask) * tf.ones_like(residual) * tf.random.uniform([ch])</span><br><span class="line">    <span class="keyword">elif</span> borders == <span class="string">&#x27;white&#x27;</span>:	<span class="comment">#白色边框</span></span><br><span class="line">        mask = tf.contrib.image.transform(tf.ones_like(residual), M[:,<span class="number">0</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">        encoded_image = residual_warped + input_warped</span><br><span class="line">        encoded_image = tf.contrib.image.transform(encoded_image, M[:,<span class="number">0</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">        input_unwarped = tf.contrib.image.transform(input_warped, M[:,<span class="number">0</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">        encoded_image += (<span class="number">1</span>-mask) * tf.ones_like(residual)</span><br><span class="line">    <span class="keyword">elif</span> borders == <span class="string">&#x27;image&#x27;</span>:	<span class="comment">#图片边框-以原图作为畸变后的背景</span></span><br><span class="line">        mask = tf.contrib.image.transform(tf.ones_like(residual), M[:,<span class="number">0</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">        encoded_image = residual_warped + input_warped</span><br><span class="line">        encoded_image = tf.contrib.image.transform(encoded_image, M[:,<span class="number">0</span>,:], interpolation=<span class="string">&#x27;BILINEAR&#x27;</span>)</span><br><span class="line">        encoded_image += (<span class="number">1</span>-mask) * tf.manip.roll(image_input, shift=<span class="number">1</span>, axis=<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">    </span><br><span class="line">    transformed_image, transform_summaries = transform_net(encoded_image, args, global_step)</span><br><span class="line">    <span class="comment">#让编码图像进入变换网络（透视变形，运动/散焦模糊，颜色处理（打印机和显示器的色域有限），噪声），得到一个噪声图像</span></span><br><span class="line">    decoded_secret = decoder(transformed_image)</span><br><span class="line">    <span class="comment">#让噪声图像进入编码器，得到解码信息</span></span><br><span class="line">    </span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">#后面是计算各种loss函数，不细说，两行比较重要的代码</span></span><br><span class="line">    <span class="comment">#1、计算信息恢复的准确率，函数具体在utils.py</span></span><br><span class="line">    bit_acc, str_acc = get_secret_acc(secret_input, decoded_secret)</span><br><span class="line">    <span class="comment">#2、计算总loss函数</span></span><br><span class="line">    loss_op = loss_scales[<span class="number">0</span>]*image_loss_op + loss_scales[<span class="number">1</span>]*lpips_loss_op + loss_scales[<span class="number">2</span>]*secret_loss_op</span><br><span class="line">    ...</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> loss_op, secret_loss_op, D_loss, summary_op, image_summary_op, bit_acc</span><br></pre></td></tr></table></figure>
+
+<h1 id="编码器模型"><a href="#编码器模型" class="headerlink" title="编码器模型"></a>编码器模型</h1><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">StegaStampEncoder</span>(<span class="params">Layer</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, height, width</span>):</span></span><br><span class="line">        <span class="comment">#初始化的时候传入图片长和宽</span></span><br><span class="line">        <span class="built_in">super</span>(StegaStampEncoder, self).__init__()</span><br><span class="line">        self.secret_dense = Dense(<span class="number">7500</span>, activation=<span class="string">&#x27;relu&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        <span class="comment">#将输入的100bit图像扩展成7500bit大小</span></span><br><span class="line">        self.conv1 = Conv2D(<span class="number">32</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv2 = Conv2D(<span class="number">32</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, strides=<span class="number">2</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv3 = Conv2D(<span class="number">64</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, strides=<span class="number">2</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv4 = Conv2D(<span class="number">128</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, strides=<span class="number">2</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv5 = Conv2D(<span class="number">256</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, strides=<span class="number">2</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.up6 = Conv2D(<span class="number">128</span>, <span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv6 = Conv2D(<span class="number">128</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.up7 = Conv2D(<span class="number">64</span>, <span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv7 = Conv2D(<span class="number">64</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.up8 = Conv2D(<span class="number">32</span>, <span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv8 = Conv2D(<span class="number">32</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.up9 = Conv2D(<span class="number">32</span>, <span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv9 = Conv2D(<span class="number">32</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.conv10 = Conv2D(<span class="number">32</span>, <span class="number">3</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line">        self.residual = Conv2D(<span class="number">3</span>, <span class="number">1</span>, activation=<span class="literal">None</span>, padding=<span class="string">&#x27;same&#x27;</span>, kernel_initializer=<span class="string">&#x27;he_normal&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">call</span>(<span class="params">self, inputs</span>):</span></span><br><span class="line">        secret, image = inputs</span><br><span class="line">        secret = secret - <span class="number">.5</span></span><br><span class="line">        image = image - <span class="number">.5</span></span><br><span class="line">        <span class="comment">#对输入的水印信息和图像矩阵进行处理</span></span><br><span class="line">        secret = self.secret_dense(secret)</span><br><span class="line">        <span class="comment">#见上方的 self.secret_dense ，将输入的100bit图像扩展成7500bit大小</span></span><br><span class="line">        secret = Reshape((<span class="number">50</span>, <span class="number">50</span>, <span class="number">3</span>))(secret)</span><br><span class="line">        <span class="comment">#将一维水印信息变为3维，7500 = 50 * 50 * 3</span></span><br><span class="line">        secret_enlarged = UpSampling2D(size=(<span class="number">8</span>,<span class="number">8</span>))(secret)</span><br><span class="line">		<span class="comment">#(50,50,3)进行上采样变为(400,400,3)</span></span><br><span class="line">        inputs = concatenate([secret_enlarged, image], axis=-<span class="number">1</span>)</span><br><span class="line">        <span class="comment">#将secret和image拼接到一起，concatenate()函数没太明白拼接过程，axis = -1指在最后一个通道处拼接</span></span><br><span class="line">        <span class="comment">#(B,H,W,C)在C通道拼接，这里secret(B,400,400,3)和image(B,400,400,3)变为(B,400,400,6)</span></span><br><span class="line">        conv1 = self.conv1(inputs)</span><br><span class="line">        conv2 = self.conv2(conv1)</span><br><span class="line">        conv3 = self.conv3(conv2)</span><br><span class="line">        conv4 = self.conv4(conv3)</span><br><span class="line">        conv5 = self.conv5(conv4)</span><br><span class="line">        up6 = self.up6(UpSampling2D(size=(<span class="number">2</span>,<span class="number">2</span>))(conv5))</span><br><span class="line">        merge6 = concatenate([conv4,up6], axis=<span class="number">3</span>)</span><br><span class="line">        conv6 = self.conv6(merge6)</span><br><span class="line">        up7 = self.up7(UpSampling2D(size=(<span class="number">2</span>,<span class="number">2</span>))(conv6))</span><br><span class="line">        merge7 = concatenate([conv3,up7], axis=<span class="number">3</span>)</span><br><span class="line">        conv7 = self.conv7(merge7)</span><br><span class="line">        up8 = self.up8(UpSampling2D(size=(<span class="number">2</span>,<span class="number">2</span>))(conv7))</span><br><span class="line">        merge8 = concatenate([conv2,up8], axis=<span class="number">3</span>)</span><br><span class="line">        conv8 = self.conv8(merge8)</span><br><span class="line">        up9 = self.up9(UpSampling2D(size=(<span class="number">2</span>,<span class="number">2</span>))(conv8))</span><br><span class="line">        merge9 = concatenate([conv1,up9,inputs], axis=<span class="number">3</span>)</span><br><span class="line">        conv9 = self.conv9(merge9)</span><br><span class="line">        conva = self.conv9(merge9)</span><br><span class="line">        conv10 = self.conv10(conv9)</span><br><span class="line">        residual = self.residual(conv9)</span><br><span class="line">        <span class="keyword">return</span> residual</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h1 id="解码器模型"><a href="#解码器模型" class="headerlink" title="解码器模型"></a>解码器模型</h1><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">StegaStampDecoder</span>(<span class="params">Layer</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, secret_size, height, width</span>):</span></span><br><span class="line">        <span class="comment">#初始化传入图片长和宽，还有水印信息长度</span></span><br><span class="line">        <span class="built_in">super</span>(StegaStampDecoder, self).__init__()</span><br><span class="line">        self.height = height</span><br><span class="line">        self.width = width</span><br><span class="line">        <span class="comment">#空间变换网络。</span></span><br><span class="line">        self.stn_params = Sequential([</span><br><span class="line">            Conv2D(<span class="number">32</span>, (<span class="number">3</span>, <span class="number">3</span>), strides=<span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>),</span><br><span class="line">            Conv2D(<span class="number">64</span>, (<span class="number">3</span>, <span class="number">3</span>), strides=<span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>),</span><br><span class="line">            Conv2D(<span class="number">128</span>, (<span class="number">3</span>, <span class="number">3</span>), strides=<span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>),</span><br><span class="line">            Flatten(),</span><br><span class="line">            Dense(<span class="number">128</span>, activation=<span class="string">&#x27;relu&#x27;</span>)</span><br><span class="line">        ])</span><br><span class="line">        <span class="comment">#初始化权重和偏执</span></span><br><span class="line">        initial = np.array([[<span class="number">1.</span>, <span class="number">0</span>, <span class="number">0</span>], [<span class="number">0</span>, <span class="number">1.</span>, <span class="number">0</span>]])</span><br><span class="line">        initial = initial.astype(<span class="string">&#x27;float32&#x27;</span>).flatten()</span><br><span class="line">        </span><br><span class="line">        self.W_fc1 = tf.Variable(tf.zeros([<span class="number">128</span>, <span class="number">6</span>]), name=<span class="string">&#x27;W_fc1&#x27;</span>)</span><br><span class="line">        self.b_fc1 = tf.Variable(initial_value=initial, name=<span class="string">&#x27;b_fc1&#x27;</span>)</span><br><span class="line"></span><br><span class="line">        self.decoder = Sequential([</span><br><span class="line">            Conv2D(<span class="number">32</span>, (<span class="number">3</span>, <span class="number">3</span>), strides=<span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>),</span><br><span class="line">            Conv2D(<span class="number">32</span>, (<span class="number">3</span>, <span class="number">3</span>), activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>),</span><br><span class="line">            Conv2D(<span class="number">64</span>, (<span class="number">3</span>, <span class="number">3</span>), strides=<span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>),</span><br><span class="line">            Conv2D(<span class="number">64</span>, (<span class="number">3</span>, <span class="number">3</span>), activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>),</span><br><span class="line">            Conv2D(<span class="number">64</span>, (<span class="number">3</span>, <span class="number">3</span>), strides=<span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>),</span><br><span class="line">            Conv2D(<span class="number">128</span>, (<span class="number">3</span>, <span class="number">3</span>), strides=<span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>),</span><br><span class="line">            Conv2D(<span class="number">128</span>, (<span class="number">3</span>, <span class="number">3</span>), strides=<span class="number">2</span>, activation=<span class="string">&#x27;relu&#x27;</span>, padding=<span class="string">&#x27;same&#x27;</span>),</span><br><span class="line">            Flatten(),</span><br><span class="line">            Dense(<span class="number">512</span>, activation=<span class="string">&#x27;relu&#x27;</span>),</span><br><span class="line">            Dense(secret_size)</span><br><span class="line">        ])</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">call</span>(<span class="params">self, image</span>):</span></span><br><span class="line">        image = image - <span class="number">.5</span></span><br><span class="line">        <span class="comment">#对输入的解码图像进行预处理，主要是空间变换</span></span><br><span class="line">        stn_params = self.stn_params(image)</span><br><span class="line">        x = tf.matmul(stn_params, self.W_fc1) + self.b_fc1</span><br><span class="line">        transformed_image = stn_transformer(image, x, [self.height, self.width, <span class="number">3</span>])</span><br><span class="line">        <span class="comment">#纠正透视形变后，输入给解码器，返回恢复的水印信息</span></span><br><span class="line">        <span class="keyword">return</span> self.decoder(transformed_image)</span><br></pre></td></tr></table></figure>
+
+<h1 id="模拟真实环境变换网络"><a href="#模拟真实环境变换网络" class="headerlink" title="模拟真实环境变换网络"></a>模拟真实环境变换网络</h1><p>这一部分看的太困难了，大致就是对编码图像进行各种处理（透视变形，运动/散焦模糊，颜色处理（打印机和显示器的色域有限），噪声）</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">transform_net</span>(<span class="params">encoded_image, args, global_step</span>):</span>	<span class="comment">#传入的参数args中有对该网络的设置，设置了噪声强度</span></span><br><span class="line">    sh = tf.shape(encoded_image)</span><br><span class="line"></span><br><span class="line">    ramp_fn = <span class="keyword">lambda</span> ramp : tf.minimum(tf.to_float(global_step) / ramp, <span class="number">1.</span>)</span><br><span class="line">	<span class="comment">#随机产生亮度变化、色调变化</span></span><br><span class="line">    rnd_bri = ramp_fn(args.rnd_bri_ramp) * args.rnd_bri</span><br><span class="line">    rnd_hue = ramp_fn(args.rnd_hue_ramp) * args.rnd_hue</span><br><span class="line">    rnd_brightness = utils.get_rnd_brightness_tf(rnd_bri, rnd_hue, args.batch_size)</span><br><span class="line">	<span class="comment">#jpeg压缩</span></span><br><span class="line">    jpeg_quality = <span class="number">100.</span> - tf.random.uniform([]) * ramp_fn(args.jpeg_quality_ramp) * (<span class="number">100.</span>-args.jpeg_quality)</span><br><span class="line">    jpeg_factor = tf.cond(tf.less(jpeg_quality, <span class="number">50</span>), <span class="keyword">lambda</span>: <span class="number">5000.</span> / jpeg_quality, <span class="keyword">lambda</span>: <span class="number">200.</span> - jpeg_quality * <span class="number">2</span>) / <span class="number">100.</span> + <span class="number">.0001</span></span><br><span class="line">	<span class="comment">#产生随机噪声</span></span><br><span class="line">    rnd_noise = tf.random.uniform([]) * ramp_fn(args.rnd_noise_ramp) * args.rnd_noise</span><br><span class="line">	<span class="comment">#对比度变化</span></span><br><span class="line">    contrast_low = <span class="number">1.</span> - (<span class="number">1.</span> - args.contrast_low) * ramp_fn(args.contrast_ramp)</span><br><span class="line">    contrast_high = <span class="number">1.</span> + (args.contrast_high - <span class="number">1.</span>) * ramp_fn(args.contrast_ramp)</span><br><span class="line">    contrast_params = [contrast_low, contrast_high]</span><br><span class="line">	<span class="comment">#饱和度变化</span></span><br><span class="line">    rnd_sat = tf.random.uniform([]) * ramp_fn(args.rnd_sat_ramp) * args.rnd_sat</span><br><span class="line"></span><br><span class="line">    <span class="comment">#运动/散焦模糊</span></span><br><span class="line">    f = utils.random_blur_kernel(probs=[<span class="number">.25</span>,<span class="number">.25</span>], N_blur=<span class="number">7</span>,</span><br><span class="line">                           sigrange_gauss=[<span class="number">1.</span>,<span class="number">3.</span>], sigrange_line=[<span class="number">.25</span>,<span class="number">1.</span>], wmin_line=<span class="number">3</span>)</span><br><span class="line">    encoded_image = tf.nn.conv2d(encoded_image, f, [<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>], padding=<span class="string">&#x27;SAME&#x27;</span>)</span><br><span class="line">	<span class="comment">#应用上述生成的噪声</span></span><br><span class="line">    noise = tf.random_normal(shape=tf.shape(encoded_image), mean=<span class="number">0.0</span>, stddev=rnd_noise, dtype=tf.float32)</span><br><span class="line">    encoded_image = encoded_image + noise</span><br><span class="line">    encoded_image = tf.clip_by_value(encoded_image, <span class="number">0</span>, <span class="number">1</span>)	<span class="comment">#色彩通道变为0~1</span></span><br><span class="line">	<span class="comment">#对比度变化程度</span></span><br><span class="line">    contrast_scale = tf.random_uniform(shape=[tf.shape(encoded_image)[<span class="number">0</span>]], minval=contrast_params[<span class="number">0</span>], maxval=contrast_params[<span class="number">1</span>])</span><br><span class="line">    contrast_scale = tf.reshape(contrast_scale, shape=[tf.shape(encoded_image)[<span class="number">0</span>],<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>])</span><br><span class="line">	<span class="comment">#应用对比度变化</span></span><br><span class="line">    encoded_image = encoded_image * contrast_scale</span><br><span class="line">    <span class="comment">#应用生成的随机亮度/色调变化</span></span><br><span class="line">    encoded_image = encoded_image + rnd_brightness</span><br><span class="line">    encoded_image = tf.clip_by_value(encoded_image, <span class="number">0</span>, <span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">#饱和度变化</span></span><br><span class="line">    encoded_image_lum = tf.expand_dims(tf.reduce_sum(encoded_image * tf.constant([<span class="number">.3</span>,<span class="number">.6</span>,<span class="number">.1</span>]), axis=<span class="number">3</span>), <span class="number">3</span>)</span><br><span class="line">    encoded_image = (<span class="number">1</span> - rnd_sat) * encoded_image + rnd_sat * encoded_image_lum</span><br><span class="line"></span><br><span class="line">    encoded_image = tf.reshape(encoded_image, [-<span class="number">1</span>,<span class="number">400</span>,<span class="number">400</span>,<span class="number">3</span>])</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> args.no_jpeg:	<span class="comment">#jpeg压缩变化</span></span><br><span class="line">        encoded_image = utils.jpeg_compress_decompress(encoded_image, rounding=utils.round_only_at_0, factor=jpeg_factor, downsample_c=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line">    summaries = [tf.summary.scalar(<span class="string">&#x27;transformer/rnd_bri&#x27;</span>, rnd_bri),</span><br><span class="line">                 tf.summary.scalar(<span class="string">&#x27;transformer/rnd_sat&#x27;</span>, rnd_sat),</span><br><span class="line">                 tf.summary.scalar(<span class="string">&#x27;transformer/rnd_hue&#x27;</span>, rnd_hue),</span><br><span class="line">                 tf.summary.scalar(<span class="string">&#x27;transformer/rnd_noise&#x27;</span>, rnd_noise),</span><br><span class="line">                 tf.summary.scalar(<span class="string">&#x27;transformer/contrast_low&#x27;</span>, contrast_low),</span><br><span class="line">                 tf.summary.scalar(<span class="string">&#x27;transformer/contrast_high&#x27;</span>, contrast_high),</span><br><span class="line">                 tf.summary.scalar(<span class="string">&#x27;transformer/jpeg_quality&#x27;</span>, jpeg_quality)]</span><br><span class="line">	<span class="comment">#返回一个经过模拟现实网络后的编码图像</span></span><br><span class="line">    <span class="keyword">return</span> encoded_image, summaries</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>代码分析</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Deep_Template-Based_Watermarking 论文笔记</title>
+    <url>/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/</url>
+    <content><![CDATA[<h1 id="基于深度模板的数字水印"><a href="#基于深度模板的数字水印" class="headerlink" title="基于深度模板的数字水印"></a>基于深度模板的数字水印</h1><h2 id="传统基于模板的数字水印"><a href="#传统基于模板的数字水印" class="headerlink" title="传统基于模板的数字水印"></a>传统基于模板的数字水印</h2><p>基于模板的数字水印是传统水印算法的一个重要分支，与其他类型相比，具有更高的嵌入效率。模板是专门设计出来的带有一些统计特征的模式，用来携带水印和定位水印信息的。</p>
+<p>嵌入过程是将模板叠加到图像的空间域中来执行。</p>
+<p>关于空间域：又称图像空间(image space)。由图像像元组成的空间。在图像空间中以长度(距离)为自变量直接对像元值进行处理称为空间域处理。</p>
+<ul>
+<li>以时间作为变量所进行的研究就是时域</li>
+<li>以频率作为变量所进行的研究就是频域</li>
+<li>以空间坐标作为变量进行的研究就是空间域</li>
+<li>以波数作为变量所进行的研究称为波数域</li>
+</ul>
+<p>在深度学习之前，特征提取过程主要是通过一系列图像处理操作来完成的，如边缘检测、SIFT特征提取等。但这种的特征提取能力有限，无法抵御严重的失真。因此，这些传统方法的鲁棒性都不够好。为了提高鲁棒性，唯一可能的方法是使用更强的模板模式，但这将严重牺牲视觉质量。</p>
+<h2 id="提取程序的框架"><a href="#提取程序的框架" class="headerlink" title="提取程序的框架"></a>提取程序的框架</h2><p>主要由两个模块构成：目标水印模块和辅助定位模块</p>
+<h3 id="目标水印模块"><a href="#目标水印模块" class="headerlink" title="目标水印模块"></a>目标水印模块</h3><p>对于一个给定的目标水印序列，首先通过循环冗余码CRC（<a href="https://www.jianshu.com/p/7f4fd7f62de2%EF%BC%89%E5%92%8CBCH%E7%A0%81%EF%BC%88https://zhuanlan.zhihu.com/p/95909150?utm_source=wechat_session%EF%BC%89%E5%AF%B9%E5%85%B6%E8%BF%9B%E8%A1%8C%E7%BC%96%E7%A0%81%EF%BC%8C%E7%94%9F%E6%88%90%E5%85%B7%E6%9C%89%E7%BA%A0%E9%94%99%E8%83%BD%E5%8A%9B%E7%9A%84%E6%B6%88%E6%81%AF%E4%BD%8D%E7%9F%A9%E9%98%B5%E3%80%82">https://www.jianshu.com/p/7f4fd7f62de2）和BCH码（https://zhuanlan.zhihu.com/p/95909150?utm_source=wechat_session）对其进行编码，生成具有纠错能力的消息位矩阵。</a></p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/1.png" class="">
+
+<p>在基于模板的水印算法中，位‘0/1’用不同的图案表示。最终的水印模板是根据矩阵W放置相应的‘0/1’图案组成的。</p>
+<p>我们提出了一套基于人类视觉系统特性的模板生成准则（HVS）</p>
+<ol>
+<li><p>由于“<strong>倾斜效应</strong>”，相同的修改像素量下，倾斜方向的图像比水平方向和垂直方向的图像产生的变化感知更小。</p>
+</li>
+<li><p><strong>JPEG压缩</strong>对<strong>高频</strong>分量的影响较大，对低频影响较小，所以模板需要将信息更多的集中在低频，抵抗JPEG压缩的影响</p>
+</li>
+<li><p>由于传输过程中的<strong>采样操作</strong>，改变了模板的<strong>连通域</strong>。为了保证特征的完整性，至少要在模板中存在一个较大的连通域，这样采样操作才不会擦除所有的特征。</p>
+<p>图像的连通域：是指图像中具有相同或相似像素值并且位置相邻的像素组成的区域。</p>
+<img src="/2.png" style="zoom:50%;" /></li>
+<li><p>人眼对亮度梯度的变化十分敏感。所以我们的模板应该避免显著的亮度变化。</p>
+</li>
+</ol>
+<p>我们设计了32*32的模板</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/5.png" class="">
+
+<p>用下面两种形式来表示0和1</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/3.png" class="">
+
+<p>倾斜的区域设计满足要求1。</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/4.png" class="">
+
+<p>傅里叶变换后，发现能量明显集中在低频区域满足要求2。</p>
+<p>中间有较大的联通区域，满足要求3。</p>
+<p>以灰色亮度为低，相邻模板区域之间都是以灰色相连，无论是灰色-&gt;白色，还是灰色-&gt;黑色，变化都比较顺滑，满足要求4。</p>
+<h3 id="定位模块生成"><a href="#定位模块生成" class="headerlink" title="定位模块生成"></a>定位模块生成</h3><p>于水印单元的位置和大小会受到裁剪和缩放畸变的影响，因此在提取过程中需要对水印模板进行定位和调整大小，这些都需要定位模块的参与。当定位模板与完整的水印单元成固定比例时，我们可以根据定位模板检测到的变换来恢复水印模板的原始状态。</p>
+<p>我们在图像中反复嵌入4组完整的水印，以抵抗剪切攻击（在图像受到裁剪操作时希望总有一个幸存下来）。并设置定位模板的大小为水印模板大小的1/4（图像的1/16）。</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/6.png" class="">
+
+<p>我们生成一幅均值为0，方差为0.01的高斯噪声图像，记为S0。再在S0上做三个对称的翻转操作。</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/7.png" class="">
+
+<p>四组水印模板，就需要四组定位模板。</p>
+<h3 id="总体过程"><a href="#总体过程" class="headerlink" title="总体过程"></a>总体过程</h3><img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/9.png" class="">
+
+<p>由于人眼对蓝色和红色的敏感度低于绿色，所以嵌入到红色通道和蓝色通道中。</p>
+<h2 id="提取算法流程"><a href="#提取算法流程" class="headerlink" title="提取算法流程"></a>提取算法流程</h2><img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/10.png" class="">
+
+<p>先对图像进行透视矫正：</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/11.png" class="">
+
+<p>再寻找红色通道的横纵对称轴来定位和恢复水印。以列为例：</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/12.png" class="">
+
+<p>以第j列为分界线，分成了j1、j2和j3三个区域。比较j1和j2的相似度。取一个使左右相似度最高的j列来作为列对称轴。行也如此。</p>
+<h3 id="两阶段的提取网络"><a href="#两阶段的提取网络" class="headerlink" title="两阶段的提取网络"></a>两阶段的提取网络</h3><p>提取部分使用深度学习的方式，有两个阶段的提取网络，一个是辅助增强子网络用以恢复扭曲的图像，一个分类子网络对每个比特模式进行分类。</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/13.png" class="">
+
+<p>我们希望辅助增强子网络能学习逆畸变过程。使用Unet结构</p>
+<p>关于Unet：<a href="https://blog.csdn.net/l2181265/article/details/87735610">https://blog.csdn.net/l2181265/article/details/87735610</a></p>
+<p>Unet的结构是先编码（下采用）再解码（上采样）的<strong>U形结构</strong>，保持输入和输出大小一样。</p>
+<p>关于通道数和卷积的关系：<a href="https://zhuanlan.zhihu.com/p/251068800">https://zhuanlan.zhihu.com/p/251068800</a></p>
+<p>这里先用16个卷积核将1通道图像输出成16通道。再用4个卷积层进行下采样（每次采样时通道数翻倍，长宽减半，所以存在两个卷积核），得到4*4的一个特征映射，再使用一个额外的卷积层得到一个全局的1*1的特征块，并反复连接到4*4的特征映射上得到一个128通道的4*4的特征块。再通过上采样过程，恢复成和输出一样。</p>
+<p>分类子网络是一个二分类器，判断该32*32单元是表示1还是0。</p>
+<p>损失函数：</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/14.png" class="">
+
+<p>CE：交叉熵。<a href="https://zhuanlan.zhihu.com/p/35709485">https://zhuanlan.zhihu.com/p/35709485</a></p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/15.png" class="">
+
+
+
+]]></content>
+      <categories>
+        <category>论文笔记</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>无线DOS之取消验证洪水攻击</title>
+    <url>/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/</url>
+    <content><![CDATA[<h1 id="攻击原理"><a href="#攻击原理" class="headerlink" title="攻击原理"></a>攻击原理</h1><p>​    取消验证洪水攻击，全程为De-authenticationFloodAttack,简称为Deauth攻击。首先，攻击者通过扫描周围的WIFI网络，获取WIFI站点的SSID。然后扫描连接周围连接该网络的设备。最后，对周边网络进行抓包（嗅探），寻找要攻击的WIFI站点和连接该站点的设备，以获取的包头信息重新构造一个取消验证包，发给连接设备。设备会被欺骗，从而取消对AP的连接。</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/0.png" class="">
+
+<h1 id="攻击实现"><a href="#攻击实现" class="headerlink" title="攻击实现"></a>攻击实现</h1><p>​    参考已有的张馆长的工程，将其烧录到esp8266模块上。<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/1.jpg" class=""></p>
+<p>简单配置一下</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/2.jpg" class="">
+
+<p>烧录</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/3.jpg" class="">
+
+<p>这时，esp8266会建立一个WIFI，</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/4.jpg" class="">
+
+<p>我们连接这个wifi，进入192.168.4.1，可以看到攻击界面，里面会显示当前的AP，我们选取一个作为攻击对象。这里我们设置的是无差别攻击。当我们要定点攻击时，需要扫描连接该WiFi的设备，选择一个攻击。</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/5.jpg" class="">
+
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/6.jpg" class="">
+
+<p>​        选择Deauth攻击，然后我们就可以观察到连接该网的设备断连的现象，手机上方的WiFi图标会不断闪烁。</p>
+<h1 id="代码架构"><a href="#代码架构" class="headerlink" title="代码架构"></a>代码架构</h1><p>首先，WIFI模块有两种工作模式：</p>
+<p>ap是无线发射端，station是接收端，两种模式组建成一个无线局域网。</p>
+<ol>
+<li>ap mode 通常应用在无线局域网成员设备（即客户端）的加入，即<strong>网络下行</strong>。它提供以无线方式组建无线局域网 WLAN，相当际 <strong>WLAN 的中心设备</strong>。AP和AP之间允许相互连接。</li>
+<li>station mode即工作站模式，可以理解为某个网格中的一个工作站即<strong>客户端</strong>，<strong>网络上行</strong>。那当一个 WIFI 芯片提供这个功能时，它就可以连到另外的一个网络当中，如家用路由器。通常用于提供网络的数据上行服务。</li>
+</ol>
+<p>代码的核心是扫描、嗅探和伪造。扫描站点，嗅探（抓包）和通过。</p>
+<p>首先是扫描：</p>
+<p>​    AP模式扫描周围的AP。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line">	<span class="comment">/* AP Scan */</span></span><br><span class="line">    <span class="keyword">if</span> ((mode == SCAN_MODE_APS) || (mode == SCAN_MODE_ALL)) &#123;</span><br><span class="line">        <span class="comment">// remove old results</span></span><br><span class="line">        accesspoints.removeAll();</span><br><span class="line">        stations.removeAll();</span><br><span class="line">        <span class="comment">// start AP scan</span></span><br><span class="line">        prntln(SC_START_AP);</span><br><span class="line">        WiFi.scanNetworks(<span class="literal">true</span>, <span class="literal">true</span>);</span><br><span class="line">        <span class="comment">/*该函数可以扫描到ESP8266开发板所在环境中的可用WIFI网络，并且将WiFi网络信息保存到内存中。通过调用SSID、RSSI等函数，我们还可以得到这些扫描到的WIFI的更多信息。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>​    station模式开启后可以开启混杂模式（混杂模式（英语：promiscuous mode）是电脑网络中的术语。是指一台机器的网卡能够接收所有经过它的数据流，而不论其目的地址是否是它。），从而为嗅探作准备</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line"><span class="comment">/* Station Scan */</span></span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (mode == SCAN_MODE_STATIONS) &#123;</span><br><span class="line">        <span class="comment">// start station scan</span></span><br><span class="line">        <span class="keyword">if</span> (accesspoints.count() &lt; <span class="number">1</span>) &#123;</span><br><span class="line">            start(SCAN_MODE_ALL);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;<span class="comment">//如果当前网络没有AP,返回重新扫描，因为我们需要先确定攻击的AP再确定攻击的设备，如果在嗅探前AP已经不存在了，则没有继续的必要</span></span><br><span class="line">        snifferStartTime = currentTime;</span><br><span class="line">        prnt(SC_START_CLIENT);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (sniffTime &gt; <span class="number">0</span>) prnt(String(sniffTime / <span class="number">1000</span>) + S);</span><br><span class="line">        <span class="keyword">else</span> prnt(SC_INFINITELY);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!channelHop) &#123;</span><br><span class="line">            prnt(SC_ON_CHANNEL);</span><br><span class="line">            prnt(wifi_channel);</span><br><span class="line">        &#125;</span><br><span class="line">        prntln();</span><br><span class="line">        wifi::stopAP();</span><br><span class="line">        wifi_promiscuous_enable(<span class="literal">true</span>);<span class="comment">//开启混杂模式</span></span><br><span class="line">    	<span class="comment">/*混杂模式就是接收所有经过网卡的数据包，包括不是发给本机的包。默认情况下网卡只把发给本机的包（包括广播包）传递给上层程序，其它的包一律丢弃。但是混杂模式就是指网卡能接受所有通过它的数据流，不管是什么格式，什么地址的。事实上，计算机收到数据包后，由网络层进行判断（这里是802.11系协议），确定是递交上层（传输层），还是丢弃，还是递交下层（数据链路层、MAC子层）转发。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>进入嗅探模式：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Scan::sniffer</span><span class="params">(<span class="keyword">uint8_t</span>* buf, <span class="keyword">uint16_t</span> len)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!isSniffing()) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    packets++;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">28</span>) <span class="keyword">return</span>;  <span class="comment">// 丢弃掉过短的数据包</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0xc0</span>) || (buf[<span class="number">12</span>] == <span class="number">0xa0</span>)) &#123;</span><br><span class="line">        tmpDeauths++;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 丢弃信标帧、探测请求/响应和解除授权/解除关联帧</span></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0x80</span>) || (buf[<span class="number">12</span>] == <span class="number">0x40</span>) || (buf[<span class="number">12</span>] == <span class="number">0x50</span>) <span class="comment">/* || buf[12] == 0xc0 || buf[12] == 0xa0*/</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 只允许数据帧</span></span><br><span class="line">    <span class="comment">// if(buf[12] != 0x08 &amp;&amp; buf[12] != 0x88) return;数据帧12位为08和88的时候说明是数据帧，如果都不是，可以丢弃，但作者将这句话注释了，不知道原因。。。</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span>* macTo   = &amp;buf[<span class="number">16</span>];<span class="comment">//该数据包要去哪</span></span><br><span class="line">    <span class="keyword">uint8_t</span>* macFrom = &amp;buf[<span class="number">22</span>];<span class="comment">//该数据包从哪来</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (macBroadcast(macTo) || macBroadcast(macFrom) || !macValid(macTo) || !macValid(macFrom) || macMulticast(macTo) ||</span><br><span class="line">        macMulticast(macFrom)) <span class="keyword">return</span>;</span><br><span class="line">	<span class="comment">//Broadcast所谓广播地址指同时向网上所有的主机发送报文，也就是说，不管物理网络特性如何，internet网都支持广播传输。这里表示如果收发地址为广播地址，则丢弃。</span></span><br><span class="line">    <span class="comment">//Multicast是一个群组传播模式。。。其他的看不懂了，和上面区别不大。也丢弃。</span></span><br><span class="line">    <span class="comment">//上面两种的特点都是一对多模式，而我们只需要要截获一对一的数据包，并认为该mac为有效mac地址。</span></span><br><span class="line">    <span class="keyword">int</span> accesspointNum = findAccesspoint(macFrom);<span class="comment">//查看该mac地址有几个AP。这个如果小于0说明该mac地址是连接AP的设备</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        stations.add(macTo, accesspoints.getID(accesspointNum));</span><br><span class="line">        <span class="comment">//macForm为AP了，那么macTo肯定为设备，我们将该设备的mac加入列表。</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;  <span class="comment">//如果AP数量为0，那么macTo是AP，macForm为设备，</span></span><br><span class="line">        accesspointNum = findAccesspoint(macTo);</span><br><span class="line">        <span class="comment">//这两个if判断谁是AP谁是设备，写的很垃圾</span></span><br><span class="line">        <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            stations.add(macFrom, accesspoints.getID(accesspointNum));</span><br><span class="line">            <span class="comment">//我们将该设备的mac加入列表。</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="802-11协议"><a href="#802-11协议" class="headerlink" title="802.11协议"></a>802.11协议</h2><img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/7.png" class="">
+
+<p>以上是我们需要构造的mac帧头格式</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/8.png" class="">
+
+<p>准确的说，我们需要向设备发送取消验证包。地址1应该是DA（设备mac），地址2是BSSID（伪造成APmac），地址3源地址（还是APmac）</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#attack.cpp</span></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">Attack::deauthDevice</span><span class="params">(<span class="keyword">uint8_t</span>* apMac, <span class="keyword">uint8_t</span>* stMac, <span class="keyword">uint8_t</span> reason, <span class="keyword">uint8_t</span> ch)</span> </span>&#123;</span><br><span class="line">	······</span><br><span class="line">    <span class="comment">// build deauth packet</span></span><br><span class="line">    packetSize = <span class="keyword">sizeof</span>(deauthPacket);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span> deauthpkt[packetSize];</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(deauthpkt, deauthPacket, packetSize);<span class="comment">//构造mac帧头，初始数据见下</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">4</span>], stMac, <span class="number">6</span>);</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">10</span>], apMac, <span class="number">6</span>);</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">16</span>], apMac, <span class="number">6</span>);</span><br><span class="line">    deauthpkt[<span class="number">24</span>] = reason;</span><br><span class="line">    ······</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#attack.h</span></span><br><span class="line"><span class="keyword">uint8_t</span> deauthPacket[<span class="number">26</span>] = &#123;</span><br><span class="line">            <span class="comment">/*  0 - 1  */</span> <span class="number">0xC0</span>, <span class="number">0x00</span>,</span><br><span class="line">            <span class="comment">/*  2 - 3  */</span> <span class="number">0x00</span>, <span class="number">0x00</span>, </span><br><span class="line">            <span class="comment">/*  4 - 9  */</span> <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>,</span><br><span class="line">            <span class="comment">/* 10 - 15 */</span> <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>,</span><br><span class="line">            <span class="comment">/* 16 - 21 */</span> <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>,</span><br><span class="line">            <span class="comment">/* 22 - 23 */</span> <span class="number">0x00</span>, <span class="number">0x00</span>,                         </span><br><span class="line">            <span class="comment">/* 24 - 25 */</span> <span class="number">0x01</span>, <span class="number">0x00</span>                         </span><br><span class="line">        &#125;;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>软件安全</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>A Novel Two-stage Separable Deep Learning Framework for Practical Blind Watermarking 论文笔记</title>
+    <url>/2021/12/23/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AA-Novel-Two-stage-Separable-Deep-Learning-Framework-for/</url>
+    <content><![CDATA[<h1 id="一种两阶段可分离深度学习框架的实用盲水印"><a href="#一种两阶段可分离深度学习框架的实用盲水印" class="headerlink" title="一种两阶段可分离深度学习框架的实用盲水印"></a>一种两阶段可分离深度学习框架的实用盲水印</h1><h2 id="传统OET深度网络体系"><a href="#传统OET深度网络体系" class="headerlink" title="传统OET深度网络体系"></a>传统OET深度网络体系</h2>
+
+<p>这样一个体系由三个组件构成：</p>
+<ul>
+<li>编码器<ul>
+<li>对输入图像添加水印</li>
+</ul>
+</li>
+<li>噪声层<ul>
+<li>模拟水印图像遭受的噪声攻击</li>
+</ul>
+</li>
+<li>解码器<ul>
+<li>从收到噪声攻击的图像中恢复水印</li>
+</ul>
+</li>
+</ul>
+<h2 id="存在的问题"><a href="#存在的问题" class="headerlink" title="存在的问题"></a>存在的问题</h2><ol>
+<li>OET中，编码器和解码器必须同时与噪声层共同训练，这意味着噪声必须支持反向传播，但自然的噪声往往不具备这样的能力。</li>
+<li>每当引入一个新类型的噪声，编码器和解码器的参数必须重新调整，算力要求高。</li>
+<li>对超参数十分敏感，对于新型噪声，学习得到的超参数可能不能很好的应对。所以在损失函数的指导下，训练过程中会往降低水印质量的方向收敛。</li>
+</ol>
+<p>关于超参数:</p>
+<p>机器学习需要人工调整参数（如权重和偏移），让输出的结果尽可能靠近正确结果。而深度学习是计算机自己调整参数，直到达到一个最好的学习效果。但在学习开始之前，需要设置一些参数，来定义关于模型的复杂性或学习能力，被称为<strong>超参数</strong>。超参数是不能通过训练模型得到的。</p>
+<h2 id="TSDL（可分离式深度学习）"><a href="#TSDL（可分离式深度学习）" class="headerlink" title="TSDL（可分离式深度学习）"></a>TSDL（可分离式深度学习）</h2><p>我们提出了一种可分离式深度学习(TSDL)水印框架。存在两个工作阶段。</p>
+<ol>
+<li>第一阶段，采用多层特征编码策略，在不参考任何噪声的情况下冗余地将水印消息自动编码到图像中，我们称之为无噪声端到端对手训练（FEAT）</li>
+<li>第二阶段，名为噪声感知解码器（ADOT）训练。不断修改解码器的参数，使其能在噪声攻击下准确提取水印。</li>
+</ol>
+<p>与OET相比，我们的编码器能获得更好的编码图像质量。由于第一阶段并没有引入噪声层，所以我们的编码器必须做到在看不到任何噪声的情况下学会对抗噪声。</p>
+<p>为了实现这一目标，我们提出了一种冗余的多层次特征编码网络（RMFEN）。我们还设置了一个强度因子，灵活地在鲁棒性和不可感知性之间权衡。</p>
+<h2 id="模型架构"><a href="#模型架构" class="headerlink" title="模型架构"></a>模型架构</h2>
+
+<ol>
+<li>将原图像Ico和信息M（-1和1的序列）输入到<strong>编码器</strong>中，输出水印图像Ien</li>
+<li>对Ien进行<strong>噪声攻击</strong>，输出遭受攻击后的图像Ino</li>
+<li>用<strong>解码器</strong>恢复Ien或Ino中的水印信息M’</li>
+<li><strong>对手A</strong>比较Ico和Ien，评估所给图像是编码图像的概率</li>
+</ol>
+<h3 id="编码器E"><a href="#编码器E" class="headerlink" title="编码器E"></a>编码器E</h3><p>消息M是一个一维向量，我们将其复制扩展为三维张量{−1, 1}^(L∗H∗W)。</p>
+<p>L是消息长度，H、W是图像长宽。</p>
+<p>关于张量：</p>
+<p><a href="https://www.jianshu.com/p/f34457c222c5">https://www.jianshu.com/p/f34457c222c5</a></p>
+<p>先将彩色RGB图像转化为YUV图像（其实指的是 YCbCr），转化过程如下：</p>
+<p><strong>Y= 0.299*R+0.587*G+0.114*B</strong><br><strong>U=-0.147*R-0.289*G+0.463*B</strong><br><strong>V= 0.615*R-0.515*G-0.100*B</strong></p>
+<p>编码器使用64个1∗1卷积核放大覆盖图像的颜色通道（由3维放大为64维）。然后使用3∗3核大小的5个卷积层进行特征提取和水印嵌入。在嵌入水印的过程中，我们将重复的水印串接到每个卷积层的输入，引入冗余。</p>
+<p>注：1x1卷积一般只改变输出通道数（channels），<strong>而不改变输出的宽度和高度</strong></p>
+<p>将上述三维张量连接到每一层的输出特征上R^(64*H*W)，然后新的张量R^（（64+L）*H*W）被输入到下一层。最后，我们使用1∗1卷积层将多通道图片转换为3通道图片。</p>
+
+
+<p>用M生成Im的水印掩码。Ien=Ico+S*Im。其中S是强度因子。</p>
+<p>损失函数（目标找到参数θE使得Ico和Ien差距最小）：</p>
+
+
+<p>MSE：均方误差。</p>
+<h3 id="解码器D"><a href="#解码器D" class="headerlink" title="解码器D"></a>解码器D</h3><p>对于水印图片，解码器输出的M’的分布应该更接近（1，-1）。而对于没有水印的图片，输出的分布更接近0。所以我们用（-1，1）代替（0，1）。</p>
+<p>对比：</p>
+<ul>
+<li>M为0，0，1，1，M’为0，0，0，0。那么有均方误差为2</li>
+<li>M为-1，-1，1，1，M’为0，0，0，0。那么均方误差为4</li>
+</ul>
+<p>这样损失函数更能比较解码器的性能：</p>
+
+
+<h3 id="对手A"><a href="#对手A" class="headerlink" title="对手A"></a>对手A</h3><p>在对手网络对抗中，编码器不断更新θE，来试图欺骗对手，使得对手无法判断Ico和Ien。对于A，则不断更新θA来对Ico和Ien进行二分类。</p>
+
+
+
+
+<h2 id="两阶段可分离式训练"><a href="#两阶段可分离式训练" class="headerlink" title="两阶段可分离式训练"></a>两阶段可分离式训练</h2><p>阶段一：无噪声端到端对手训练（FEAT），目的是最小化：</p>
+
+
+<p>阶段二：噪声感知解码器（ADOT）训练。目标是最小化：</p>
+
+
+<p>第一阶段的训练对第二阶段的训练能起到加速作用。</p>
+<h3 id="传统噪声攻击"><a href="#传统噪声攻击" class="headerlink" title="传统噪声攻击"></a>传统噪声攻击</h3><ol>
+<li>Resize噪声，将图片缩小为原先的p倍再放大回原先尺寸</li>
+<li>椒盐噪声(salt-and-pepper noise)是指两种噪声，一种是盐噪声（salt noise），另一种是胡椒噪声（pepper  noise）。盐=白色(0)，椒=黑色(255)。前者是高灰度噪声，后者属于低灰度噪声。一般两种噪声同时出现，呈现在图像上就是黑白杂点。</li>
+<li>高斯噪声，指噪声的概率密度函数服从高斯分布</li>
+<li>JPEG压缩</li>
+</ol>
+<h3 id="黑盒噪声攻击"><a href="#黑盒噪声攻击" class="headerlink" title="黑盒噪声攻击"></a>黑盒噪声攻击</h3><p>日常生活中常见的图像处理软件引起的噪声攻击，我们称之为黑盒噪声。这种图像处理算法封装在软件中，总是集成了各种改变整个图像像素的传统噪声，</p>
+<h3 id="指定训练和组合训练"><a href="#指定训练和组合训练" class="headerlink" title="指定训练和组合训练"></a>指定训练和组合训练</h3><p>指定训练：在单个噪声下进行ADOT训练</p>
+<p>组合训练：在各种噪声下进行ADOT训练</p>
+<h2 id="评估"><a href="#评估" class="headerlink" title="评估"></a>评估</h2>
+
+<p>Pretrained 表示第一阶段无噪声下，解码器的准确率</p>
+<p>Specified 表示指定噪声训练下，指定解码器的准确率</p>
+<p>Combined 表示在该噪声下，组合解码器的准确率</p>
+]]></content>
+      <categories>
+        <category>论文笔记</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Fallout: Leaking Data on Meltdown-resistant CPUs 论文笔记</title>
+    <url>/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AFallout-Leaking-Data-on-Meltdown-resistant-CPUs/</url>
+    <content><![CDATA[<h1 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h1><h2 id="缓存"><a href="#缓存" class="headerlink" title="缓存"></a>缓存</h2><p>​        为了提高从内存里读取数据的速度，我们设立了多级缓存。缓存速度比内存要快很多，可以用来存储一些经常用到的数据，这样可以调高数据的利用效率。</p>
+<p>​        CPU会认为当前访问的某个地址的数据时，它周围的数据随后也会大概率被访问到，所以周围数据会一并放到缓存中，以便于取用。</p>
+<h2 id="乱序执行"><a href="#乱序执行" class="headerlink" title="乱序执行"></a>乱序执行</h2><p>​        某些指令的准备工作，和一些不依赖前面指令运行结果的指令，都可以提前运行，然后把结果放入缓存。如果轮到该指令运行，就直接将缓存内数据写入内存。</p>
+<h2 id="分支预测"><a href="#分支预测" class="headerlink" title="分支预测"></a>分支预测</h2><p>​        遇到分支跳转时，按照之前的经验，如果某个分支经常被执行，那后续再去这个分支的概率一定很大，那这样咱们预测后面会去到这个分支，就提前把这个分支后面指令能做的工作先做了。</p>
+<h2 id="幽灵与熔断"><a href="#幽灵与熔断" class="headerlink" title="幽灵与熔断"></a>幽灵与熔断</h2><p>​        如果分支预测被恶意利用，收到恶意程序欺骗，那么就会在关键时候预测失败，从而执行一些本不该执行的指令。虽然只将数据存储在缓存中，但通过访问内存时间的不同（放入缓存的数据访问时间会明显较短），就可以知道哪一块地址被缓存了。    </p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (x &lt; array1_size)</span><br><span class="line">&#123;</span><br><span class="line">   temp &amp;= array2[array1[x] * <span class="number">512</span>];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>​        一开始的x都小于array1_size，欺骗CPU不断提前进行分支预测（投机执行）。但当真正的恶意x（某个地址单元）（大于array1_size）到来时，CPU还是把if里面的执行结果放入了缓存。只是在指令真正开始执行时，虽然缓存不被输出，但访问的时间会明显较短，数一下缓存的内存到数组开头的偏移距离，可以推出这个地址单元的值。</p>
+<h2 id="缓解机制"><a href="#缓解机制" class="headerlink" title="缓解机制"></a>缓解机制</h2><p>​        Meltdown攻击最有效的方式就是KAISER/KPTI。KAISER/KPTI方案中要求操作系统维护两个页表，一个页表给用户程序使用，一个给kernel自己使用。并且确保程序所使用的页表不会映射高优先级的页面，即不会映射kernel的页面。</p>
+<p>​        两个页表的切换，会导致CR3（控制寄存器：用于控制和确定处理器的操作模式以及当前执行任务的特性）的重新加载，从而引起TLB刷新，进而降低内存的访问速度。如果某些应用场景需要大量的内核和用户空间切换（两个页表之间的切换），会造成较高的性能开销。</p>
+<h1 id="最新的漏洞"><a href="#最新的漏洞" class="headerlink" title="最新的漏洞"></a>最新的漏洞</h1><p>​        硬件修复后，上述缓解机制被禁用，该文章说明了最新的抗熔断处理器仍是具有数据泄漏的潜在风险，仍易受到熔断攻击。</p>
+<ol>
+<li>一个写瞬态转发（WTF）的漏洞，它允许我们读取最近写入的数据</li>
+<li>展示WTF的安全影响：<ol>
+<li>恢复系统内核写入的值</li>
+<li>恢复TSX事务（粗粒度的锁，防止数据冲突）写入的数据</li>
+<li>泄漏密钥</li>
+</ol>
+</li>
+<li>定义了一个新的TLB侧信道（store-to-leak）：Inter的存储转发单元在一个不可访问的虚拟地址映射到一个相应的物理存储地址的过程中，可以利用一个丢失的权限检查，得到一个新的侧信道。</li>
+<li>文章演示如何利用Store-to-Leak破解KASLR（上述的一种缓解机制）和ASLR（地址随机化），以及将这些攻击方式写成了一个小工具</li>
+<li>定义了一个新的瞬态执行原因：它是当处理器遇到特定的边缘情况时执行的微型代码例程。（命名为assists）</li>
+<li>实现了一次熔断攻击，利用由Supervisor Mode Access<br>Prevention (SMAP)导致的页异常.</li>
+</ol>
+<h1 id="Write-Transient-Forwarding（WTF）漏洞"><a href="#Write-Transient-Forwarding（WTF）漏洞" class="headerlink" title="Write Transient Forwarding（WTF）漏洞"></a>Write Transient Forwarding（WTF）漏洞</h1><p>​        文章发现WTF会错误地将值从写入的内存传递到随后的错误加载指令中。</p>
+<p>​        当程序试图从一个地址读取数据时，CPU必须首先检查存储缓冲区是否写入了相同的地址，如果地址匹配，则执行store-to-load forwarding。但是如果地址匹配但地址无效，则会产生WTF漏洞。</p>
+<p>​        Inter的专利中表明，上述操作确实会发生错误。</p>
+<p>“if there is a hit at operation 302 [lower address match]and the physical address of the load or store operations is not valid, the physical address check at operation 310 [full physical address match] may be considered as a hit and the method 300 [store-to-load forwarding] may continue at operation 308 [block load/forward data from store].”</p>
+<p>​        如果一个无效的地址，通过了低地址匹配302，但无法通过全地址匹配310，就会引发错误。该错误会导致300操作，使得store-to-load forwarding。</p>
+<h2 id="简单的例子"><a href="#简单的例子" class="headerlink" title="简单的例子"></a>简单的例子</h2><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span><span class="keyword">char</span>* victim_page = mmap(...,PAGE_SIZE,PROT_READ|PROT_WRITE,MAP_POPULATE, ...);</span><br><span class="line"><span class="number">2</span><span class="keyword">char</span>* attacker_address = <span class="number">0x9876543214321000</span>ull;<span class="comment">//unsigned long long</span></span><br><span class="line"><span class="number">3</span></span><br><span class="line"><span class="number">4</span><span class="keyword">int</span> offset = <span class="number">7</span>;</span><br><span class="line"><span class="number">5</span>victim_page[offset] = <span class="number">42</span>;</span><br><span class="line"><span class="number">6</span><span class="keyword">if</span>(tsx_begin() == <span class="number">0</span>) &#123;</span><br><span class="line"><span class="number">7</span>memory_access(lut + <span class="number">4096</span> * attacker_address[offset]);</span><br><span class="line"><span class="number">8</span>tsx_end();</span><br><span class="line"><span class="number">9</span>&#125;</span><br><span class="line"><span class="number">10</span></span><br><span class="line"><span class="number">11f</span><span class="keyword">or</span>(i = <span class="number">0</span>; i &lt; <span class="number">256</span>; i++) &#123;</span><br><span class="line"><span class="number">12</span>	<span class="keyword">if</span>(flush_reload(lut + i * <span class="number">4096</span>)) &#123;</span><br><span class="line"><span class="number">13</span>	report(i);</span><br><span class="line"><span class="number">14</span>	&#125;</span><br><span class="line"><span class="number">15</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<p>​        上述的victim_page是一个普通的页面，用户可以在其中读写数据。attacker_address是构造的一个非规范的地址，其中的47到63位既不全是’ 0 ‘也不全是’ 1 ‘来导致错误。（行1-2）</p>
+<p>​        然后在用户空间 victim_page的指定偏移量7中存储机密值42。（行4-5）</p>
+<p>​        注意到，上述代码并没有直接访问victim_page来读取数据。相反，攻击者通过解引用毫无关联的attacker_address来读取存储缓冲区条目。而且上述代码还利用TSX事务来抑制该操作造成的其他异常。（行6-9）</p>
+<p>​        但由于WTF漏洞，CPU会以前一个存储的值作为页面偏移量来加载一个值。而前一个值就是我们存储的秘密值42。然后我们加载该页面的所有值，计算加载时间。会得到一个加载时间远小于其他值的内存地址，算一算偏移地址，就可以算出秘密值。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AFallout-Leaking-Data-on-Meltdown-resistant-CPUs/1.png" class="">
+
+<p>​        这样的一个漏洞给可以让我们随意阅读上下文存储的数据。</p>
+<h1 id="数据弹出（-Data-Bounce）"><a href="#数据弹出（-Data-Bounce）" class="headerlink" title="数据弹出（ Data Bounce）"></a>数据弹出（ Data Bounce）</h1><p>我们想尝试，一个非法的数据写入是否能作为地址偏移量，去加载一个内存地址。如果可以，那么我们可以将需要获取的某一个秘密值作为输入，构造成地址，去访问内存。通过查看内存的访问速度，来判断哪一个内存访问速度明显较快，然后计算偏移量来恢复那个秘密值。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mov (0) -&gt; $dummy</span><br><span class="line">#生成一个异常并捕获他来启动瞬态执行</span><br><span class="line">mov $x	-&gt; $(p)</span><br><span class="line">#存储一个秘密值x在地址p上</span><br><span class="line">mov (p) —&gt; $value</span><br><span class="line">#我们读取存储在地址p上的值</span><br><span class="line">mov ($mem + $value * 4096) -&gt; $dummy</span><br><span class="line">#通过WTF，恢复存储的值</span><br></pre></td></tr></table></figure>
+
+<p>这里有两种情况：</p>
+<ol>
+<li>如果从p读取的值是x，mem的第x页被缓存了，即Store-to-Load Forwarding的情况.</li>
+<li>No Store-to-Load Forwarding的情况出现，那么该数据弹出就失败了。这种失败可能是暂时的也可能是永久的。<strong>如果一个物理地址页面不支持虚拟地址</strong>，那么永远也不可能成功。如果来自硬件的错误（如中断），那么可能该错误是暂时的。</li>
+</ol>
+<h1 id="Fetch-Bounce"><a href="#Fetch-Bounce" class="headerlink" title="Fetch+Bounce"></a>Fetch+Bounce</h1><p>使用数据反弹很容易区分有效地址和无效地址。然而，它的成功率(<strong>即数据反弹需要重复的频率</strong>)直接取决于在TLB中存储了哪些地址。</p>
+<p>通过分析数据反弹的成功率，我们进一步利用了与TLB相关的侧通道信息。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">for retry = 0...2</span><br><span class="line">	mov $x→ (p)</span><br><span class="line">	mov (p)→ $value</span><br><span class="line">	mov ($mem + $value * 4096)→ $dummy</span><br><span class="line">if flush_reload($mem + $x * 4096) then break</span><br></pre></td></tr></table></figure>
+
+<p>如果上述代码第一次就能命中，说明该地址本身就在TLB中。如果第二次可以命中，说明该地址不在TLB中，但是该地址是有效的。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AFallout-Leaking-Data-on-Meltdown-resistant-CPUs/2.png" class="">
+
+<p>可以看到页面0-7是无效的，页面17是在TLB中，其他地址有效但不在TLB中。</p>
+<h1 id="Speculative（投机的）-Fetch-Bounce"><a href="#Speculative（投机的）-Fetch-Bounce" class="headerlink" title="Speculative（投机的） Fetch+Bounce"></a>Speculative（投机的） Fetch+Bounce</h1><p>如图：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AFallout-Leaking-Data-on-Meltdown-resistant-CPUs/3.png" class="">
+
+<p>攻击者需要控制数组索引就可以从内核中泄漏任意内存内容。根据要泄漏的字节值，我们将访问256个页面中的一个。然后，Fetch +Bounce用于检测哪些页面在TLB中缓存了有效的地址。缓存的TLB条目直接显示了泄漏的字节。</p>
+<h1 id="打破内核隔离"><a href="#打破内核隔离" class="headerlink" title="打破内核隔离"></a>打破内核隔离</h1><p>我们需要人为设置两个模块：</p>
+<ul>
+<li><p>内核模块</p>
+<ul>
+<li>我们设置的内核设置了一系列写入操作，每个操作都指向不同内核页面的不同页面偏移量。这些内核页面用户是无法直接访问的。</li>
+</ul>
+</li>
+<li><p>攻击程序</p>
+<ul>
+<li>攻击者应用程序调用内核模块来执行内核写操作，然后尝试恢复内核写的值。</li>
+</ul>
+<p>攻击结果：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AFallout-Leaking-Data-on-Meltdown-resistant-CPUs/4.png" class=""></li>
+</ul>
+<p>可以看到，内核存储数据数量越多，读取成功率越高。</p>
+<p>在易受熔断的机器上，禁用KAISER补丁会使机器暴露在熔断攻击下。这意味着，与旧CPU相比，英特尔新一代CPU更容易受到攻击出现内核消息泄漏。</p>
+]]></content>
+      <categories>
+        <category>幽灵与熔断</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Learning Invisible Markers for Hidden Codes in Offline-to-online Photography论文笔记</title>
+    <url>/2023/08/14/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALearning%20Invisible%20Markers%20for%20Hidden%20Codes%20in%20Offline-to-online%20Photography/</url>
+    <content><![CDATA[<h1 id="Learning-Invisible-Markers-for-Hidden-Codes-in-Offline-to-online-Photography-论文笔记"><a href="#Learning-Invisible-Markers-for-Hidden-Codes-in-Offline-to-online-Photography-论文笔记" class="headerlink" title="Learning Invisible Markers for Hidden Codes in Offline-to-online Photography 论文笔记"></a>Learning Invisible Markers for Hidden Codes in Offline-to-online Photography 论文笔记</h1><p>本文的主要贡献如下：</p>
+<ol>
+<li>提出一种不可见的信息隐藏结构，包括编码器、定位网络、矫正、解码器四个部分。</li>
+<li>第一次在端到端的框架中加入了隐形定位标记模块。编码器和定位网络联合训练生成人眼不可见的定位标记，在不破坏视觉效果的情况下大大减少矫正几何失真的时间。</li>
+<li>提出一种有效的多阶段训练策略，设置了一系列损失函数，使得包含的隐藏信息对于人眼来说是不可见的。</li>
+</ol>
+<h2 id="包含定位网络的信息隐藏结构"><a href="#包含定位网络的信息隐藏结构" class="headerlink" title="包含定位网络的信息隐藏结构"></a>包含定位网络的信息隐藏结构</h2><img src="/2023/08/14/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALearning%20Invisible%20Markers%20for%20Hidden%20Codes%20in%20Offline-to-online%20Photography/1.png" class="">
+
+<ol>
+<li>编码图像是原图像的某一个区域，M=256，N=96。将数据矩阵和编码图像放入U-net中编码，得到水印图像，然后覆盖原图像中编码图像的区域。</li>
+<li>加入扰动后，图像会有所畸变。</li>
+<li>将加噪图像放入定位网络后，会预测出编码图像区域。</li>
+<li>提取出编码图像，再放入解码器U-net中，从而解码出数据矩阵。</li>
+</ol>
+<h2 id="定位网络（HRNet）"><a href="#定位网络（HRNet）" class="headerlink" title="定位网络（HRNet）"></a>定位网络（HRNet）</h2><img src="/2023/08/14/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALearning%20Invisible%20Markers%20for%20Hidden%20Codes%20in%20Offline-to-online%20Photography/2.png" class="">
+
+<ul>
+<li>输入是一个256*256的图片，该图片有一个96*96的四边形区域，以这四个顶点为中心生成2D高斯分布，得到目标热力图（64*64）。</li>
+<li>该定位网络使用的HRNet包括四个不同规模的并行子网络（上图只展示了三个并行子网络）。为了监控模型预测，将预测的四个点坐标转化为64*64的预测热力图，计算与目标热力图的MSE损失。</li>
+<li>最后用预测热力图生成预测顶点，用逆透视变换得到96*96的目标图像。</li>
+</ul>
+<h2 id="多阶段的训练策略"><a href="#多阶段的训练策略" class="headerlink" title="多阶段的训练策略"></a>多阶段的训练策略</h2><p>第一阶段：只优化定位网络和解码器。定位损失函数是目标顶点热力图和预测顶点热力图的MSE。解码损失是目标数据矩阵和预测数据矩阵的交叉熵损失。</p>
+<img src="/2023/08/14/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALearning%20Invisible%20Markers%20for%20Hidden%20Codes%20in%20Offline-to-online%20Photography/3.png" class="">
+
+<img src="/2023/08/14/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALearning%20Invisible%20Markers%20for%20Hidden%20Codes%20in%20Offline-to-online%20Photography/8.png" class="">
+
+<img src="/2023/08/14/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALearning%20Invisible%20Markers%20for%20Hidden%20Codes%20in%20Offline-to-online%20Photography/9.png" class="">
+
+<p>第二阶段：加入视觉损失。视觉损失包括编码图像与原图的l2损失和lpips的感知损失。</p>
+<img src="/2023/08/14/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALearning%20Invisible%20Markers%20for%20Hidden%20Codes%20in%20Offline-to-online%20Photography/4.png" class="">
+
+<p>第三阶段：消除编码图像覆盖到原图像后产生的可见边界。是通过一个权重矩阵来实现的，该权重矩阵靠近图像边界权重越大，靠近图像中心权重越小。</p>
+<img src="/2023/08/14/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALearning%20Invisible%20Markers%20for%20Hidden%20Codes%20in%20Offline-to-online%20Photography/6.png" class="">
+
+<img src="/2023/08/14/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALearning%20Invisible%20Markers%20for%20Hidden%20Codes%20in%20Offline-to-online%20Photography/5.png" class="">
+
+<img src="/2023/08/14/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALearning%20Invisible%20Markers%20for%20Hidden%20Codes%20in%20Offline-to-online%20Photography/7.png" class="">
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><h3 id="优点："><a href="#优点：" class="headerlink" title="优点："></a>优点：</h3><ol>
+<li>视觉质量好。PSNR达到32.95，SSIM达到0.9677。</li>
+<li>直拍下定位精度高，数据矩阵恢复正确率高。</li>
+<li>由于定位网络的存在，不需要人工选择图像四角，更加智能。</li>
+</ol>
+<h3 id="缺点："><a href="#缺点：" class="headerlink" title="缺点："></a>缺点：</h3><ol>
+<li>抗噪能力弱，拍摄环境稍微恶劣一点，定位精度就会显著下降，完全不抵抗JPEG压缩。</li>
+<li>恢复正确率非常依赖定位网络的发挥，参照第一点，恶劣拍摄环境下信息恢复效果差。</li>
+</ol>
+]]></content>
+      <categories>
+        <category>论文笔记</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Screen-Shooting Resilient Watermarking 论文笔记</title>
+    <url>/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/</url>
+    <content><![CDATA[<h1 id="基于屏幕摄像的弹性水印"><a href="#基于屏幕摄像的弹性水印" class="headerlink" title="基于屏幕摄像的弹性水印"></a>基于屏幕摄像的弹性水印</h1><h2 id="综述"><a href="#综述" class="headerlink" title="综述"></a>综述</h2><p>文章提出了一个新型的屏幕摄像的弹性水印，即当水印图像显示在屏幕上时，摄像头拍摄屏幕信息，仍然可以捕获照片中的水印信息。</p>
+<h3 id="遇到的困难和解决方案"><a href="#遇到的困难和解决方案" class="headerlink" title="遇到的困难和解决方案"></a>遇到的困难和解决方案</h3><ul>
+<li><p>由于拍摄角度，拍摄场景等的限制，屏幕拍摄过程中可能出现<strong>畸变</strong></p>
+<ul>
+<li><p>透视变形</p>
+<ul>
+<li>解决办法：为了抵抗透视变形引起的几何变换，我们提出了一种<strong>基于强度的尺度不变特征变换（I-SIFT）算法</strong>，能够有效定位嵌入区域</li>
+</ul>
+</li>
+<li><p>光源畸变和Moire畸变</p>
+<ul>
+<li>没办法解决，但可以通过一种<strong>小尺寸模板算法</strong>，将水印反复嵌入到不同区域，试至少一个完整的信息区域不受失真影响。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>提取方面，如何提高水印提取的精度</p>
+<ul>
+<li>我们设计了一种基于<strong>交叉验证</strong>的提取算法来处理重复嵌入。</li>
+</ul>
+</li>
+<li><p>速度方面，如何加快提取水印的速度</p>
+<ul>
+<li>我们提出了一种<strong>SIFT特征编辑算法</strong>来增强关键点的强度，在此基础上提高提取精度和提取速度。</li>
+</ul>
+</li>
+</ul>
+<h3 id="成果"><a href="#成果" class="headerlink" title="成果"></a>成果</h3><ol>
+<li>提出了一种基于强度的尺度不变特征变换(I-SIFT)算法，该算法可以在不含原始图像信息的情况下准确<strong>定位嵌入</strong>区域。</li>
+<li>我们提出了一种<strong>小尺寸模板算法</strong>，将水印反复嵌入到不同的区域，使至少一个完整的信息区域能够在<strong>光源失真</strong>和<strong>Moire失真</strong>的情况下存活下来。</li>
+<li>设计了一种基于<strong>交叉验证</strong>的<strong>盲提取算法</strong>，并将其与重复嵌入相结合，有效地保证了提取的准确性。</li>
+<li>我们提出了一种<strong>SIFT特征编辑算法</strong>来增强关键点的强度，应用该算法可以大大提高关键点的鲁棒性和提取过程的速度。</li>
+</ol>
+<h2 id="屏幕摄像的形变分析"><a href="#屏幕摄像的形变分析" class="headerlink" title="屏幕摄像的形变分析"></a>屏幕摄像的形变分析</h2><h3 id="透视变形"><a href="#透视变形" class="headerlink" title="透视变形"></a>透视变形</h3><p>由于拍摄<strong>角度的多样性</strong>，在透视变换中会出现旋转、缩放和平移失真RST（rotation,  scaling  and  translation distortions）。而在图像的<strong>透视较正</strong>（可以了解一下照相机成像过程）中，图像的一些细节也会失真。</p>
+<p>另外我们进行<strong>盲提取</strong>，即不通过原始图像的信息或其他先验信息。所以我们需要一个不需要<strong>任何先验信息</strong>的定位算法来定位畸变图像中的嵌入区域。</p>
+<h3 id="光源畸变"><a href="#光源畸变" class="headerlink" title="光源畸变"></a>光源畸变</h3><p>屏幕光源的不均匀性会产生很多亮度失真，因此不能采用全图嵌入的方法，否则会因为光源不均丢失大量信息。为了解决这一问题，我们需要将信息反复嵌入多个区域，以保证至少有一个完整的水印序列能够在失真中存活下来。</p>
+<h3 id="Moire畸变"><a href="#Moire畸变" class="headerlink" title="Moire畸变"></a>Moire畸变</h3><p>当摄像机传感器中的像素的空间频率接近于屏幕中的像素的空间频率时会生成摩尔纹。摩尔纹是不规律的，并且会扩散到全图，对细节信息造成很大的扭曲。所以我们需要将信息嵌入到某一个收到摩尔纹影响最小的域。</p>
+<h2 id="SIFT（尺度不变特征匹配算法）"><a href="#SIFT（尺度不变特征匹配算法）" class="headerlink" title="SIFT（尺度不变特征匹配算法）"></a>SIFT（尺度不变特征匹配算法）</h2><p>SIFT是一种计算机视觉的算法用来侦测与描述图像的<strong>局部性特征</strong>（这些局部特征对畸变引起的几何变换具有一定程度的抗性），它在<strong>空间尺度</strong>中寻找<strong>极值点</strong>，并提取出其位置、尺度、旋转不变量。这些关键点（极值点）具有<strong>特征不变性</strong>，因此我们可以使用SIFT来定位嵌入位置。使得这些位置的特征在<strong>透视变形</strong>中具有鲁棒性。</p>
+<p>关于特征不变性：</p>
+<p>有些图像的特征即使发生了旋转（<strong>旋转不变性</strong>）、距离或远或近（<strong>尺度不变性</strong>），依然可以描述一张图像。就像对一个人的照片<strong>旋转</strong>或<strong>拉远（降低分辨率）</strong>以后，但依旧可以辨识出这个人是谁。</p>
+<p>关于空间尺度：<a href="https://blog.csdn.net/samkieth/article/details/50407655">https://blog.csdn.net/samkieth/article/details/50407655</a></p>
+<p>当用一个机器视觉系统分析未知场景时，计算机没有办法预先知识图像中物体尺度，因此，我们需要同时考虑图像在多尺度下的描述，获知感兴趣物体的<strong>最佳尺度</strong>（就像一张照片，太近了看不清楚，太远也看不清楚，所以需要一个合适的尺度去观察）。</p>
+<h3 id="存在的问题"><a href="#存在的问题" class="headerlink" title="存在的问题"></a>存在的问题</h3><ol>
+<li>在定位过程中需要提供关键点描述符，不满足盲提取的要求</li>
+<li>对于每一个关键点，拥有三个信息：位置、尺度以及方向。接下来就是为每个关键点建立一个描述符，用一组向量将这个关键点描述出来。但需要计算每个关键点的描述性信息，大大增加了定位时间</li>
+</ol>
+<h2 id="嵌入位置"><a href="#嵌入位置" class="headerlink" title="嵌入位置"></a>嵌入位置</h2><p>对于彩色图像，我们需要将其转化为YCbCr的色彩空间。</p>
+<p>摄影机感光元件产生的RGB信号中，每个色彩通道都含有<strong>色彩信息</strong>和<strong>灰度</strong>（<strong>明度</strong>）信息，后者是冗余信息。因此，大部分录像系统将色度信息提炼成了<strong>彩色差异</strong>（<strong>饱和度</strong>）信号。</p>
+<p>关于YCbCr：</p>
+<p>这是和RGB一样，是一种色彩空间。也具有三个通道：</p>
+<ul>
+<li><strong>明度</strong>以Y表示。</li>
+<li>其中一个色彩通道用<strong>蓝色元素减去明度</strong>：B-Y</li>
+<li>另外一个色彩通道用<strong>红色元素减去明度</strong>：R-Y</li>
+</ul>
+<p>这里的<strong>明度Y</strong>不是简单的亮度，而是有一个计算公式： Y = 0.2126R + 0.7152G + 0.0722B</p>
+<p>这样我们有：</p>
+<ul>
+<li>Y = Y</li>
+<li>B = Pb + Y</li>
+<li>R = Pr + Y</li>
+<li>G = (Y - 0.2126 R - 0.0722 B) / 0.7152</li>
+</ul>
+<p>如果不是彩色图像，就直接用灰度图像。</p>
+<h2 id="实现过程"><a href="#实现过程" class="headerlink" title="实现过程"></a>实现过程</h2><img src="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/3.png" class="">
+
+<h3 id="关于高斯模糊："><a href="#关于高斯模糊：" class="headerlink" title="关于高斯模糊："></a>关于高斯模糊：</h3><p>参考上述的尺度空间，我们需要找到一个观察图像最好的尺度空间。而变换图像尺度的方法，用的就是<strong>高斯模糊</strong>。高斯模糊用一个高斯核卷积图像，</p>
+<p>关于图像卷积：<a href="https://blog.csdn.net/naruhina/article/details/104729037/">https://blog.csdn.net/naruhina/article/details/104729037/</a></p>
+<p>图像卷积就是<strong>卷积核</strong>（中间3*3的矩阵）在图像上按行滑动遍历像素时不断的相乘求和的过程。（<strong>降维</strong>，图像由7*7变成了5*5；<strong>提取特征</strong>，将一整个3*3的框内的所有特征归纳成了一个值）</p>
+<p>如图中所示，目前卷积核滑动到了图像左上角，我们把图像上的9个值与卷积核的9个数值按照对应位置相乘再相加得到一个和，这个和就是我们得到的卷积值。然后把卷积核向右移动一个像素，再执行对应位置相乘再相加的过程得到第二个卷积值，当把所有像素遍历完成之后我们得到的结果就构成了一幅图像。这就是卷积得到的图像。</p>
+<img src="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/1.png" class="">
+
+<p>高斯模糊，用一个高斯核席卷图像，保留图像的轮廓信息（低频信息），去除细节。</p>
+<img src="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/2.png" class="">
+
+<p>这里的高斯核，可以看到，中间权重高，四周低，这样卷积出来的图像，细节全部丢失，但灰度梯度大的地方反而保留了下来。</p>
+<h3 id="传统SIFT"><a href="#传统SIFT" class="headerlink" title="传统SIFT"></a>传统SIFT</h3><ol>
+<li><p>寻找关键点：</p>
+<p>使用高斯模糊，生成各个尺度下的图像，寻找各个尺度下都存在的极值点（极大值或极小值），这些点都是具有一定的特征不变性。然后去除低对比度的和不稳定的边缘点。</p>
+</li>
+<li><p>生成关键点描述符</p>
+<p>每个关键点拥有三个信息：位置、尺度以及方向（灰度图像中该像素点的梯度）。接下来就是为每个关键点建立一个描述符，用一组向量将这个关键点描述出来。</p>
+</li>
+</ol>
+<h3 id="基于强度的关键点筛选"><a href="#基于强度的关键点筛选" class="headerlink" title="基于强度的关键点筛选"></a>基于强度的关键点筛选</h3><p>在选择关键点（极值点）时，将关键点按强度降序排序，并命名为“top-n”。而在屏幕摄像的过程中，会对关键点产生重大的影响：</p>
+<ul>
+<li>关键点强度的变化</li>
+<li>点位置的偏移</li>
+</ul>
+<p>在后面会介绍具体的解决方法。</p>
+<h3 id="挑选特征区域（嵌入区域）"><a href="#挑选特征区域（嵌入区域）" class="headerlink" title="挑选特征区域（嵌入区域）"></a>挑选特征区域（嵌入区域）</h3><p>对于一个长度为I的二进制水印序列，将其嵌入到a*b的矩阵中。如图</p>
+<img src="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/4.png" class="">
+
+<p>为了防止每个特征区域之间互不重合，需要将重合的关键点筛出，取强度高的留下，其余的筛掉。这样留下的区域，我们还要比较替换前后的结构相似性指数（SSIM），选取SSIM最高的<strong>k个区域</strong>为嵌入区域，其余的不变。</p>
+<h3 id="信息嵌入"><a href="#信息嵌入" class="headerlink" title="信息嵌入"></a>信息嵌入</h3><p>关于DCT矩阵：</p>
+<p>DCT，即离散余弦变换，步骤如下：</p>
+<ol>
+<li>分割，首先将图像分割成8x8或16x16的小块；</li>
+<li>DCT变换，对每个小块进行DCT变换；</li>
+<li>舍弃高频系数（AC系数），保留低频信息（DC系数）。高频系数一般保存的是图像的边界、纹理信息，低频信息主要是保存的图像中平坦区域信息。</li>
+</ol>
+<p>对于一串二进制01串，我们将每一个0或1嵌入到DCT矩阵（8x8）中，然后我们观察发现，再屏幕摄像过程中，虽然对于的矩阵系数发生了改变（图中每个方块的亮度），但是R1（（7，7）+（7，8））和R2（（8，7）+（8，8））的相对大小没有改变。我们将R1&gt;R2当作信息0，将R1&lt;R2当作信息1。这样一来，就算就能抵抗在拍摄过程中的失真。</p>
+<p>见特征区域的图可以看出：</p>
+<p>每一个8x8块可以嵌入一个信息0或1，axb个块即可嵌入长度为I的二进制串。</p>
+<p>下图：</p>
+<p>b，c是嵌入时的0和1。</p>
+<p>c，d是提取时的0和1。</p>
+<img src="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/5.png" class="">
+
+<h3 id="提取过程"><a href="#提取过程" class="headerlink" title="提取过程"></a>提取过程</h3><h4 id="矫正失真"><a href="#矫正失真" class="headerlink" title="矫正失真"></a>矫正失真</h4><p>通过透视变换来矫正透视变形，然后进行裁剪和缩放操作。但对于获得的一个图像，我们很难直接得到<strong>4个图像的顶点</strong>，因为该矫正算法需要4个顶点时才有效。所以我们需要人为的在图像四周<strong>添加边框</strong>。</p>
+<img src="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/6.png" class="">
+
+<h4 id="特征区域定位"><a href="#特征区域定位" class="headerlink" title="特征区域定位"></a>特征区域定位</h4><p>我们采用的是盲提取，所以如何找到嵌入的特征区域十分重要。我们对图像的Y通道运用I-SIFT后，还需要做一些额外的操作来避免提取过程中关键点定位的错误，如：</p>
+<ul>
+<li>关键点强度的变化<ul>
+<li>由于关键点的强度顺序可能会发生变化，因此需要增加提取次数来确保提取的<strong>k个关键点</strong>都在其中。但关键点我们将提取范围从k翻倍，变成<strong>2k个</strong>。</li>
+</ul>
+</li>
+<li>点位置的偏移<ul>
+<li>由于矫正失真过程，同一关键点的精确位置会有一些轻微的偏移，我们需要做一个邻域遍历来补偿偏移。</li>
+<li>我们对这个点执行3 × 3像素的遍历。将以该关键点为中心的9个邻域点作为提取点组。</li>
+</ul>
+</li>
+<li>这样我们一共需要2xkx9个水印序列。</li>
+</ul>
+<h4 id="信息提取"><a href="#信息提取" class="headerlink" title="信息提取"></a>信息提取</h4><p>提取过程总的来说就算嵌入过程的逆过程。只不过我们嵌入了k个特征区域，但提取过程是<strong>2*k*9</strong>。这样我们会有<strong>2*k*9</strong>个水印序列。我们设置了一个th，如果水印对的差值不大于th，那么提取准确。</p>
+<p>但这样<strong>耗时较大</strong>，因为我们需要检索足够多的区域保证嵌入的特征区域在这些区域中。如果我们能适当<strong>减少</strong>提取区域的<strong>数量</strong>，我们就能减少<strong>提取时间</strong>。</p>
+<p>所以我们提出了<strong>SIFT特征编辑算法</strong></p>
+<h4 id="SIFT特征编辑算法"><a href="#SIFT特征编辑算法" class="headerlink" title="SIFT特征编辑算法"></a>SIFT特征编辑算法</h4><p>核心问题是，在提取过程中，有些关键点不足以抵御屏幕拍摄的扭曲，从而导致前k个强度的关键点发生了变化。</p>
+<p>如果在嵌入过程中，将提取到的关键点的强度提高，再减弱未嵌入区域关键点的强度。使前k个关键点能抵御失真。就可以减少提取过程时提取区域的数量。从而提高提取速度。这是一种减缓了嵌入速度但加快了提取速度的做法。</p>
+<p>同时因为对关键点的特征编辑，画面可能会有所失真，如图。</p>
+<img src="/2021/12/15/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AScreen-Shooting-Resilient-Watermarking/7.png" class="">
+]]></content>
+      <categories>
+        <category>论文笔记</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>VisCode: Embedding Information in Visualization Images using 论文笔记</title>
+    <url>/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/</url>
+    <content><![CDATA[<h1 id="VisCode-使用编码器-解码器网络在可视化图像中嵌入信息"><a href="#VisCode-使用编码器-解码器网络在可视化图像中嵌入信息" class="headerlink" title="VisCode:使用编码器-解码器网络在可视化图像中嵌入信息"></a>VisCode:使用编码器-解码器网络在可视化图像中嵌入信息</h1><h2 id="Overiew"><a href="#Overiew" class="headerlink" title="Overiew"></a>Overiew</h2><p>​        数据可视化的一个基本目标是提高对数据的认知和感知能力。与传输大量的原始数据相比，图像是更能被接受的载体。但是，在将原始信息转化为像素值后，很难从得到的图像中重建原始信息。而VisCode，就是一个在可视化图像中使用编码器和解码器网络嵌入和恢复隐藏信息的框架。</p>
+<h2 id="三个组件（Visual-Importance-Network、Encoder-Network、Decoder-Network）"><a href="#三个组件（Visual-Importance-Network、Encoder-Network、Decoder-Network）" class="headerlink" title="三个组件（Visual Importance Network、Encoder Network、Decoder Network）"></a>三个组件（Visual Importance Network、Encoder Network、Decoder Network）</h2><h3 id="Visual-Importance-Network"><a href="#Visual-Importance-Network" class="headerlink" title="Visual Importance Network"></a>Visual Importance Network</h3><p>​        由于数据可视化的语义特征与自然图像有很大的不同，文章使用网络来建模，得到一个<strong>视觉重要性图</strong>来用于下一个组件(Encode Network)的约束。考虑到错误校正，文章将普通信息转换为嵌入一系列<strong>QR码</strong>，而不是二进制数据。</p>
+<p>​        <img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/1.png" class=""></p>
+<h3 id="Encoder-Network"><a href="#Encoder-Network" class="headerlink" title="Encoder Network"></a>Encoder Network</h3><p>​        在该网络组件中，通过特征提取过程将<strong>载体图像和二维码图像</strong>嵌入到向量中。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/2.png" class="">、
+
+<h3 id="Decoder-Network"><a href="#Decoder-Network" class="headerlink" title="Decoder Network"></a>Decoder Network</h3><p>​        解码器网络从编码的图像中检索信息。用户可以通过数字传输与他人共享编码图像。将编码后的图像解码后，从解码后的QR码图像中获得最终的信息，并进行纠错。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/3.png" class="">
+
+<h2 id="VisCode系统运行过程"><a href="#VisCode系统运行过程" class="headerlink" title="VisCode系统运行过程"></a>VisCode系统运行过程</h2><p>​        VisCode系统的主要组件。首先，视觉重要性网络(b)对输入图形图(a)进行处理，便于检测可视化的显著特征，输出<strong>视觉重要性图</strong>。接下来，编码器网络(c)将<strong>秘密信息</strong>嵌入到图形图(a)中，通过特征提取将<strong>载体图像和二维码图像</strong>嵌入到向量中。然后，将这两个向量连接起来(如黄色矩形所示)，并进入<strong>自编码阶段</strong>。编码后的图像(d)被发送给用户(e)，用户可以通过数字传输将其发送给其他人。当用户希望获取图表中隐藏的详细信息时，可以将编码后的图像上传到解码器网络(f)。经过数据恢复和纠错后，用户接收到解码后的信息(g)。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/4.png" class="">
+
+<h2 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h2><h3 id="视觉重要性地图Visual-Importance-Map"><a href="#视觉重要性地图Visual-Importance-Map" class="headerlink" title="视觉重要性地图Visual Importance Map"></a>视觉重要性地图Visual Importance Map</h3><p>​        编码器网络的目标是将大量信息嵌入到图形图表中，同时使编码的图像在感知上与原始图像相同。一个简单的解决办法是训练一个模型使原始图表和编码后的图表之间像素差的平均平方误差最小。然而，这里的每个像素之间的权重是相同的，当编码到了重要区域，就可能产生可见噪声。所以文章需要一个视觉重要性地图来表明重要区域，方便在编码时绕过这些重要区域。</p>
+<p>​        视觉重要性图为图像的不同区域分配不同的分数（分数越高的区域越重要），这有助于在编码阶段保持重要内容的视觉质量。</p>
+<h3 id="如何得到一个数据集？"><a href="#如何得到一个数据集？" class="headerlink" title="如何得到一个数据集？"></a>如何得到一个数据集？</h3><p>​        Bylinskii等人的启发，文章利用基于带有<strong>眼动注释</strong>（<strong>人看一张图是眼球的聚焦点</strong>）的MASSVIS数据集建立了一个预测模型。</p>
+<p>​        因此，为了获得更准确的高层次语义上下文信息和更低层次的细节信息，文章使用混合训练，又人工对每个像素点进行注释，标注了其重要性。</p>
+<p>​        在上述两种预测模型的混合训练下，文章得到结果：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/5.png" class="">
+
+<p>​        a是输入的两个图像，b是用Bylinskii预测模型建的结果，c是人工注释后的结果，d是混合两种模型得到的重要性地图。</p>
+<p>​        这样就训练出了一个能输出视觉重要性地图的模型。</p>
+<h3 id="编码器网络和解码器网络"><a href="#编码器网络和解码器网络" class="headerlink" title="编码器网络和解码器网络"></a>编码器网络和解码器网络</h3><p>​        编码器网络设计用于将信息嵌入到载波图图像中，同时<strong>最小化编码图像中的扰动</strong>（尽量往视觉重要性高的地方嵌入-个人理解）。解码器网络从已编码的图像中恢复嵌入的秘密信息。</p>
+<p>​        关于损失函数：</p>
+<p>​            损失函数是用来估量<strong>模型的输出</strong>与<strong>真实值</strong>之间的差距，给模型的优化指引方向。</p>
+<p>​        编码器的损失函数：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/6.png" class="">
+
+<p>​        Vp是预测的<strong>视觉重要性图</strong>，可以看作是一个<strong>权重矩阵</strong>。视觉重要性得分越高的区域权重越大。Icp是输入的载波图像，Icp’是输出的编码图像。N是像素的个数。</p>
+<p>​        解码器的联合损失函数：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/7.png" class="">
+
+<p>​        其中，Is为原始输入二维码图像，Is’为解码器网络重构结果。α是解码器损耗的权重，表示编码图像的视觉质量和解码精度之间的权衡。</p>
+<p>​        α值越高，解码精度越高，感知质量越低（图像失真越严重，越像嵌入了东西）。α在实现中被设置为0.25。</p>
+<p>​        在训练过程中，同时训练编码器网络和解码器网络。也就是说，联合损失函数同时考虑了编码图像的视觉质量和重建误差。</p>
+<h4 id="训练结果"><a href="#训练结果" class="headerlink" title="训练结果"></a>训练结果</h4><img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/8.png" class="">
+
+<p>可以看出，（a）与（b）肉眼已经看不出差别，将差别放大10倍后的（c）仍不明显。</p>
+<p>​        结果表明，VisCode模型可以在保持原始图表图像感知质量的同时嵌入信息。</p>
+<h2 id="大规模数据嵌入"><a href="#大规模数据嵌入" class="headerlink" title="大规模数据嵌入"></a>大规模数据嵌入</h2><p>​        在图像中嵌入大量的信息是一个具有挑战性的问题，因为它容易产生明显的噪声或导致颜色或纹理的偏差。</p>
+<p>​        文章提出了一种新的方法，在人类视觉系统不敏感的区域大规模嵌入信息。</p>
+<p>​        假设文章将输入一个大规模的文本信息，那么第一步就是将文本分块：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/9.png" class="">
+
+<p>​        LenT是总文本长度，n是设定的每块的文本长度，NumB是块数量，LenB是实际上每块的文本长度。这里很严谨，LenB在最后一块上可能不等于n。</p>
+<p>​        考虑到QR码有多种模块配置，这可能会影响编解码网络的效果，文章使用不同的文本长度与QR码模块配置的映射关系进行测试。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/10.png" class="">
+
+<p>​        在实际操作中，文章并没有使用动态配置QR码。而是依据上表进行配置。n越大说明QR码存储的信息越多，但是ECC level（容错级别）就比较低。文章使用的n=800。这样QR码的区域框大小就是200X200了。</p>
+<h3 id="大规模数据的嵌入位置"><a href="#大规模数据的嵌入位置" class="headerlink" title="大规模数据的嵌入位置"></a>大规模数据的嵌入位置</h3><p>​        之前说了要找视觉最不敏感的区域嵌入信息，但找到了以后该怎么做呢？一种方案是随机取一些不敏感的区域嵌入信息，但这样修改与未修改的地方边界之间会很不和谐。另一种是蛮力搜索所有可能区域，用编解码器网络评估影响。但这样时间成本会很高。</p>
+<p>​        文章需要通过上面得到的<strong>视觉重要性图</strong>和<strong>区域框大小</strong>，找到最适合插入的地方，文章运用<strong>平均池化</strong>，来计算每个区域框的特征值(<strong>视觉重要性</strong>)，然后对其进行递增排序，获得候选区域列表。</p>
+<p>​                关于池化：</p>
+<p>​                        每个像素点都有自己的特征值（视觉重要性），而文章要寻找视觉重要性最小的区域框。那如何对框的视觉重要性进行评判了。文章选择了<strong>平均池化</strong>的方法（即用框内所有像素点特征值的平均来代替这个框的特征值）。</p>
+<p>​        现在有了从小到大的区域框候选列表，我遍历这个列表，找最适合的区域框。但是在找的过程中，会出现选入的两个区域框之间重合的情况。这里采用非最大抑制的方法NSM（说人话就是<strong>取前面的区域框</strong>，后面若和前面选中的框重合就丢弃，因为排过序了，<strong>前面框的视觉重要性低</strong>）。</p>
+<p>​        当选出所有的区域框后，这些区域框一定是视觉重要性最小的区域框，且两两之间不重合。这些区域框的位置信息需要存放到一个位置上，文章选择<strong>最左上角</strong>生成了一个区域框，来存放这些信息。</p>
+<h3 id="嵌入算法代码分析"><a href="#嵌入算法代码分析" class="headerlink" title="嵌入算法代码分析"></a>嵌入算法代码分析</h3><figure class="highlight vbscript"><table><tr><td class="code"><pre><span class="line">#Input:</span><br><span class="line">	#V:视觉重要性地图</span><br><span class="line">	#text：嵌入的大数据文本</span><br><span class="line">	#n: 分块的大小，<span class="number">800</span></span><br><span class="line">#Output:</span><br><span class="line">	#Ro_set：生成的嵌入区域框集合</span><br><span class="line">(W,H) =size(V)#视觉重要性地图的长和宽</span><br><span class="line">Calculate NumB <span class="keyword">and</span> LenB#根据文本分块公式计算分块的个数和分块后的文本长度</span><br><span class="line">Roset=&#123;&#125;,cnt=<span class="number">0</span></span><br><span class="line">kernel_size=map(LenB)#通过QR码的模块测试表生成区域框的长宽（因为n=<span class="number">800</span>，所以kernel_size=<span class="number">200</span>)</span><br><span class="line">Full_set#用平均池化的方式得到候选区域框集合</span><br><span class="line">sort(Full_set)#对该集合进行递增排序</span><br><span class="line"><span class="keyword">for</span>	c_egion	<span class="keyword">in</span> Full_set <span class="keyword">do</span></span><br><span class="line">	<span class="keyword">for</span>	s_region <span class="keyword">in</span> Ro_set <span class="keyword">do</span>#遍历每一个选中的区域s_region，比较候选区域c_egion是否和s_region重合</span><br><span class="line">		<span class="keyword">if</span>	Intersection(cregion,sregion) &gt; <span class="number">0</span> <span class="keyword">then</span></span><br><span class="line">			conflict=<span class="literal">true</span>#重合即标记该区域</span><br><span class="line">		<span class="keyword">end</span> <span class="keyword">if</span></span><br><span class="line">	<span class="keyword">end</span> <span class="keyword">for</span></span><br><span class="line">	<span class="keyword">if</span> conflict = <span class="literal">false</span> <span class="keyword">and</span> cnt &lt;= NumB <span class="keyword">then</span>#标记的区域丢弃，如果该候选区域没和已选区域重合，就选中，直到选满</span><br><span class="line">		Ro_set.append(c_region),cnt=cnt+<span class="number">1</span></span><br><span class="line">	<span class="keyword">end</span> <span class="keyword">if</span></span><br><span class="line"><span class="keyword">end</span> <span class="keyword">for</span></span><br><span class="line">return Ro_set</span><br></pre></td></tr></table></figure>
+
+<h3 id="个人关于此算法的看法"><a href="#个人关于此算法的看法" class="headerlink" title="个人关于此算法的看法"></a>个人关于此算法的看法</h3><p>​        嵌入算法本身没有问题，但是算法结果都要保存在最左上角的区域框中。假设载体图片最左上角的视觉重要性很大呢，就对原图像造成了很大的可发现的扰动。</p>
+<p>​        可改进的方法：未知</p>
+<h2 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h2><h3 id="可视化设计的元数据嵌入"><a href="#可视化设计的元数据嵌入" class="headerlink" title="可视化设计的元数据嵌入"></a>可视化设计的元数据嵌入</h3><p>如下图</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/11.png" class="">
+
+<p>将url，版权信息，版本信息等嵌入到可视化图表当中</p>
+<h3 id="源代码嵌入可视化"><a href="#源代码嵌入可视化" class="headerlink" title="源代码嵌入可视化"></a>源代码嵌入可视化</h3><p>​        这里的源代码指代的网页前端代码，系统可以从图像中解码源代码，并以<strong>网页的形式</strong>动态生成和显示可视化文件。</p>
+<p>​        具体流程，使用VisCode系统的美工和开发人员之间的协作通道：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/12.png" class="">
+
+<h3 id="可视化重新定位目标"><a href="#可视化重新定位目标" class="headerlink" title="可视化重新定位目标"></a>可视化重新定位目标</h3><h4 id="形式重定位"><a href="#形式重定位" class="headerlink" title="形式重定位"></a>形式重定位</h4><p>​        重新定位信息表示形式。输入的可视化可以转换为其他可视化形式。</p>
+<p>流程：提取源数据，按照嵌入的源代码重构输出图像。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/13.png" class="">
+
+<h4 id="主题重定位"><a href="#主题重定位" class="headerlink" title="主题重定位"></a>主题重定位</h4><p>​        通过提取源数据，重新构建色彩主题，VisCode的这个应用程序可以提供丰富的视觉风格和颜色主题。</p>
+<p>流程：提取源数据，按照嵌入的源代码重构输出的色彩主题。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/14.png" class="">
+
+<h2 id="评价"><a href="#评价" class="headerlink" title="评价"></a>评价</h2><p>​        我们从三个方面评估我们的VisCode模型：隐写指标，不同信息位数下的编码图像质量，隐写防御，通过数字传输的各种破坏场景下的解码精度，嵌入信息和恢复时间在不同设置下的时间性能。</p>
+<h3 id="隐写指标"><a href="#隐写指标" class="headerlink" title="隐写指标"></a>隐写指标</h3><p>关于PSNR：</p>
+<p>​        峰值信噪比，给定一个干净图像和噪声图像（这里的噪声图像就是经过VisCode处理后的图像），评价画质好坏的标准。(通常越大效果越好)</p>
+<p>关于SSIM：</p>
+<p>​        结构相似性，基于样本x（原图像）和y（VisCode处理后的图像）之间的三个比较衡量：亮度、对比度、结构。每次计算的时候都从图片上取一个N X N的窗口，然后不断滑动窗口进行计算，最后取平均值作为全局的SSIM。（0~1，越大表示效果越好）</p>
+<p>关于LPIPS：</p>
+<p>​        一种深度深度特征作为感知度量的无理由的有效性。（通常效果越小越好）</p>
+<p>供参考：</p>
+<p><a href="https://zhuanlan.zhihu.com/p/50757421">https://zhuanlan.zhihu.com/p/50757421</a></p>
+<p><a href="https://zhuanlan.zhihu.com/p/206470186">https://zhuanlan.zhihu.com/p/206470186</a></p>
+<p>见表格：</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/15.png" class="">
+
+<h3 id="隐写抗性"><a href="#隐写抗性" class="headerlink" title="隐写抗性"></a>隐写抗性</h3><p>​        文章给出了隐写抗性评估的比较结果。LSB是一种传统的使用固定原理的隐写方法，无法抵抗任何干扰。我们发现VisCode在调整亮度、应用旋转和JPEG压缩方面的性能接近于DeepSteg，因为这三种操作应用于所有像素的变化。而水印将局部变化应用于图像，这可能会破坏图像的重要特征。在这种情况下，VisCode通过在不敏感区域中嵌入信息而胜过DeepSteg。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/16.png" class="">
+
+<h3 id="时间性能"><a href="#时间性能" class="headerlink" title="时间性能"></a>时间性能</h3><p>我们评估了不同尺度的输入下VisCode系统的时间性能。</p>
+<img src="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AVisCode-Embedding-Information-in-Visualization-Images-using/17.png" class="">
+
+<p>x轴表示输入<strong>文本的位数</strong>，Y轴表示编码阶段或解码阶段的<strong>平均时间(秒)<strong>。不同颜色的线条代表输入图表图像的</strong>不同分辨率</strong>。</p>
+]]></content>
+      <categories>
+        <category>论文笔记</category>
+      </categories>
+  </entry>
+</search>

