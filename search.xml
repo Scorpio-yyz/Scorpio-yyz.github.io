@@ -1,43 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>RSNA 2023 腹部创伤检测 分割数据集预处理部分</title>
-    <url>/2023/09/22/RSNA%202023%20%E8%85%B9%E9%83%A8%E5%88%9B%E4%BC%A4%E6%A3%80%E6%B5%8B%20%E5%88%86%E5%89%B2%E6%95%B0%E6%8D%AE%E9%9B%86%E9%A2%84%E5%A4%84%E7%90%86%E9%83%A8%E5%88%86/</url>
-    <content><![CDATA[<h1 id="RSNA-2023-腹部创伤检测-分割数据集预处理部分"><a href="#RSNA-2023-腹部创伤检测-分割数据集预处理部分" class="headerlink" title="RSNA 2023 腹部创伤检测 分割数据集预处理部分"></a>RSNA 2023 腹部创伤检测 分割数据集预处理部分</h1><h2 id="腹部创伤检测数据集简介"><a href="#腹部创伤检测数据集简介" class="headerlink" title="腹部创伤检测数据集简介"></a>腹部创伤检测数据集简介</h2><p>该数据集共有460G大小，目录如下：</p>
-<img src="/2023/09/22/RSNA%202023%20%E8%85%B9%E9%83%A8%E5%88%9B%E4%BC%A4%E6%A3%80%E6%B5%8B%20%E5%88%86%E5%89%B2%E6%95%B0%E6%8D%AE%E9%9B%86%E9%A2%84%E5%A4%84%E7%90%86%E9%83%A8%E5%88%86/1.png" class="">
-
-<h2 id="segmentation"><a href="#segmentation" class="headerlink" title="segmentation"></a>segmentation</h2><p>官方提供的一些患者的器官分割标签，其中的id是系列id。为了方便，下载别人制作的分割数据集。</p>
-<img src="/2023/09/22/RSNA%202023%20%E8%85%B9%E9%83%A8%E5%88%9B%E4%BC%A4%E6%A3%80%E6%B5%8B%20%E5%88%86%E5%89%B2%E6%95%B0%E6%8D%AE%E9%9B%86%E9%A2%84%E5%A4%84%E7%90%86%E9%83%A8%E5%88%86/2.png" class="" title="image-20230922104258135">
-
-<p>每个分割标签用”患者id_系列id“分开，里面是.nii(NIFTI)文件。</p>
-<img src="/2023/09/22/RSNA%202023%20%E8%85%B9%E9%83%A8%E5%88%9B%E4%BC%A4%E6%A3%80%E6%B5%8B%20%E5%88%86%E5%89%B2%E6%95%B0%E6%8D%AE%E9%9B%86%E9%A2%84%E5%A4%84%E7%90%86%E9%83%A8%E5%88%86/3.png" class="">
-
-<p>我们只需要左上角的切片，因为模型的输入只有这个角度的。我们去该患者id的系列id原数据集下即可看到相应的CT文件夹。</p>
-<img src="/2023/09/22/RSNA%202023%20%E8%85%B9%E9%83%A8%E5%88%9B%E4%BC%A4%E6%A3%80%E6%B5%8B%20%E5%88%86%E5%89%B2%E6%95%B0%E6%8D%AE%E9%9B%86%E9%A2%84%E5%A4%84%E7%90%86%E9%83%A8%E5%88%86/4.png" class="" title="image-20230922105109407">
-
-<p>由于nii文件有多个方向的切片，而我们只要x方向的，所以通过SimpleITK库进行切片处理，得到z方向的png图片。</p>
-<h2 id="处理分割标签nii文件为png图片"><a href="#处理分割标签nii文件为png图片" class="headerlink" title="处理分割标签nii文件为png图片"></a>处理分割标签nii文件为png图片</h2><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> imageio</span><br><span class="line"><span class="keyword">import</span> nibabel <span class="keyword">as</span> nib</span><br><span class="line"><span class="keyword">import</span> SimpleITK <span class="keyword">as</span> sitk</span><br><span class="line"><span class="keyword">import</span> pydicom</span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    filepath = <span class="string">&#x27;segregate_data/&#x27;</span></span><br><span class="line">    filename = os.listdir(filepath)</span><br><span class="line">    slice_trans = []</span><br><span class="line">    <span class="keyword">for</span> f <span class="keyword">in</span> filename:</span><br><span class="line">        img_path = os.path.join(filepath, f)</span><br><span class="line">        img = nib.load(img_path)</span><br><span class="line">        <span class="comment">#加载nii文件的相关信息</span></span><br><span class="line">        img_data = sitk.ReadImage(img_path)</span><br><span class="line">        <span class="comment">#读取nii文件为Image格式</span></span><br><span class="line">        img_fdata = sitk.GetArrayFromImage(img_data)</span><br><span class="line">        <span class="comment">#将Image文件转化为np矩阵，size为（）</span></span><br><span class="line">        fname = f.replace(<span class="string">&#x27;.nii&#x27;</span>, <span class="string">&quot;&quot;</span>)</span><br><span class="line">        <span class="comment">#nii文件名去除后缀即新建文件夹的名字</span></span><br><span class="line">        imgfile = <span class="string">&quot;./segregate_data_png&quot;</span></span><br><span class="line">        img_f_path = os.path.join(imgfile, fname)</span><br><span class="line">        os.mkdir(img_f_path)</span><br><span class="line">        <span class="comment">#建立同名文件夹</span></span><br><span class="line"></span><br><span class="line">        (x, y, z) = img.shape</span><br><span class="line">        <span class="built_in">print</span>(z)</span><br><span class="line">        <span class="comment">#nii文件会有xyz三轴，这里主要取z轴切片</span></span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(z):</span><br><span class="line">            silce = img_fdata[i, :, :]</span><br><span class="line">            <span class="comment">#读取该轴切片</span></span><br><span class="line">            imageio.imwrite(os.path.join(img_f_path, <span class="string">&#x27;&#123;&#125;.png&#x27;</span>.<span class="built_in">format</span>(i + <span class="number">1</span>)), silce)</span><br><span class="line">            <span class="comment">#写入该同名文件夹下</span></span><br></pre></td></tr></table></figure>
-
-<p>上述代码，将分割数据集下的每一个nii文件转为一整个文件夹下的png图片。图片上不同像素值对应着不同的器官，后续更新会解析相应的像素值对应何种器官。</p>
-<img src="/2023/09/22/RSNA%202023%20%E8%85%B9%E9%83%A8%E5%88%9B%E4%BC%A4%E6%A3%80%E6%B5%8B%20%E5%88%86%E5%89%B2%E6%95%B0%E6%8D%AE%E9%9B%86%E9%A2%84%E5%A4%84%E7%90%86%E9%83%A8%E5%88%86/5.png" class="">
-
-<p>注：有些分割标签图像看起来黑乎乎一片什么都没有，但其实只是标签很暗，可以通过拉高曝光，对比度等方式来查看。</p>
-<img src="/2023/09/22/RSNA%202023%20%E8%85%B9%E9%83%A8%E5%88%9B%E4%BC%A4%E6%A3%80%E6%B5%8B%20%E5%88%86%E5%89%B2%E6%95%B0%E6%8D%AE%E9%9B%86%E9%A2%84%E5%A4%84%E7%90%86%E9%83%A8%E5%88%86/6.png" class="">
-
-<h2 id="读取每个dcm为张量作为分割网络的输入"><a href="#读取每个dcm为张量作为分割网络的输入" class="headerlink" title="读取每个dcm为张量作为分割网络的输入"></a>读取每个dcm为张量作为分割网络的输入</h2><p>png图像是8位图像，而dcm图像是12位图像。</p>
-<p>png取值范围是0-255，dcm是0-4096。如果强行将dcm转化为png，则会有很大信息损失。如果后续需要进行多种图像增强的手段进行处理，不如不进行转化，直接读取一整个12位图像。</p>
-<p>下图是读取一个dcm图像为矩阵，并以图像形式输出。</p>
-<img src="/2023/09/22/RSNA%202023%20%E8%85%B9%E9%83%A8%E5%88%9B%E4%BC%A4%E6%A3%80%E6%B5%8B%20%E5%88%86%E5%89%B2%E6%95%B0%E6%8D%AE%E9%9B%86%E9%A2%84%E5%A4%84%E7%90%86%E9%83%A8%E5%88%86/7.png" class="" title="image-20230922160911648">
-
-<p>下图是该dcm图像以专业CT软件查看的结果，会发现细节和亮度都有很大差别，上图明显更加模糊，不利于网络进行器官区域分割。如果直接读取dcm为矩阵，这样每一个元素都是无损失地存储在矩阵中，最后对每一个元素除以4096来归一化，从而得到一个2d的tensor作为分割网络的输入。</p>
-<img src="/8.png" alt="image-20230922163207618" style="zoom:50%;" />
-
-]]></content>
-      <categories>
-        <category>Kaggle</category>
-      </categories>
-  </entry>
-  <entry>
     <title>RSNA 2023 腹部创伤检测 分类数据集预处理</title>
     <url>/2023/09/28/RSNA-2023-%E8%85%B9%E9%83%A8%E5%88%9B%E4%BC%A4%E6%A3%80%E6%B5%8B-%E5%88%86%E7%B1%BB%E6%95%B0%E6%8D%AE%E9%9B%86%E9%A2%84%E5%A4%84%E7%90%86/</url>
     <content><![CDATA[<h1 id="RSNA-2023-腹部创伤检测-分类数据集预处理"><a href="#RSNA-2023-腹部创伤检测-分类数据集预处理" class="headerlink" title="RSNA 2023 腹部创伤检测 分类数据集预处理"></a>RSNA 2023 腹部创伤检测 分类数据集预处理</h1><p>对于一个患者的CT系列图像，我们往往只需要腹部CT图像即可，因此，为了减少数据的输入规模和筛选有用的CT切片。我们需要进行器官分割，得到至少含有肝、脾、肾、肠的CT切片。</p>
@@ -97,90 +60,6 @@
       </categories>
   </entry>
   <entry>
-    <title>Deep_Template-Based_Watermarking 论文笔记</title>
-    <url>/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/</url>
-    <content><![CDATA[<h1 id="基于深度模板的数字水印"><a href="#基于深度模板的数字水印" class="headerlink" title="基于深度模板的数字水印"></a>基于深度模板的数字水印</h1><h2 id="传统基于模板的数字水印"><a href="#传统基于模板的数字水印" class="headerlink" title="传统基于模板的数字水印"></a>传统基于模板的数字水印</h2><p>基于模板的数字水印是传统水印算法的一个重要分支，与其他类型相比，具有更高的嵌入效率。模板是专门设计出来的带有一些统计特征的模式，用来携带水印和定位水印信息的。</p>
-<p>嵌入过程是将模板叠加到图像的空间域中来执行。</p>
-<p>关于空间域：又称图像空间(image space)。由图像像元组成的空间。在图像空间中以长度(距离)为自变量直接对像元值进行处理称为空间域处理。</p>
-<ul>
-<li>以时间作为变量所进行的研究就是时域</li>
-<li>以频率作为变量所进行的研究就是频域</li>
-<li>以空间坐标作为变量进行的研究就是空间域</li>
-<li>以波数作为变量所进行的研究称为波数域</li>
-</ul>
-<p>在深度学习之前，特征提取过程主要是通过一系列图像处理操作来完成的，如边缘检测、SIFT特征提取等。但这种的特征提取能力有限，无法抵御严重的失真。因此，这些传统方法的鲁棒性都不够好。为了提高鲁棒性，唯一可能的方法是使用更强的模板模式，但这将严重牺牲视觉质量。</p>
-<h2 id="提取程序的框架"><a href="#提取程序的框架" class="headerlink" title="提取程序的框架"></a>提取程序的框架</h2><p>主要由两个模块构成：目标水印模块和辅助定位模块</p>
-<h3 id="目标水印模块"><a href="#目标水印模块" class="headerlink" title="目标水印模块"></a>目标水印模块</h3><p>对于一个给定的目标水印序列，首先通过循环冗余码CRC（<a href="https://www.jianshu.com/p/7f4fd7f62de2%EF%BC%89%E5%92%8CBCH%E7%A0%81%EF%BC%88https://zhuanlan.zhihu.com/p/95909150?utm_source=wechat_session%EF%BC%89%E5%AF%B9%E5%85%B6%E8%BF%9B%E8%A1%8C%E7%BC%96%E7%A0%81%EF%BC%8C%E7%94%9F%E6%88%90%E5%85%B7%E6%9C%89%E7%BA%A0%E9%94%99%E8%83%BD%E5%8A%9B%E7%9A%84%E6%B6%88%E6%81%AF%E4%BD%8D%E7%9F%A9%E9%98%B5%E3%80%82">https://www.jianshu.com/p/7f4fd7f62de2）和BCH码（https://zhuanlan.zhihu.com/p/95909150?utm_source=wechat_session）对其进行编码，生成具有纠错能力的消息位矩阵。</a></p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/1.png" class="">
-
-<p>在基于模板的水印算法中，位‘0/1’用不同的图案表示。最终的水印模板是根据矩阵W放置相应的‘0/1’图案组成的。</p>
-<p>我们提出了一套基于人类视觉系统特性的模板生成准则（HVS）</p>
-<ol>
-<li><p>由于“<strong>倾斜效应</strong>”，相同的修改像素量下，倾斜方向的图像比水平方向和垂直方向的图像产生的变化感知更小。</p>
-</li>
-<li><p><strong>JPEG压缩</strong>对<strong>高频</strong>分量的影响较大，对低频影响较小，所以模板需要将信息更多的集中在低频，抵抗JPEG压缩的影响</p>
-</li>
-<li><p>由于传输过程中的<strong>采样操作</strong>，改变了模板的<strong>连通域</strong>。为了保证特征的完整性，至少要在模板中存在一个较大的连通域，这样采样操作才不会擦除所有的特征。</p>
-<p>图像的连通域：是指图像中具有相同或相似像素值并且位置相邻的像素组成的区域。</p>
-<img src="/2.png" style="zoom:50%;" /></li>
-<li><p>人眼对亮度梯度的变化十分敏感。所以我们的模板应该避免显著的亮度变化。</p>
-</li>
-</ol>
-<p>我们设计了32*32的模板</p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/5.png" class="">
-
-<p>用下面两种形式来表示0和1</p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/3.png" class="">
-
-<p>倾斜的区域设计满足要求1。</p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/4.png" class="">
-
-<p>傅里叶变换后，发现能量明显集中在低频区域满足要求2。</p>
-<p>中间有较大的联通区域，满足要求3。</p>
-<p>以灰色亮度为低，相邻模板区域之间都是以灰色相连，无论是灰色-&gt;白色，还是灰色-&gt;黑色，变化都比较顺滑，满足要求4。</p>
-<h3 id="定位模块生成"><a href="#定位模块生成" class="headerlink" title="定位模块生成"></a>定位模块生成</h3><p>于水印单元的位置和大小会受到裁剪和缩放畸变的影响，因此在提取过程中需要对水印模板进行定位和调整大小，这些都需要定位模块的参与。当定位模板与完整的水印单元成固定比例时，我们可以根据定位模板检测到的变换来恢复水印模板的原始状态。</p>
-<p>我们在图像中反复嵌入4组完整的水印，以抵抗剪切攻击（在图像受到裁剪操作时希望总有一个幸存下来）。并设置定位模板的大小为水印模板大小的1/4（图像的1/16）。</p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/6.png" class="">
-
-<p>我们生成一幅均值为0，方差为0.01的高斯噪声图像，记为S0。再在S0上做三个对称的翻转操作。</p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/7.png" class="">
-
-<p>四组水印模板，就需要四组定位模板。</p>
-<h3 id="总体过程"><a href="#总体过程" class="headerlink" title="总体过程"></a>总体过程</h3><img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/9.png" class="">
-
-<p>由于人眼对蓝色和红色的敏感度低于绿色，所以嵌入到红色通道和蓝色通道中。</p>
-<h2 id="提取算法流程"><a href="#提取算法流程" class="headerlink" title="提取算法流程"></a>提取算法流程</h2><img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/10.png" class="">
-
-<p>先对图像进行透视矫正：</p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/11.png" class="">
-
-<p>再寻找红色通道的横纵对称轴来定位和恢复水印。以列为例：</p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/12.png" class="">
-
-<p>以第j列为分界线，分成了j1、j2和j3三个区域。比较j1和j2的相似度。取一个使左右相似度最高的j列来作为列对称轴。行也如此。</p>
-<h3 id="两阶段的提取网络"><a href="#两阶段的提取网络" class="headerlink" title="两阶段的提取网络"></a>两阶段的提取网络</h3><p>提取部分使用深度学习的方式，有两个阶段的提取网络，一个是辅助增强子网络用以恢复扭曲的图像，一个分类子网络对每个比特模式进行分类。</p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/13.png" class="">
-
-<p>我们希望辅助增强子网络能学习逆畸变过程。使用Unet结构</p>
-<p>关于Unet：<a href="https://blog.csdn.net/l2181265/article/details/87735610">https://blog.csdn.net/l2181265/article/details/87735610</a></p>
-<p>Unet的结构是先编码（下采用）再解码（上采样）的<strong>U形结构</strong>，保持输入和输出大小一样。</p>
-<p>关于通道数和卷积的关系：<a href="https://zhuanlan.zhihu.com/p/251068800">https://zhuanlan.zhihu.com/p/251068800</a></p>
-<p>这里先用16个卷积核将1通道图像输出成16通道。再用4个卷积层进行下采样（每次采样时通道数翻倍，长宽减半，所以存在两个卷积核），得到4*4的一个特征映射，再使用一个额外的卷积层得到一个全局的1*1的特征块，并反复连接到4*4的特征映射上得到一个128通道的4*4的特征块。再通过上采样过程，恢复成和输出一样。</p>
-<p>分类子网络是一个二分类器，判断该32*32单元是表示1还是0。</p>
-<p>损失函数：</p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/14.png" class="">
-
-<p>CE：交叉熵。<a href="https://zhuanlan.zhihu.com/p/35709485">https://zhuanlan.zhihu.com/p/35709485</a></p>
-<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/15.png" class="">
-
-
-
-]]></content>
-      <categories>
-        <category>论文笔记</category>
-      </categories>
-  </entry>
-  <entry>
     <title>无线DOS之取消验证洪水攻击</title>
     <url>/2021/12/07/%E6%97%A0%E7%BA%BFDOS%E4%B9%8B%E5%8F%96%E6%B6%88%E9%AA%8C%E8%AF%81%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB/</url>
     <content><![CDATA[<h1 id="攻击原理"><a href="#攻击原理" class="headerlink" title="攻击原理"></a>攻击原理</h1><p>​    取消验证洪水攻击，全程为De-authenticationFloodAttack,简称为Deauth攻击。首先，攻击者通过扫描周围的WIFI网络，获取WIFI站点的SSID。然后扫描连接周围连接该网络的设备。最后，对周边网络进行抓包（嗅探），寻找要攻击的WIFI站点和连接该站点的设备，以获取的包头信息重新构造一个取消验证包，发给连接设备。设备会被欺骗，从而取消对AP的连接。</p>
@@ -230,6 +109,43 @@
 ]]></content>
       <categories>
         <category>软件安全</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>RSNA 2023 腹部创伤检测 分割数据集预处理部分</title>
+    <url>/2023/09/22/RSNA%202023%20%E8%85%B9%E9%83%A8%E5%88%9B%E4%BC%A4%E6%A3%80%E6%B5%8B%20%E5%88%86%E5%89%B2%E6%95%B0%E6%8D%AE%E9%9B%86%E9%A2%84%E5%A4%84%E7%90%86%E9%83%A8%E5%88%86/</url>
+    <content><![CDATA[<h1 id="RSNA-2023-腹部创伤检测-分割数据集预处理部分"><a href="#RSNA-2023-腹部创伤检测-分割数据集预处理部分" class="headerlink" title="RSNA 2023 腹部创伤检测 分割数据集预处理部分"></a>RSNA 2023 腹部创伤检测 分割数据集预处理部分</h1><h2 id="腹部创伤检测数据集简介"><a href="#腹部创伤检测数据集简介" class="headerlink" title="腹部创伤检测数据集简介"></a>腹部创伤检测数据集简介</h2><p>该数据集共有460G大小，目录如下：</p>
+<img src="/2023/09/22/RSNA%202023%20%E8%85%B9%E9%83%A8%E5%88%9B%E4%BC%A4%E6%A3%80%E6%B5%8B%20%E5%88%86%E5%89%B2%E6%95%B0%E6%8D%AE%E9%9B%86%E9%A2%84%E5%A4%84%E7%90%86%E9%83%A8%E5%88%86/1.png" class="">
+
+<h2 id="segmentation"><a href="#segmentation" class="headerlink" title="segmentation"></a>segmentation</h2><p>官方提供的一些患者的器官分割标签，其中的id是系列id。为了方便，下载别人制作的分割数据集。</p>
+<img src="/2023/09/22/RSNA%202023%20%E8%85%B9%E9%83%A8%E5%88%9B%E4%BC%A4%E6%A3%80%E6%B5%8B%20%E5%88%86%E5%89%B2%E6%95%B0%E6%8D%AE%E9%9B%86%E9%A2%84%E5%A4%84%E7%90%86%E9%83%A8%E5%88%86/2.png" class="" title="image-20230922104258135">
+
+<p>每个分割标签用”患者id_系列id“分开，里面是.nii(NIFTI)文件。</p>
+<img src="/2023/09/22/RSNA%202023%20%E8%85%B9%E9%83%A8%E5%88%9B%E4%BC%A4%E6%A3%80%E6%B5%8B%20%E5%88%86%E5%89%B2%E6%95%B0%E6%8D%AE%E9%9B%86%E9%A2%84%E5%A4%84%E7%90%86%E9%83%A8%E5%88%86/3.png" class="">
+
+<p>我们只需要左上角的切片，因为模型的输入只有这个角度的。我们去该患者id的系列id原数据集下即可看到相应的CT文件夹。</p>
+<img src="/2023/09/22/RSNA%202023%20%E8%85%B9%E9%83%A8%E5%88%9B%E4%BC%A4%E6%A3%80%E6%B5%8B%20%E5%88%86%E5%89%B2%E6%95%B0%E6%8D%AE%E9%9B%86%E9%A2%84%E5%A4%84%E7%90%86%E9%83%A8%E5%88%86/4.png" class="" title="image-20230922105109407">
+
+<p>由于nii文件有多个方向的切片，而我们只要x方向的，所以通过SimpleITK库进行切片处理，得到z方向的png图片。</p>
+<h2 id="处理分割标签nii文件为png图片"><a href="#处理分割标签nii文件为png图片" class="headerlink" title="处理分割标签nii文件为png图片"></a>处理分割标签nii文件为png图片</h2><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> imageio</span><br><span class="line"><span class="keyword">import</span> nibabel <span class="keyword">as</span> nib</span><br><span class="line"><span class="keyword">import</span> SimpleITK <span class="keyword">as</span> sitk</span><br><span class="line"><span class="keyword">import</span> pydicom</span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    filepath = <span class="string">&#x27;segregate_data/&#x27;</span></span><br><span class="line">    filename = os.listdir(filepath)</span><br><span class="line">    slice_trans = []</span><br><span class="line">    <span class="keyword">for</span> f <span class="keyword">in</span> filename:</span><br><span class="line">        img_path = os.path.join(filepath, f)</span><br><span class="line">        img = nib.load(img_path)</span><br><span class="line">        <span class="comment">#加载nii文件的相关信息</span></span><br><span class="line">        img_data = sitk.ReadImage(img_path)</span><br><span class="line">        <span class="comment">#读取nii文件为Image格式</span></span><br><span class="line">        img_fdata = sitk.GetArrayFromImage(img_data)</span><br><span class="line">        <span class="comment">#将Image文件转化为np矩阵，size为（）</span></span><br><span class="line">        fname = f.replace(<span class="string">&#x27;.nii&#x27;</span>, <span class="string">&quot;&quot;</span>)</span><br><span class="line">        <span class="comment">#nii文件名去除后缀即新建文件夹的名字</span></span><br><span class="line">        imgfile = <span class="string">&quot;./segregate_data_png&quot;</span></span><br><span class="line">        img_f_path = os.path.join(imgfile, fname)</span><br><span class="line">        os.mkdir(img_f_path)</span><br><span class="line">        <span class="comment">#建立同名文件夹</span></span><br><span class="line"></span><br><span class="line">        (x, y, z) = img.shape</span><br><span class="line">        <span class="built_in">print</span>(z)</span><br><span class="line">        <span class="comment">#nii文件会有xyz三轴，这里主要取z轴切片</span></span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(z):</span><br><span class="line">            silce = img_fdata[i, :, :]</span><br><span class="line">            <span class="comment">#读取该轴切片</span></span><br><span class="line">            imageio.imwrite(os.path.join(img_f_path, <span class="string">&#x27;&#123;&#125;.png&#x27;</span>.<span class="built_in">format</span>(i + <span class="number">1</span>)), silce)</span><br><span class="line">            <span class="comment">#写入该同名文件夹下</span></span><br></pre></td></tr></table></figure>
+
+<p>上述代码，将分割数据集下的每一个nii文件转为一整个文件夹下的png图片。图片上不同像素值对应着不同的器官，后续更新会解析相应的像素值对应何种器官。</p>
+<img src="/2023/09/22/RSNA%202023%20%E8%85%B9%E9%83%A8%E5%88%9B%E4%BC%A4%E6%A3%80%E6%B5%8B%20%E5%88%86%E5%89%B2%E6%95%B0%E6%8D%AE%E9%9B%86%E9%A2%84%E5%A4%84%E7%90%86%E9%83%A8%E5%88%86/5.png" class="">
+
+<p>注：有些分割标签图像看起来黑乎乎一片什么都没有，但其实只是标签很暗，可以通过拉高曝光，对比度等方式来查看。</p>
+<img src="/2023/09/22/RSNA%202023%20%E8%85%B9%E9%83%A8%E5%88%9B%E4%BC%A4%E6%A3%80%E6%B5%8B%20%E5%88%86%E5%89%B2%E6%95%B0%E6%8D%AE%E9%9B%86%E9%A2%84%E5%A4%84%E7%90%86%E9%83%A8%E5%88%86/6.png" class="">
+
+<h2 id="读取每个dcm为张量作为分割网络的输入"><a href="#读取每个dcm为张量作为分割网络的输入" class="headerlink" title="读取每个dcm为张量作为分割网络的输入"></a>读取每个dcm为张量作为分割网络的输入</h2><p>png图像是8位图像，而dcm图像是12位图像。</p>
+<p>png取值范围是0-255，dcm是0-4096。如果强行将dcm转化为png，则会有很大信息损失。如果后续需要进行多种图像增强的手段进行处理，不如不进行转化，直接读取一整个12位图像。</p>
+<p>下图是读取一个dcm图像为矩阵，并以图像形式输出。</p>
+<img src="/2023/09/22/RSNA%202023%20%E8%85%B9%E9%83%A8%E5%88%9B%E4%BC%A4%E6%A3%80%E6%B5%8B%20%E5%88%86%E5%89%B2%E6%95%B0%E6%8D%AE%E9%9B%86%E9%A2%84%E5%A4%84%E7%90%86%E9%83%A8%E5%88%86/7.png" class="" title="image-20230922160911648">
+
+<p>下图是该dcm图像以专业CT软件查看的结果，会发现细节和亮度都有很大差别，上图明显更加模糊，不利于网络进行器官区域分割。如果直接读取dcm为矩阵，这样每一个元素都是无损失地存储在矩阵中，最后对每一个元素除以4096来归一化，从而得到一个2d的tensor作为分割网络的输入。</p>
+<img src="/8.png" alt="image-20230922163207618" style="zoom:50%;" />
+
+]]></content>
+      <categories>
+        <category>Kaggle</category>
       </categories>
   </entry>
   <entry>
@@ -462,6 +378,90 @@
 <li>抗噪能力弱，拍摄环境稍微恶劣一点，定位精度就会显著下降，完全不抵抗JPEG压缩。</li>
 <li>恢复正确率非常依赖定位网络的发挥，参照第一点，恶劣拍摄环境下信息恢复效果差。</li>
 </ol>
+]]></content>
+      <categories>
+        <category>论文笔记</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Deep_Template-Based_Watermarking 论文笔记</title>
+    <url>/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/</url>
+    <content><![CDATA[<h1 id="基于深度模板的数字水印"><a href="#基于深度模板的数字水印" class="headerlink" title="基于深度模板的数字水印"></a>基于深度模板的数字水印</h1><h2 id="传统基于模板的数字水印"><a href="#传统基于模板的数字水印" class="headerlink" title="传统基于模板的数字水印"></a>传统基于模板的数字水印</h2><p>基于模板的数字水印是传统水印算法的一个重要分支，与其他类型相比，具有更高的嵌入效率。模板是专门设计出来的带有一些统计特征的模式，用来携带水印和定位水印信息的。</p>
+<p>嵌入过程是将模板叠加到图像的空间域中来执行。</p>
+<p>关于空间域：又称图像空间(image space)。由图像像元组成的空间。在图像空间中以长度(距离)为自变量直接对像元值进行处理称为空间域处理。</p>
+<ul>
+<li>以时间作为变量所进行的研究就是时域</li>
+<li>以频率作为变量所进行的研究就是频域</li>
+<li>以空间坐标作为变量进行的研究就是空间域</li>
+<li>以波数作为变量所进行的研究称为波数域</li>
+</ul>
+<p>在深度学习之前，特征提取过程主要是通过一系列图像处理操作来完成的，如边缘检测、SIFT特征提取等。但这种的特征提取能力有限，无法抵御严重的失真。因此，这些传统方法的鲁棒性都不够好。为了提高鲁棒性，唯一可能的方法是使用更强的模板模式，但这将严重牺牲视觉质量。</p>
+<h2 id="提取程序的框架"><a href="#提取程序的框架" class="headerlink" title="提取程序的框架"></a>提取程序的框架</h2><p>主要由两个模块构成：目标水印模块和辅助定位模块</p>
+<h3 id="目标水印模块"><a href="#目标水印模块" class="headerlink" title="目标水印模块"></a>目标水印模块</h3><p>对于一个给定的目标水印序列，首先通过循环冗余码CRC（<a href="https://www.jianshu.com/p/7f4fd7f62de2%EF%BC%89%E5%92%8CBCH%E7%A0%81%EF%BC%88https://zhuanlan.zhihu.com/p/95909150?utm_source=wechat_session%EF%BC%89%E5%AF%B9%E5%85%B6%E8%BF%9B%E8%A1%8C%E7%BC%96%E7%A0%81%EF%BC%8C%E7%94%9F%E6%88%90%E5%85%B7%E6%9C%89%E7%BA%A0%E9%94%99%E8%83%BD%E5%8A%9B%E7%9A%84%E6%B6%88%E6%81%AF%E4%BD%8D%E7%9F%A9%E9%98%B5%E3%80%82">https://www.jianshu.com/p/7f4fd7f62de2）和BCH码（https://zhuanlan.zhihu.com/p/95909150?utm_source=wechat_session）对其进行编码，生成具有纠错能力的消息位矩阵。</a></p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/1.png" class="">
+
+<p>在基于模板的水印算法中，位‘0/1’用不同的图案表示。最终的水印模板是根据矩阵W放置相应的‘0/1’图案组成的。</p>
+<p>我们提出了一套基于人类视觉系统特性的模板生成准则（HVS）</p>
+<ol>
+<li><p>由于“<strong>倾斜效应</strong>”，相同的修改像素量下，倾斜方向的图像比水平方向和垂直方向的图像产生的变化感知更小。</p>
+</li>
+<li><p><strong>JPEG压缩</strong>对<strong>高频</strong>分量的影响较大，对低频影响较小，所以模板需要将信息更多的集中在低频，抵抗JPEG压缩的影响</p>
+</li>
+<li><p>由于传输过程中的<strong>采样操作</strong>，改变了模板的<strong>连通域</strong>。为了保证特征的完整性，至少要在模板中存在一个较大的连通域，这样采样操作才不会擦除所有的特征。</p>
+<p>图像的连通域：是指图像中具有相同或相似像素值并且位置相邻的像素组成的区域。</p>
+<img src="/2.png" style="zoom:50%;" /></li>
+<li><p>人眼对亮度梯度的变化十分敏感。所以我们的模板应该避免显著的亮度变化。</p>
+</li>
+</ol>
+<p>我们设计了32*32的模板</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/5.png" class="">
+
+<p>用下面两种形式来表示0和1</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/3.png" class="">
+
+<p>倾斜的区域设计满足要求1。</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/4.png" class="">
+
+<p>傅里叶变换后，发现能量明显集中在低频区域满足要求2。</p>
+<p>中间有较大的联通区域，满足要求3。</p>
+<p>以灰色亮度为低，相邻模板区域之间都是以灰色相连，无论是灰色-&gt;白色，还是灰色-&gt;黑色，变化都比较顺滑，满足要求4。</p>
+<h3 id="定位模块生成"><a href="#定位模块生成" class="headerlink" title="定位模块生成"></a>定位模块生成</h3><p>于水印单元的位置和大小会受到裁剪和缩放畸变的影响，因此在提取过程中需要对水印模板进行定位和调整大小，这些都需要定位模块的参与。当定位模板与完整的水印单元成固定比例时，我们可以根据定位模板检测到的变换来恢复水印模板的原始状态。</p>
+<p>我们在图像中反复嵌入4组完整的水印，以抵抗剪切攻击（在图像受到裁剪操作时希望总有一个幸存下来）。并设置定位模板的大小为水印模板大小的1/4（图像的1/16）。</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/6.png" class="">
+
+<p>我们生成一幅均值为0，方差为0.01的高斯噪声图像，记为S0。再在S0上做三个对称的翻转操作。</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/7.png" class="">
+
+<p>四组水印模板，就需要四组定位模板。</p>
+<h3 id="总体过程"><a href="#总体过程" class="headerlink" title="总体过程"></a>总体过程</h3><img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/9.png" class="">
+
+<p>由于人眼对蓝色和红色的敏感度低于绿色，所以嵌入到红色通道和蓝色通道中。</p>
+<h2 id="提取算法流程"><a href="#提取算法流程" class="headerlink" title="提取算法流程"></a>提取算法流程</h2><img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/10.png" class="">
+
+<p>先对图像进行透视矫正：</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/11.png" class="">
+
+<p>再寻找红色通道的横纵对称轴来定位和恢复水印。以列为例：</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/12.png" class="">
+
+<p>以第j列为分界线，分成了j1、j2和j3三个区域。比较j1和j2的相似度。取一个使左右相似度最高的j列来作为列对称轴。行也如此。</p>
+<h3 id="两阶段的提取网络"><a href="#两阶段的提取网络" class="headerlink" title="两阶段的提取网络"></a>两阶段的提取网络</h3><p>提取部分使用深度学习的方式，有两个阶段的提取网络，一个是辅助增强子网络用以恢复扭曲的图像，一个分类子网络对每个比特模式进行分类。</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/13.png" class="">
+
+<p>我们希望辅助增强子网络能学习逆畸变过程。使用Unet结构</p>
+<p>关于Unet：<a href="https://blog.csdn.net/l2181265/article/details/87735610">https://blog.csdn.net/l2181265/article/details/87735610</a></p>
+<p>Unet的结构是先编码（下采用）再解码（上采样）的<strong>U形结构</strong>，保持输入和输出大小一样。</p>
+<p>关于通道数和卷积的关系：<a href="https://zhuanlan.zhihu.com/p/251068800">https://zhuanlan.zhihu.com/p/251068800</a></p>
+<p>这里先用16个卷积核将1通道图像输出成16通道。再用4个卷积层进行下采样（每次采样时通道数翻倍，长宽减半，所以存在两个卷积核），得到4*4的一个特征映射，再使用一个额外的卷积层得到一个全局的1*1的特征块，并反复连接到4*4的特征映射上得到一个128通道的4*4的特征块。再通过上采样过程，恢复成和输出一样。</p>
+<p>分类子网络是一个二分类器，判断该32*32单元是表示1还是0。</p>
+<p>损失函数：</p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/14.png" class="">
+
+<p>CE：交叉熵。<a href="https://zhuanlan.zhihu.com/p/35709485">https://zhuanlan.zhihu.com/p/35709485</a></p>
+<img src="/2021/12/25/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ADeep-Template-Based-Watermarking/15.png" class="">
+
+
+
 ]]></content>
       <categories>
         <category>论文笔记</category>
