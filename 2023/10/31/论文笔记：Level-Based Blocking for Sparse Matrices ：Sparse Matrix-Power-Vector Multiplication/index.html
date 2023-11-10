@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+  
+
+    <head>
+      <meta charset="utf-8" />
+        
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>Level-Based Blocking for Sparse Matrices ：Sparse Matrix-Power-Vector Multiplication 论文笔记 |  Scorpio-yyz</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/favicon.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css"
+      />
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      <canvas class="fireworks"></canvas>
+      <style>
+        .fireworks {
+          position: fixed;
+          left: 0;
+          top: 0;
+          z-index: 99999;
+          pointer-events: none;
+        }
+      </style>
+      
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-论文笔记：Level-Based Blocking for Sparse Matrices ：Sparse Matrix-Power-Vector Multiplication"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Level-Based Blocking for Sparse Matrices ：Sparse Matrix-Power-Vector Multiplication 论文笔记
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/" class="article-date">
+  <time datetime="2023-10-31T00:08:33.000Z" itemprop="datePublished">2023-10-31</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E5%B9%B6%E8%A1%8C%E7%AE%97%E6%B3%95%E8%AE%BE%E8%AE%A1/">并行算法设计</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> Word count:</span>
+            <span class="post-count">1.9k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> Reading time≈</span>
+            <span class="post-count">7 min</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="相关知识"><a href="#相关知识" class="headerlink" title="相关知识"></a>相关知识</h1><h2 id="稀疏矩阵向量乘（SpMV）和矩阵幂次（MPK）"><a href="#稀疏矩阵向量乘（SpMV）和矩阵幂次（MPK）" class="headerlink" title="稀疏矩阵向量乘（SpMV）和矩阵幂次（MPK）"></a>稀疏矩阵向量乘（SpMV）和矩阵幂次（MPK）</h2><p>稀疏矩阵：稀疏矩阵是指具有大部分元素为零的矩阵。相对于稠密矩阵，稀疏矩阵只存储那些非零元素，而将零元素省略掉，从而节约了存储空间。本文使用压缩行存储（CSR）格式。</p>
+<p>CSR包含三个数组（V，C，R）：</p>
+<ol>
+<li>Value，用来存储矩阵中非零元素的值</li>
+<li>COL_INDEX，第i个元素记录了V[i]元素的列数</li>
+<li>ROW_INDEX, 第i个元素记录了前i-1行包含的非零元素的数量。</li>
+</ol>
+<p>例：</p>
+<img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/1.png" class="">
+
+<p>​    假如我们想得到“30”的坐标位置，通过V得到index为2，通过COL_INDEX得到列数为1；</p>
+<p>​    又因为index=2∈[ROW_COL[1]=<strong>2</strong>,ROW_COL[2]=<strong>4</strong>)，所以行数为1。</p>
+<p>稀疏矩阵向量乘(SpMV)是科学、工程和数据分析中使用的各种计算算法的关键构建块。但SpMV内核在现代计算设备上的性能很差，主要原因如下：</p>
+<ol>
+<li><strong>非常规的内存访问</strong>（<em>irregular memory accesses</em>）；非零元素的位置是随机的</li>
+<li><strong>间接的内存查询</strong>（<em>indirect memory referencing</em>）；CSR的存储格式限制，查询是间接的</li>
+<li><strong>低算术强度</strong>（<em>low arithmetic intensity</em>）；计算受限于内存的读取，而不需要大量的算力。</li>
+</ol>
+<p>MPK（matrix power kernel）被如下定义：对于一个给定的稀疏矩阵A和一个稠密矩阵x，计算(A^p)*x直到Pm（P= 1，……，Pm）最大，并存储所有结果进行后续计算。我们定义Y(p) = (A^p)*x，且Y(0)=x。</p>
+<p>本文不进行SpMv算法的优化，但将视角看向了稀疏矩阵幂次（MPK）中多次SpMv算法调用的并行优化问题。通过扩展了递归的染色算法（RACE）框架，解决了多个SpMv调用之间的依赖关系。</p>
+<h2 id="设置一个MPK实验基准"><a href="#设置一个MPK实验基准" class="headerlink" title="设置一个MPK实验基准"></a>设置一个MPK实验基准</h2><p>使用标准的SpMv实现或库调用，来计算Pm序列。并以其最小值为基准与本文提出的优化MPK算法作比较。</p>
+<p>以下是基于CRS的MPK算法计算A^(Pm)*x。这个代码用C++复现应当不难。</p>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">double :: val[Nnz]	#存储A的非零元素值</span><br><span class="line">int :: col [Nnz],rowPtr[Nr+<span class="number">1</span>]	#列索引和行指针</span><br><span class="line">#参考CSR存储格式</span><br><span class="line">double :: y[Nr,<span class="number">0</span>:pm]	#存储输入和输出向量，y(<span class="number">0</span>)是输入向量，y(pm)是输出向量</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> p = <span class="number">1</span>:pm do</span><br><span class="line">	y[:,p] = SpMV(y[:,p<span class="number">-1</span>],<span class="number">0</span>,Nr<span class="number">-1</span>)</span><br><span class="line">	#计算y(p) = A * y（p<span class="number">-1</span>）</span><br><span class="line"><span class="keyword">end</span> <span class="keyword">for</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">SpMV</span><span class="params">(double :: in_rhs[Nr], int :: row_s,int :: row_e)</span></span></span><br><span class="line">	double :: out_lhs[Nr]</span><br><span class="line">	<span class="keyword">for</span> rouw=row_s:row_e do</span><br><span class="line">		double :: tmp = <span class="number">0</span></span><br><span class="line">		<span class="keyword">for</span> idx=rowPtr[row]:(rowPtr[row＋<span class="number">1</span>]<span class="number">-1</span>) do	#遍历第idx行的所有非零元素</span><br><span class="line">			tmp＋= val[idac] * in_rhs[col[idc]]		#计算改行非零元素与输入向量的乘积</span><br><span class="line">		<span class="keyword">end</span> <span class="keyword">for</span></span><br><span class="line">		out_lhs[row] = tmp							#更新向量该行的值</span><br><span class="line">    <span class="keyword">end</span> <span class="keyword">for</span></span><br><span class="line">	<span class="keyword">return</span> out_lhs</span><br><span class="line"><span class="keyword">end</span> <span class="function"><span class="keyword">function</span></span></span><br></pre></td></tr></table></figure>
+
+<h2 id="MPK执行时的分块策略"><a href="#MPK执行时的分块策略" class="headerlink" title="MPK执行时的分块策略"></a>MPK执行时的分块策略</h2><p>由于重复应用相同的稀疏矩阵A，通过重用缓存中的矩阵块来进行多次幂次的连续计算，从而减少数据传输，从而有很大的性能优化潜力。</p>
+<p>MPK算法优化的基础思想在于：为适合缓存的A的部分块计算SpMv，然后在其子集上继续计算下一个幂集的结果，这样就在连续更新的过程中确定了空间结构的依赖。为了演示该依赖关系，使用一个简单的带状稀疏矩阵来进行演示。</p>
+<img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/2.png" class="" title="image-20231109152453366">
+
+<p>(a)是一个简单带状稀疏矩阵，其中黄色区域为适合缓存的部分块，用以计算Ax的相应部分。</p>
+<img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/3.png" class="" title="image-20231109152654175">
+
+<p>(b)当我们计算下一个幂级的部分，即(A^2)x= A*(Ax)的蓝色区域，为了保证多级SpMv步骤之间具有依赖关系，蓝色区域必须是黄色区域的子集。</p>
+<p>推广到任意稀疏矩阵，I为A矩阵是行索引的部分子集（对应带状矩阵的黄色区域），C(I)为A矩阵I行的非零元素的列索引集合。</p>
+<img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/4.png" class="" title="image-20231109154651581">
+
+<p>当进行完当前幂级的计算后，即：</p>
+<img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/6.png" class="" title="image-20231110095210839">
+
+<p>计算下一幂级，可以应用下一个SpMv操作在K集合上，K为I的子集。</p>
+<p>对于这种方法，I集合的选择对于性能的影响是决定性的：</p>
+<ol>
+<li>对于I和C(I)相关联的矩阵元素必须适合缓存。</li>
+<li>必须存储为高空间局部性和时间局部性的结构，而无需间接访问</li>
+<li>MPK涉及的I行索引和C(I)列索引要尽可能相近，我的理解（对于行多，列少的矩阵，可以更好的并行计算MPK）。</li>
+</ol>
+<p>解决这些问题的是将SpMv操作视为RACE着色方案中做的图遍历问题BFS。</p>
+<h2 id="基于等级分块的MPK"><a href="#基于等级分块的MPK" class="headerlink" title="基于等级分块的MPK"></a>基于等级分块的MPK</h2><h3 id="该方案的图论定义"><a href="#该方案的图论定义" class="headerlink" title="该方案的图论定义"></a>该方案的图论定义</h3><ul>
+<li>G = （V，E），V(G)代表顶点集合，E (G)代表边集合，对于一个稀疏矩阵，V代表所有的行/列索引（对称矩阵，无向图，该方法也适用于非对称矩阵），对于E则是如下定义：<ul>
+<li><img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/9.png" class="" title="image-20231110101116205"></li>
+</ul>
+</li>
+<li>邻域。顶点u的邻域（与u有边相邻的顶点集合）是N(u)，定义如下：<ul>
+<li><img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/7.png" class="" title="image-20231109172200743"></li>
+</ul>
+</li>
+<li>子图H，包含G部分顶点，与这些顶点相对应的边。</li>
+</ul>
+<p>现在在这个图的定义下，当前幂级的计算，即更新u∈V(G)的值：</p>
+<img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/5.png" class="" title="image-20231110095517849">
+
+<p>理解：对于一个顶点u，即第u行，所有u 的邻域即第u行第v列有非零元素，与向量v行相乘再相加就得到了下一幂级的该顶点值。</p>
+<p>使用一个简单带状稀疏矩阵来说明上述图的结构：</p>
+<img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/8.png" class="" title="image-20231110100612083">
+
+<h3 id="等级"><a href="#等级" class="headerlink" title="等级"></a>等级</h3><p>基于BFS进行等级划分，流程如下：</p>
+<img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/10.png" class="" title="image-20231110101521490">
+
+<p>这种排列增加了相邻顶点之间的数据局部性，因此这种排列被广泛用于基于SpMv的算法预处理步骤。</p>
+<p>处理结束后，我们可以进一步划分基于等级的邻域划分，即：</p>
+<img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/11.png" class="" title="image-20231110101922730">
+
+<p>这个公式定义了不同幂级下各个等级之间的SpMv计算的依赖关系。</p>
+<h3 id="基于等级分块的MPK-1"><a href="#基于等级分块的MPK-1" class="headerlink" title="基于等级分块的MPK"></a>基于等级分块的MPK</h3><p>接下来，我们引入LP图来可视化MPK计算中各等级分块之间的依赖关系，LP图中x轴为等级分块（0-14），y轴为幂级（1-5）。</p>
+<ol>
+<li> 对角线内，即i+p=const，都从下到上遍历</li>
+<li>对角线间，从左到右遍历</li>
+</ol>
+<img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/12.png" class="" title="image-20231110112922681">
+
+<p>比如计算p=4时L(6)的值，需要先计算p=3时L(5)、L(6)、L(7)的值，如上图的第38次计算需要用到第27、32、37次的计算结果。</p>
+<p>对于上述算法的缓存局部性由所给等级的重用距离来表示，在LP图中即该次计算在下一次何时才会重用（即同一级别上的两个计算之间的执行步数）。</p>
+<p>由于幂级的数量级比等级的数量级小得多，所以可以假设最大重用距离为pm+1（最大幂级+1），也就是两次计算之间的数据都可以由缓存提供，除了第一个幂级需要访问主存，之后的计算都在缓存内进行，这将速度提升了一倍。</p>
+<h3 id="算法实现"><a href="#算法实现" class="headerlink" title="算法实现"></a>算法实现</h3><figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> d=<span class="number">1</span>:Lm+Pm<span class="number">-1</span> do #遍历每一个对角线 d=<span class="built_in">i</span>+p</span><br><span class="line">	#以上LG图为例</span><br><span class="line">	P_start = <span class="built_in">max</span>(<span class="number">1</span>,d-(Lm<span class="number">-1</span>))	#特殊情况，例<span class="number">65</span>、<span class="number">69</span>、<span class="number">72</span>、<span class="number">74</span></span><br><span class="line">	P_end = <span class="built_in">min</span>(d,Pm)			#特殊情况，例<span class="number">0</span>、<span class="number">2</span>、<span class="number">5</span>、<span class="number">9</span></span><br><span class="line">	#其他都是<span class="number">1</span><span class="number">-5</span></span><br><span class="line">	#计算对角线从右下到左上</span><br><span class="line">	<span class="keyword">for</span> P=P_start:P_end do #遍历每一个对角线上的顶点</span><br><span class="line">		#以<span class="number">38</span>点为例，d=<span class="number">10</span>，p=<span class="number">4</span></span><br><span class="line">		<span class="built_in">i</span> = (d - p) #因为 d=<span class="built_in">i</span>+p</span><br><span class="line">		#<span class="built_in">i</span>=<span class="number">6</span></span><br><span class="line">		y[p] = SpMv(y[p<span class="number">-1</span>],level_ptr[<span class="built_in">i</span>],level_ptr[<span class="built_in">i</span>+<span class="number">1</span>]<span class="number">-1</span>)</span><br><span class="line">		#level_ptr存储了每个等级的第一个顶点条目</span><br><span class="line">	<span class="keyword">end</span> <span class="keyword">for</span></span><br><span class="line"><span class="keyword">end</span> <span class="keyword">for</span></span><br></pre></td></tr></table></figure>
+
+ 
+      <!-- reward -->
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>Copyright： </strong>
+          
+          Copyright is owned by the author. For commercial reprints, please contact the author for authorization. For non-commercial reprints, please indicate the source.
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+    
+      <a href="/2023/09/28/RSNA-2023-%E8%85%B9%E9%83%A8%E5%88%9B%E4%BC%A4%E6%A3%80%E6%B5%8B-%E5%88%86%E7%B1%BB%E6%95%B0%E6%8D%AE%E9%9B%86%E9%A2%84%E5%A4%84%E7%90%86/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">RSNA 2023 腹部创伤检测 分类数据集预处理</div>
+      </a>
+    
+  </nav>
+
+   
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2020-2023
+        <i class="ri-heart-fill heart_icon"></i> YYz
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>Visitors:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>Views:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer-side.svg" alt="Scorpio-yyz"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/wechat.jpg">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<script src="https://cdn.jsdelivr.net/npm/animejs@latest/anime.min.js"></script>
+
+<script src="/js/clickBoom1.js"></script>
+ 
+<!-- ClickBoom2 -->
+
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    
+
+  </div>
+</body>
+
+</html>
