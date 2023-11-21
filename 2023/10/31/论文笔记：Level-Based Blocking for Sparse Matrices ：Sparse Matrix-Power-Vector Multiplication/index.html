@@ -96,7 +96,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">2.8k</span>
+            <span class="post-count">3.1k</span>
         </span>
     </span>
 
@@ -105,7 +105,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">10 min</span>
+            <span class="post-count">11 min</span>
         </span>
     </span>
 </div>
@@ -217,10 +217,22 @@
 <p>对于矩阵pwtk，我们可以看到经典的内存带宽饱和模式的性能增长曲线（橙色线和蓝色线）。这两个曲线均达到了基准最小内存代码平衡即Bc=6 byte/flop。</p>
 <p>注：算第一幂级是需要访问主存，并将计算结果放入缓存中，所以这一部分是应当和基准实验性能相当。</p>
 <p>当Pm=4，LB算法的Bc只有1.5 byte/flop，符合预期，优化了接近四倍。但是问题是尽管优化了主存代码平衡，但性能依旧有评价，性能并没有随着核心的增加而上升，甚至出现了倒退的情况。</p>
-<p>通过进一步分析，与基准实验对比，LB MPK(Pm=4)的指令在OpenMP的内存屏障中（用于线程同步），有大部分在自旋等待循环中执行，这表明当核心数增加以后，线程之间的同步是一个潜在的性能瓶颈。</p>
-<p>对于矩阵Flan_1565显示出相反的特征。LB MPK(Pm=1)与基准实验结果一致，LB MPK(Pm=4)则是实现了1.2倍的性能提升，从主存代码平衡Bc可以看出，基准与，LB MPK(Pm=4)也基本上是1.2倍的性能提升。这时候，限制性能的是矩阵结果起着决定性作用。在划分等级的时候，有的等级可能包含20000行（每行大概75个非零），而有的可能很小，这就导致了LB MPK(Pm=4)在核心增多的情况下会出现不规则的性能收缩。</p>
+<p>通过进一步分析，与基准实验对比，LB MPK(Pm=4)的指令在OpenMP的内存屏障中（用于线程同步），有大部分在自旋等待循环中执行，这表明当核心数增加以后，线程之间的同步是一个潜在的性能瓶颈。一个等级的工作负载太低，因此无法忽略同步成本。</p>
+<p>对于矩阵Flan_1565显示出相反的特征。LB MPK(Pm=1)与基准实验结果一致，LB MPK(Pm=4)则是实现了1.2倍的性能提升，从主存代码平衡Bc可以看出，基准与LB MPK(Pm=4)也基本上是1.2倍的性能提升。这时候，限制性能的是矩阵本身。在划分等级的时候，有的等级可能包含20000行（每行大概75个非零），而有的可能很小，这就导致了LB MPK(Pm=4)在核心增多的情况下会出现不规则的性能收缩。</p>
 <p>基于以上两个问题，本文提出了三个改进方法，前两个目标是通过形成更大的“等级组”并通过点对点同步代替昂贵的屏障来减低同步成本。第三种优化方法使用递归地分割这些矩阵来提高缓存利用效率，从而提高矩阵中具有主导或最为庞大的部分的性能。</p>
-<h3 id="等级组（LG）"><a href="#等级组（LG）" class="headerlink" title="等级组（LG）"></a>等级组（LG）</h3> 
+<h3 id="等级组（LG）"><a href="#等级组（LG）" class="headerlink" title="等级组（LG）"></a>等级组（LG）</h3><p>等级组的思想是：连续的级别被聚合成所谓的等级组。并行执行在每个组内进行，并且所有线程在每个组计算之后进行同步。</p>
+<p>由上文可知，如果我们假设等级组的大小相似，那么缓存必须能装下相邻的等级组，否则就会需要向主存寻找数据。如下：</p>
+<img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/14.png" class="" title="image-20231120145417283">
+
+<p>Nnz(T(i))表示第i个等级组T(i)所具有的非零元素数，(Pm+1表示最大重用距离，12 bytes为设定的每个非零条目的大小。）</p>
+<p>C为缓存大小，f为安全稀疏（设置为0.5，用以考虑来自数据结构的额外流量和缓存替换策略的低效率）</p>
+<p>该限制下，T(i)的设置以i=0为例：</p>
+<img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/15.png" class="" title="image-20231121170129569">
+
+<p>j为最大使得该等式成立的值。</p>
+<p>明显，该过程使得等级组的数量远小于等级的数量，大大减少了同步的次数。同时由于缓存限制条件的存在，主存代码平衡仅略有增加。</p>
+<p>下图展示等级组的划分和同步过程：</p>
+ 
       <!-- reward -->
       
     </div>
