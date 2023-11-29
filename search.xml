@@ -873,7 +873,20 @@
 <img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/21.png" class="" title="image-20231128091955189">
 
 <p>通过递归计算的方法，相对于没有使用递归的方法，性能提升了1.4倍。通过计算Bc可以看出，其主存代码平衡减少到了一半。这些数据表明该方法对于主存的访问不再是瓶颈。</p>
-<h3 id="性能分析"><a href="#性能分析" class="headerlink" title="性能分析"></a>性能分析</h3>]]></content>
+<h3 id="性能分析"><a href="#性能分析" class="headerlink" title="性能分析"></a>性能分析</h3><p>实验设置了三个平台，Intel Cascade Lake(CLX)、Intel Ice Lake(ICL)、 Intel Ice Lake(ROME)。实验结果如下图:</p>
+<img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/22.png" class="" title="image-20231129213823208">
+
+<img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/23.png" class="" title="image-20231129213844147">
+
+<img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/24.png" class="" title="image-20231129213908898">
+
+<p>x轴表示矩阵对应的名称，并且按矩阵大小从左向右排序。虚线表示各自硬件的总缓存大小，可以看到在虚线左侧的矩阵在Baseline上性能好，这是因为矩阵能全部放入缓存中，不受主存读取速度的限制。而当缓存不足以装下整个矩阵时，RACE算法的优越性就体现出来了。</p>
+<p>对于a、b两个图，可以看到在最大的缓存内矩阵，RACE算法就已经超过Baseline了。这里有两个原因：</p>
+<ol>
+<li>与AMD ROME相比，英特尔架构上L3和主存带宽之间的过渡是渐进的。如下图，CS表示cache size：</li>
+</ol>
+<img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/25.png" class="" title="image-20231129214528666">
+]]></content>
       <categories>
         <category>并行算法设计</category>
       </categories>
