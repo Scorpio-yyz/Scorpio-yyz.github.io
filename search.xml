@@ -806,7 +806,7 @@
 </ol>
 <img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/13.png" class="">
 
-<p>对于矩阵pwtk，我们可以看到经典的内存带宽饱和模式的性能增长曲线（橙色线和蓝色线）。这两个曲线均达到了基准最小内存代码平衡即Bc=6 byte/flop。</p>
+<p>对于矩阵pwtk，我们可以看到经典的内存带宽饱和模式的性能增长曲线（橙色线和蓝色线）。这两个曲线均达到了Baseline最小内存代码平衡即Bc=6 byte/flop。</p>
 <p>注：算第一幂级是需要访问主存，并将计算结果放入缓存中，所以这一部分是应当和基准实验性能相当。</p>
 <p>当Pm=4，LB算法的Bc只有1.5 byte/flop，符合预期，优化了接近四倍。但是问题是尽管优化了主存代码平衡，但性能依旧有评价，性能并没有随着核心的增加而上升，甚至出现了倒退的情况。</p>
 <p>通过进一步分析，与基准实验对比，LB MPK(Pm=4)的指令在OpenMP的内存屏障中（用于线程同步），有大部分在自旋等待循环中执行，这表明当核心数增加以后，线程之间的同步是一个潜在的性能瓶颈。一个等级的工作负载太低，因此无法忽略同步成本。</p>
@@ -881,11 +881,32 @@
 <img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/24.png" class="" title="image-20231129213908898">
 
 <p>x轴表示矩阵对应的名称，并且按矩阵大小从左向右排序。虚线表示各自硬件的总缓存大小，可以看到在虚线左侧的矩阵在Baseline上性能好，这是因为矩阵能全部放入缓存中，不受主存读取速度的限制。而当缓存不足以装下整个矩阵时，RACE算法的优越性就体现出来了。</p>
-<p>对于a、b两个图，可以看到在最大的缓存内矩阵，RACE算法就已经超过Baseline了。这里有两个原因：</p>
+<p>对于a、d两个图，可以看到在最大的缓存内矩阵，RACE算法就已经超过Baseline了。这里有两个原因：</p>
 <ol>
-<li>与AMD ROME相比，英特尔架构上L3和主存带宽之间的过渡是渐进的。如下图，CS表示cache size：</li>
+<li><p>与AMD ROME相比，英特尔架构上L3和主存带宽之间的过渡是渐进的，即使工作集超过缓存大小也会存在较明显的缓存效应。如下图，CS表示cache size：</p>
+<img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/25.png" class="" title="image-20231129214528666"></li>
+<li><p>对于a图缓存内矩阵的性能都超过了Baseline，而g图缓存内性能都不如Baseline。这里一方面是L2和L3缓存在英特尔架构上几乎具有相似的大小，而RACE的分块主要针对L3和L2缓存的组合，因此对于适合L3缓存的较小矩阵，与Baseline相比，可以减少L2的流量。另一方面对于ROME来说，L3缓存比L2缓存大得多，因此分块只在L3缓存中执行，因此对于L3缓存中的矩阵匹配没有任何好处。</p>
+<p>ps：不懂在说什么胡话。。。</p>
+</li>
 </ol>
-<img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/25.png" class="" title="image-20231129214528666">
+<p>对于内存驻留的情况，RACE在所有架构上都有这压倒性的优势，与Baseline相比，可以实现2-5倍的性能提升。这与b、e、h三张图展示的L2、L3和主存的流量情况相关。</p>
+<img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/26.png" class="" title="image-20231130105144867">
+
+<img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/27.png" class="" title="image-20231130105157266">
+
+<img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/28.png" class="" title="image-20231130105208725">
+
+<p>可以看出，在三个测试平台上，大多数情况下减少了主存的流量，并小于Baseline的最小内存代码平衡即Bc=6 byte/flop。因为主存流量的减少，RACE在ROME上实现了最高的速度，因为较大的L2和L3缓存使得对于主存的流量显著小于英特尔平台。</p>
+<p>我们观察到在ROME上平均加速为3.2倍，最大5倍。而在CLX和ICL上，平均加速1.6倍和1.9倍，最大加速为3.2倍和3倍。</p>
+<h3 id="预处理成本"><a href="#预处理成本" class="headerlink" title="预处理成本"></a>预处理成本</h3><p>已经分析完了RACE的性能，现在研究它的预处理开销。c、f、i中的图像显示了RACE对内存驻留情况下的预处理成本统计。预处理所需要的时间等效于SpMv操作的数量。</p>
+<img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/29.png" class="" title="image-20231130110709567">
+
+<img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/30.png" class="" title="image-20231130110721010">
+
+<img src="/2023/10/31/%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0%EF%BC%9ALevel-Based%20Blocking%20for%20Sparse%20Matrices%20%EF%BC%9ASparse%20Matrix-Power-Vector%20Multiplication/31.png" class="" title="image-20231130110730219">
+
+<p>在ROME上，对于大多数矩阵，预处理时间远低于40个SpMv的等效时间。而在英特尔系统上却要多不少。这是由于较小的缓存需要更多递归分组和计算。大部分预处理时间（大于百分之九十五）花在BFS的确定等级上。</p>
+<h3 id="总结和展望"><a href="#总结和展望" class="headerlink" title="总结和展望"></a>总结和展望</h3><p>在本文中，我们开发了一种基于级别的分块算法(RACE MPK)来提高稀疏矩阵幂向量乘法(MPK)的性能。RACE算法使用由BFS生成的等级，通过在连续的幂级计算中重用的矩阵条目来增加矩阵条目的时间局部性。引入了各种面向硬件的算法优化策略，如等级组LG、点对点同步和递归的分块方案，以进一步提高性能。最后对42个代表矩阵进行全面的性能分析表明，本文方法在现代Intel和AMD的cpu上的性能比标准MPK实现平均高出2倍和3.5倍。</p>
 ]]></content>
       <categories>
         <category>并行算法设计</category>
